@@ -4,4 +4,4 @@ echo "Running notectl installation test..."
 
 sleep 10000
 
-docker run --rm --entrypoint /opt/noteworthy/notectl/test-entrypoint.sh -v `pwd`/notectl:/opt/noteworthy/notectl python:3.8
+docker run --volumes-from jenkins --rm --entrypoint $WORKSPACE/notectl/test-entrypoint.sh python:3.8
