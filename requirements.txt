@@ -8,5 +8,12 @@ pytest==5.4.1
 six==1.14.0
 wcwidth==0.1.8
 
+
+
+# dev reqs
+ipython
+twine
+
+
 # to reload deps
 # pip install pytest
