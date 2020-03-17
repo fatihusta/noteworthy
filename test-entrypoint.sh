@@ -1,6 +1,6 @@
 #!/bin/bash
 
-cd /opt/noteworthy/notectl
+cd $WORKSPACE/notectl
 rm -rf build/ dist/
 python setup.py install
 

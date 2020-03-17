@@ -3,4 +3,4 @@
 echo "Running notectl installation test..."
 
 
-docker run --volumes-from jenkins --rm --entrypoint $WORKSPACE/notectl/test-entrypoint.sh python:3.8
+docker run --volumes-from jenkins -e WORKSPACE=$WORKSPACE --rm --entrypoint $WORKSPACE/notectl/test-entrypoint.sh python:3.8
