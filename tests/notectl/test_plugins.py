@@ -1,4 +1,5 @@
 from noteworthy.notectl import plugins
 
-def test_testing_works():
-    assert plugins.isTrue()
+def test_load_plugins():
+    loaded_plugins = plugins.load_plugins()
+    assert 'test_plugin' in loaded_plugins
