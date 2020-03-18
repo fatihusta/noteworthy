@@ -3,7 +3,7 @@
 cd $WORKSPACE/notectl
 rm -rf build/ dist/
 python setup.py install
-notectl
+notectl version
 
 cd plugins/test_plugin
 rm -rf build/ dist/
