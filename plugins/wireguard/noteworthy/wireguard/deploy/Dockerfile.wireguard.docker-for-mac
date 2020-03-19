@@ -1,0 +1,12 @@
+FROM linuxkit/kernel:4.9.184 AS ksrc
+FROM linuxkit/alpine:5fd4e83fea8bd04f21d1611d04c93d6ccaca785a AS build
+RUN apk add build-base perl bash git
+
+COPY --from=ksrc /kernel-dev.tar /
+
+RUN tar -xf /kernel-dev.tar
+
+RUN mkdir -p /lib/modules/4.9.184-linuxkit; mv /usr/src/linux-headers-4.9.184-linuxkit/ /usr/src/4.9.184-linuxkit; ln -s /usr/src/4.9.184-linuxkit /lib/modules/4.9.184-linuxkit/build
+RUN touch /lib/modules/4.9.184-linuxkit/modules.builtin
+RUN git clone https://git.zx2c4.com/wireguard-linux-compat; git clone https://git.zx2c4.com/wireguard-tools; make -C wireguard-linux-compat/src; make install -C wireguard-linux-compat/src; make -C wireguard-linux-compat/src; make install -C wireguard-linux-compat/src
+
