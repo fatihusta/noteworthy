@@ -6,7 +6,7 @@ from noteworthy.notectl.plugins import PluginManager
 
 class NoteworthyController(PluginManager):
 
-    version_string = '0.0.1'
+    version_string = '0.0.2'
 
     def version(self):
         print('''
