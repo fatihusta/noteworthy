@@ -8,7 +8,7 @@ class PluginManager:
 
     def _load_plugins(self):
         self.plugins = {
-            entry_point.name: entry_point.load()
+            entry_point.name: entry_point.load().Controller()
             for entry_point
             in pkg_resources.iter_entry_points(PluginManager.plugin_namespace)
         }
@@ -16,5 +16,5 @@ class PluginManager:
     def list_plugins(self):
         print('Installed plugins')
         print('-'*20)
-        [ print(f'{k}\t{v}') for k,v in self.plugins.items() ]
+        [ print(f'{k}') for k,v in self.plugins.items() ]
         print()

@@ -1,2 +1,5 @@
-def isTrue():
-    return True
+class TestPluginController:
+    pass
+
+
+Controller = TestPluginController
