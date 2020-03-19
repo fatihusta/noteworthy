@@ -13,10 +13,3 @@ for plugin in plugins/*/; do
 done
 
 pytest
-
-# Run tests for each plugin
-for plugin in plugins/*/; do
-    cd $plugin
-    pytest
-    cd -
-done
