@@ -8,7 +8,7 @@ from noteworthy.notectl.dispatch import NoteworthyController
 class NoteworthyCLI:
     def __init__(self):
         args = self.parse_args()
-        print(args)
+        #print(args)
         self.controller = NoteworthyController()
         self.controller.dispatch(args.command, args.action)
 

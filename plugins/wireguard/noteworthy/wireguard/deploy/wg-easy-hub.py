@@ -7,7 +7,7 @@ import sys
 
 import yaml
 
-from decentralabs import wg
+from noteworthy import wg_lib as wg
 
 
 def get_ssh_client_ip():
