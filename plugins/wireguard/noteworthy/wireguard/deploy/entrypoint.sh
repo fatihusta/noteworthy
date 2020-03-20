@@ -13,6 +13,8 @@ if [ ! -f "$FILE" ]; then
 
     # Create the wg-easy user
     adduser -s /usr/bin/wg-easy-hub.py -D wg-easy
+    echo "Setting password to: " $HUB_PASSWORD
+    echo -e "$HUB_PASSWORD\n$HUB_PASSWORD" |passwd wg-easy
 
     # sudo for netlink perms
     # because we want hub.py to init networking on first invocation from remote peer
