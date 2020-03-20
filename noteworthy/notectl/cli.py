@@ -2,25 +2,40 @@ import argparse
 import sys
 
 
-from noteworthy.notectl.dispatch import NoteworthyController
+from noteworthy.notectl import NoteworthyController
 
 
 class NoteworthyCLI:
-    def __init__(self):
-        args = self.parse_args()
-        print(args)
+    def __init__(self, arg_parser):
         self.controller = NoteworthyController()
-        self.controller.dispatch(args)
+        self.arg_parser = arg_parser
+        self.setup_argparse()
 
+    def dispatch(self):
+        '''Translate cli arguments into method invocations passing everything
+        we get from argparse as kwargs.
+        '''
+        args = self.args
+        if args.command in self.controller.plugins:
+            plugin = args.command
+            command = args.action
+            if not command:
+                command = 'help'
+            # instantiate the plugin
+            plugin = self.controller.plugins[plugin].Controller()
+            NoteworthyCLI._invoke_method(plugin, command, args.__dict__)
+            sys.exit(0)
+        NoteworthyCLI._invoke_method(self.controller, args.command, args.__dict__)
 
-    def parse_args(self):
-        arg_parser = argparse.ArgumentParser()
-        arg_parser.add_argument('command', nargs='?', default='help')
-        arg_parser.add_argument('action', nargs='?', default=None)
-        arg_parser.add_argument('--no-cache', action="store_true")
-        self.args = arg_parser.parse_known_args()
-        if self.args[0].command == 'help':
-            arg_parser.print_help()
-            sys.exit(1)
-        return self.args[0]
+    def setup_argparse(self):
+        for plugin, module in self.controller.plugins.items():
+            module.Controller.setup_argparse(self.arg_parser)
+        self.controller.setup_argparse(self.arg_parser)
+        self.args = self.arg_parser.parse_known_args()[0]
+        if self.args.debug:
+            print(self.args)
 
+    @staticmethod
+    def _invoke_method(target, method, kwargs):
+        method = getattr(target, method)
+        method(**kwargs)
