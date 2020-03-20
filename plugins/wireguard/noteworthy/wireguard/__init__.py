@@ -17,7 +17,7 @@ class WireGuardController:
         dockerfile_path=os.path.join(dir_path, 'deploy/')
         #TODO debug print(dockerfile_path)
         #TODO write image build to log directory to help with debugging
-        image = self.docker.images.build(path=dockerfile_path, tag='noteworthy-wireguard')
+        image = self.docker.images.build(path=dockerfile_path, tag='noteworthy-wireguard:latest', nocache=True)
         print('Done.')
         print()
     
@@ -29,7 +29,7 @@ class WireGuardController:
             sys.exit(1)
         # TODO make sure we meet default Linux password policy
         # TODO Allow user to select password or pubkey based auth
-        self.docker.containers.run('noteworthy-wireguard',
+        self.docker.containers.run('noteworthy-wireguard:latest',
         tty=True,
         stdin_open=True,
         environment=[f'HUB_PASSWORD={hub_pass}'],
