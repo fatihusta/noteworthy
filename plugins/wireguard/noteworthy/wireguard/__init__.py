@@ -17,7 +17,7 @@ class WireGuardController:
         dockerfile_path=os.path.join(dir_path, 'deploy/')
         #TODO debug print(dockerfile_path)
         #TODO write image build to log directory to help with debugging
-        image = self.docker.images.build(path=dockerfile_path, tag='noteworthy-wireguard:latest', nocache=True)
+        image = self.docker.images.build(path=dockerfile_path, tag='noteworthy-wireguard:latest')
         print('Done.')
         print()
     
