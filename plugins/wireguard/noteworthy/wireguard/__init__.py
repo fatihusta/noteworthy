@@ -11,17 +11,18 @@ class WireGuardController:
     def __init__(self):
         self.docker = docker.from_env()
 
-    def init(self):
+    def init(self, args=None):
         print('Building WireGuard container.')
         print('This may take a few minutes.')
         dockerfile_path=os.path.join(dir_path, 'deploy/')
         #TODO debug print(dockerfile_path)
         #TODO write image build to log directory to help with debugging
-        image = self.docker.images.build(path=dockerfile_path, tag='noteworthy-wireguard:latest')
+        image = self.docker.images.build(path=dockerfile_path, tag='noteworthy-wireguard:latest',
+        nocache=args.no_cache)
         print('Done.')
         print()
     
-    def start_hub(self):
+    def start_hub(self, args):
         hub_pass = getpass.getpass('Set hub password: ')
         hub_pass_confirm = getpass.getpass('Confirm hub password: ')
         if hub_pass != hub_pass_confirm:
@@ -38,8 +39,9 @@ class WireGuardController:
         ports={'22/tcp':None},
         volumes=['/opt/noteworthy/noteworth-wireguard/hub:/opt/noteworthy/noteworthy-wireguard/hub'],
         detach=True)
+        print('Hub started. It will run for 5 minutes then shutdown.')
 
-    def stop_hub(self):
+    def stop_hub(self, args):
         self.docker.containers.get('wg-easy-hub').stop()
 
 

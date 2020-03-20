@@ -15,6 +15,7 @@ if [ ! -f "$FILE" ]; then
     adduser -s /usr/bin/wg-easy-hub.py -D wg-easy
     echo "Setting password to: " $HUB_PASSWORD
     echo -e "$HUB_PASSWORD\n$HUB_PASSWORD" |passwd wg-easy
+    touch /home/wg-easy/.hushlogin
 
     # sudo for netlink perms
     # because we want hub.py to init networking on first invocation from remote peer
@@ -30,6 +31,6 @@ echo "Decentralabs 2020. All rights reverse engineered."
 /usr/sbin/sshd
 
 # Where the magic happens
-wg-easy.sh|wg-easy-set.py
+#wg-easy.sh|wg-easy-set.py
 
-tail -f /dev/null
+sleep 300

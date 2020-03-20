@@ -21,18 +21,21 @@ class NoteworthyController(PluginManager):
         print()
         print(f'Version: {self.version_string}')
     
-    def dispatch(self, command, *args, **kwargs):
+    def dispatch(self, args):
         '''Proxy method invocation to self and plugins
         '''
-        if command in self.plugins:
-            plugin = command
-            command = args[0]
+        if args.command in self.plugins:
+            plugin = args.command
+            command = args.action
             print(command)
-            NoteworthyController._invoke_method(self.plugins[plugin], command)
+            NoteworthyController._invoke_method(self.plugins[plugin], command, args)
             sys.exit(0)
-        NoteworthyController._invoke_method(self, command)
+        NoteworthyController._invoke_method(self, args.command, args)
 
     @staticmethod
-    def _invoke_method(target, method):
+    def _invoke_method(target, method, args=None):
         method = getattr(target, method)
-        method()
+        if args.action:
+            method(args)
+        else:
+            method()
