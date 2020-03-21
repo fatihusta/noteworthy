@@ -13,3 +13,14 @@ for plugin in plugins/*/; do
 done
 
 pytest
+
+# integration tests
+echo "Starting integration tests..."
+notectl wireguard start_hub
+notectl wireguard start_peer
+
+sleep 5
+
+docker exec wg-easy-hub ping -c 1 -W 1 10.0.0.2
+
+notectl wireguard stop wg-easy-hub wg-easy-peer
