@@ -22,6 +22,6 @@ notectl wireguard start_peer
 
 sleep 3
 
-docker exec wg-easy-hub ping -c 1 -W 1 10.0.0.2
+docker exec wg-easy-hub ping -c 5 -W 1 10.0.0.2
 
 notectl wireguard stop wg-easy-hub wg-easy-peer
