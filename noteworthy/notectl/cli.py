@@ -26,6 +26,8 @@ class NoteworthyCLI:
             plugin = self.controller.plugins[plugin].Controller()
             # use plugin arg parser to parse args
             plugin_args = plugin.sub_parser.parse_known_args(sys.argv[3:])[0]
+            if self.args.debug:
+                print(plugin_args)
             NoteworthyCLI._invoke_method(plugin, command, plugin_args.__dict__)
             sys.exit(0)
         NoteworthyCLI._invoke_method(self.controller, args.command, args.__dict__)

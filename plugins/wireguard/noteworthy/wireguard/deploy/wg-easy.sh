@@ -23,4 +23,6 @@ fi
 # or just complete WireGuard config to be copy and pasted into Windows/Mac desktop client
 
 # TODO Use SSH CA
-ssh -p 2222 -o StrictHostKeyChecking=no -i /home/wg-easy/.ssh/id_rsa wg-easy@$HUB_HOST $PEER_NAME $pubkey $overlay_ip
+#ssh -p 2222 -o StrictHostKeyChecking=no -i /home/wg-easy/.ssh/id_rsa wg-easy@$HUB_HOST $PEER_NAME $pubkey $overlay_ip
+
+ssh -o StrictHostKeyChecking=no -i /home/wg-easy/.ssh/id_rsa wg-easy@wg-easy-hub testpeer $(cat /tmp/private|wg pubkey) dynamic

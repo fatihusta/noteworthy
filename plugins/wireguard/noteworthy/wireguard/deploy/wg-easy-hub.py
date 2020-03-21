@@ -79,7 +79,7 @@ if not is_known(peer_name):
 # around hub initialization :(
 
 if not wg.is_configured('wg0'):
-    config = read_yaml_file('/home/wg-easy/config.yaml')
+    config = read_yaml_file('/opt/noteworthy/noteworthy-wireguard/config.yaml')
     hub_ip = get_ip_reservation()
     wg.genkey('/tmp/private')
     wg.wg_init('wg0', f'{hub_ip}/24', '/tmp/private')

@@ -6,6 +6,11 @@ if [ ! -f "$FILE" ]; then
     # Generate SSH host keys
     ssh-keygen -A
 
+    if [ -n "$HUB" ]
+    then
+        echo -e 'y\n' | ssh-keygen -f /opt/noteworthy/noteworthy-wireguard/hub/id_rsa -t rsa -N ''
+    fi
+
     # Optionally enable password login?
     # Set UsePAM yes so we can login with
     # a locked account without setting a password
@@ -30,7 +35,17 @@ fi
 echo "Decentralabs 2020. All rights reverse engineered."
 /usr/sbin/sshd
 
-# Where the magic happens
-#wg-easy.sh|wg-easy-set.py
+mkdir /home/wg-easy/.ssh
+cp /opt/noteworthy/noteworthy-wireguard/hub/id_rsa /home/wg-easy/.ssh/
+cp /opt/noteworthy/noteworthy-wireguard/hub/id_rsa.pub /home/wg-easy/.ssh/authorized_keys
 
-sleep 300
+chown -R wg-easy:wg-easy /home/wg-easy/.ssh
+
+# Where the magic happens
+if [ -z "$HUB" ]
+then
+    wg-easy.sh|wg-easy-set.py
+fi
+
+tail -f /dev/null
+#sleep 300

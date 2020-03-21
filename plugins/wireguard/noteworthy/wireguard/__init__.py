@@ -31,17 +31,19 @@ class WireGuardController(NoteworthyPlugin):
         print()
     
     def start_hub(self, **kwargs):
-        hub_pass = getpass.getpass('Set hub password: ')
-        hub_pass_confirm = getpass.getpass('Confirm hub password: ')
-        if hub_pass != hub_pass_confirm:
-            print('Passwords did not match! Please try again.')
-            sys.exit(1)
+        # hub_pass = getpass.getpass('Set hub password: ')
+        # hub_pass_confirm = getpass.getpass('Confirm hub password: ')
+        # if hub_pass != hub_pass_confirm:
+        #     print('Passwords did not match! Please try again.')
+        #     sys.exit(1)
         # TODO make sure we meet default Linux password policy
         # TODO Allow user to select password or pubkey based auth
         self.docker.containers.run('noteworthy-wireguard:latest',
         tty=True,
+        cap_add=['NET_ADMIN'],
+        network='noteworthy',
         stdin_open=True,
-        environment=[f'HUB_PASSWORD={hub_pass}'],
+        environment=['HUB=1'],
         name="wg-easy-hub",
         auto_remove=True,
         ports={'22/tcp':None},
@@ -49,8 +51,22 @@ class WireGuardController(NoteworthyPlugin):
         detach=True)
         print('Hub started. It will run for 5 minutes then shutdown.')
 
-    def stop_hub(self, **kwargs):
-        self.docker.containers.get('wg-easy-hub').stop()
+    def start_peer(self, **kwargs):
+        # TODO make sure we meet default Linux password policy
+        # TODO Allow user to select password or pubkey based auth
+        self.docker.containers.run('noteworthy-wireguard:latest',
+        tty=True,
+        cap_add=['NET_ADMIN'],
+        network='noteworthy',
+        stdin_open=True,
+        name="wg-easy-peer",
+        auto_remove=True,
+        volumes=['/opt/noteworthy/noteworth-wireguard/hub:/opt/noteworthy/noteworthy-wireguard/hub'],
+        detach=True)
+
+    def stop(self, **kwargs):
+        for container in kwargs['argument']:
+            self.docker.containers.get(container).stop()
 
     def join_hub(self, **kwargs):
         print(kwargs)
@@ -60,8 +76,9 @@ class WireGuardController(NoteworthyPlugin):
         print('''Usage: notectl wireguard <command>
     Available commands:
         build     ::: Build the WireGuard container
-        start_hub ::: Start the wg-easy hub (stops automatically after 5 minutes)
+        start_hub ::: Create a new hub (stops automatically after 5 minutes)
         stop_hub  ::: Stop the wg-easy hub
+        join_hub  ::: Join an existing hub
  ''')
 
     @classmethod
@@ -69,7 +86,7 @@ class WireGuardController(NoteworthyPlugin):
         super().setup_argparse(arg_parser)
         cls.sub_parser = argparse.ArgumentParser(conflict_handler='resolve',
         usage='notectl wireguard ')
-        cls.sub_parser.add_argument('argument', nargs='?', help='hostname of hub to join')
+        cls.sub_parser.add_argument('argument', nargs='*', help='hostname of hub to join')
         cls.sub_parser.add_argument('--no-cache', action="store_true", help="discard container\
  build cache when building WireGuard container.")
 
