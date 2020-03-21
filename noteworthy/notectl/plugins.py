@@ -1,3 +1,4 @@
+import argparse
 import pkg_resources
 
 class PluginManager:

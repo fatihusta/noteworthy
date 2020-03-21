@@ -15,6 +15,7 @@ class NoteworthyCLI:
         '''Translate cli arguments into method invocations passing everything
         we get from argparse as kwargs.
         '''
+        # use root arg_parser here
         args = self.args
         if args.command in self.controller.plugins:
             plugin = args.command
@@ -23,14 +24,16 @@ class NoteworthyCLI:
                 command = 'help'
             # instantiate the plugin
             plugin = self.controller.plugins[plugin].Controller()
-            NoteworthyCLI._invoke_method(plugin, command, args.__dict__)
+            # use plugin arg parser to parse args
+            plugin_args = plugin.sub_parser.parse_known_args(sys.argv[3:])[0]
+            NoteworthyCLI._invoke_method(plugin, command, plugin_args.__dict__)
             sys.exit(0)
         NoteworthyCLI._invoke_method(self.controller, args.command, args.__dict__)
 
     def setup_argparse(self):
+        self.controller.setup_argparse(self.arg_parser)
         for plugin, module in self.controller.plugins.items():
             module.Controller.setup_argparse(self.arg_parser)
-        self.controller.setup_argparse(self.arg_parser)
         self.args = self.arg_parser.parse_known_args()[0]
         if self.args.debug:
             print(self.args)

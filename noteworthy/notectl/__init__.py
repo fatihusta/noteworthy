@@ -22,8 +22,9 @@ class NoteworthyController:
         print(f'Version: {self.version_string}')
 
     def setup_argparse(self, arg_parser):
-        command_help = ','.join([plugin for plugin in self.plugins])
-        arg_parser.add_argument('command', nargs='?', default='help', help=command_help)
+        command_list = 'list_plugins, '
+        plugin_list = ', '.join([plugin for plugin in self.plugins])
+        arg_parser.add_argument('command', nargs='?', default='help', help=command_list + plugin_list)
         arg_parser.add_argument('action', nargs='?', default=None)
         arg_parser.add_argument('-d', '--debug', action='store_true', help='enable debugging output')
 

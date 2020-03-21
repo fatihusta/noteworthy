@@ -1,3 +1,4 @@
+import argparse
 import docker
 import os
 import sys
@@ -51,6 +52,9 @@ class WireGuardController(NoteworthyPlugin):
     def stop_hub(self, **kwargs):
         self.docker.containers.get('wg-easy-hub').stop()
 
+    def join_hub(self, **kwargs):
+        print(kwargs)
+        print(f"Joining hub {kwargs['argument']}")
 
     def help(self, **kwargs):
         print('''Usage: notectl wireguard <command>
@@ -63,7 +67,10 @@ class WireGuardController(NoteworthyPlugin):
     @classmethod
     def setup_argparse(cls, arg_parser):
         super().setup_argparse(arg_parser)
-        arg_parser.add_argument('--no-cache', action="store_true", help="discard container\
+        cls.sub_parser = argparse.ArgumentParser(conflict_handler='resolve',
+        usage='notectl wireguard ')
+        cls.sub_parser.add_argument('argument', nargs='?', help='hostname of hub to join')
+        cls.sub_parser.add_argument('--no-cache', action="store_true", help="discard container\
  build cache when building WireGuard container.")
 
 
