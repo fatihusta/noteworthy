@@ -11,3 +11,5 @@ for plugin in plugins/*/; do
     python setup.py install
     cd -
 done
+
+
