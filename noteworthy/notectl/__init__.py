@@ -28,3 +28,6 @@ class NoteworthyController:
         arg_parser.add_argument('action', nargs='?', default=None)
         arg_parser.add_argument('-d', '--debug', action='store_true', help='enable debugging output')
 
+
+    def get_installed_apps(self):
+        return [ p.Controller.DJANGO_APP_MODULE for name, p in self.plugins.items() if hasattr(p.Controller, 'DJANGO_APP_MODULE')]
