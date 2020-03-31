@@ -33,9 +33,9 @@ class NoteworthyCLI:
         NoteworthyCLI._invoke_method(self.controller, args.command, args.__dict__)
 
     def setup_argparse(self):
-        self.controller.setup_argparse(self.arg_parser)
-        for plugin, module in self.controller.plugins.items():
-            module.Controller.setup_argparse(self.arg_parser)
+        self.controller._setup_argparse(self.arg_parser)
+        for _, module in self.controller.plugins.items():
+            module.Controller._setup_argparse(self.arg_parser)
         self.args = self.arg_parser.parse_known_args()[0]
         if self.args.debug:
             print(self.args)
