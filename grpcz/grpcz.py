@@ -41,7 +41,7 @@ def grpcz_method(func):
     def wrapped(*args, **kwargs):
         # crazy hack to get the class
         cls = vars(sys.modules[func.__module__])[func.__qualname__.split('.')[0]]
-        if cls.grpcz_proxy:
+        if hasattr(cls, 'grpcz_proxy') and cls.grpcz_proxy:
             def proxy(*args, **kwargs):
                 return grpcz_pb2.GRPCZRequest(module_path=func.__qualname__, args=args[1:])
             return proxy(*args, **kwargs)
