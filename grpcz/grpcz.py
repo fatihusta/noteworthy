@@ -1,9 +1,21 @@
+from concurrent import futures
 import functools
 import inspect
 import sys
 
 
+import grpc
+
+
 import grpcz_pb2
+import grpcz_pb2_grpc
+
+
+class Dispatcher(grpcz_pb2_grpc.DispatchServicer):
+    def call(self, request, context):
+        ok, result = self.grpcz_server._call(request.module_path, *request.args)
+        return grpcz_pb2.GRPCZResponse(ok=ok, msg=result.encode())
+
 
 
 class GRPCZServer:
@@ -30,6 +42,16 @@ class GRPCZServer:
                 result = e
         return ok, result
 
+    def start(self, bind_to='localhost:8000'):
+        self.server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
+        dispatcher = Dispatcher()
+        dispatcher.grpcz_server = self
+        grpcz_pb2_grpc.add_DispatchServicer_to_server(dispatcher, self.server)
+        self.server.add_insecure_port(bind_to)
+        self.server.start()
+        self.server.wait_for_termination()
+
+
 def grpcz_method(func):
     '''
     Controller methods must be decorated with this function in order to be 
@@ -43,20 +65,10 @@ def grpcz_method(func):
         cls = vars(sys.modules[func.__module__])[func.__qualname__.split('.')[0]]
         if hasattr(cls, 'grpcz_proxy') and cls.grpcz_proxy:
             def proxy(*args, **kwargs):
-                return grpcz_pb2.GRPCZRequest(module_path=func.__qualname__, args=args[1:])
+                channel = grpc.insecure_channel('localhost:8000')
+                stub = grpcz_pb2_grpc.DispatchStub(channel)
+                result = stub.call(grpcz_pb2.GRPCZRequest(module_path=func.__qualname__, args=args[1:]))
+                return result
             return proxy(*args, **kwargs)
         return func(*args, **kwargs)
     return wrapped
-
-class TestController:
-
-
-    @grpcz_method
-    def sayHello(self, name, *args, **kwargs):
-        return f'Hello {name}'
-
-    @grpcz_method
-    def raiseIt(self, *args, **kwargs):
-        raise Exception('Some broken shit')
-
-    
