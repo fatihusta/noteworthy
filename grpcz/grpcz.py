@@ -1,5 +1,9 @@
 import functools
 import inspect
+import sys
+
+
+import grpcz_pb2
 
 
 class GRPCZServer:
@@ -10,7 +14,7 @@ class GRPCZServer:
         members = inspect.getmembers(controller, predicate=inspect.ismethod)
         for member in members:
             if hasattr(member[1], 'grpcz'):
-                module_path = f'{controller.grpcz_module_prefix}.{member[0]}'
+                module_path = f'{controller.__class__.__name__}.{member[0]}'
                 self.registered_modules[module_path] = member[1]
 
     def _call(self, module_path, *args, **kwargs):
@@ -27,15 +31,25 @@ class GRPCZServer:
         return ok, result
 
 def grpcz_method(func):
+    '''
+    Controller methods must be decorated with this function in order to be 
+    exposed via gRPC. We do this by annotating methods with the truthy boolean property `grpcz`
+    We also conditionally override the method in order to produce the stub version of the controller.
+    '''
     func.grpcz = True
     @functools.wraps(func)
     def wrapped(*args, **kwargs):
+        # crazy hack to get the class
+        cls = vars(sys.modules[func.__module__])[func.__qualname__.split('.')[0]]
+        if cls.grpcz_proxy:
+            def proxy(*args, **kwargs):
+                return grpcz_pb2.GRPCZRequest(module_path=func.__qualname__, args=args[1:])
+            return proxy(*args, **kwargs)
         return func(*args, **kwargs)
     return wrapped
 
 class TestController:
 
-    grpcz_module_prefix = 'tc'
 
     @grpcz_method
     def sayHello(self, name, *args, **kwargs):
