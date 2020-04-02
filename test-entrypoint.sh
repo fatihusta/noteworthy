@@ -1,6 +1,11 @@
 #!/bin/bash
 set -e
 
+cd $WORKSPACE/grpcz
+rm -rf build/ dist/
+python setup.py install
+cd -
+
 cd $WORKSPACE/notectl
 rm -rf build/ dist/
 python setup.py install
