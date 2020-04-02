@@ -82,8 +82,8 @@ class WireGuardController(NoteworthyPlugin):
  ''')
 
     @classmethod
-    def setup_argparse(cls, arg_parser):
-        super().setup_argparse(arg_parser)
+    def _setup_argparse(cls, arg_parser):
+        super()._setup_argparse(arg_parser)
         cls.sub_parser = argparse.ArgumentParser(conflict_handler='resolve',
         usage='notectl wireguard ')
         cls.sub_parser.add_argument('argument', nargs='*', help='hostname of hub to join')
