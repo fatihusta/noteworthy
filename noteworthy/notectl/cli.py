@@ -22,13 +22,17 @@ class NoteworthyCLI:
             command = args.action
             if not command:
                 command = 'help'
-            # instantiate the plugin
-            plugin = self.controller.plugins[plugin].Controller()
+            controller_cls = self.controller.plugins[plugin].Controller
             # use plugin arg parser to parse args
-            plugin_args = plugin.sub_parser.parse_known_args(sys.argv[3:])[0]
+            plugin_args = controller_cls.sub_parser.parse_known_args(sys.argv[3:])[0]
+            # instantiate the plugin
+            if hasattr(plugin_args, 'rpc'):
+                plugin_controller = controller_cls.get_grpc_stub()
+            else:
+                plugin_controller = controller_cls()
             if self.args.debug:
                 print(plugin_args)
-            NoteworthyCLI._invoke_method(plugin, command, plugin_args.__dict__)
+            NoteworthyCLI._invoke_method(plugin_controller, command, plugin_args.__dict__)
             sys.exit(0)
         NoteworthyCLI._invoke_method(self.controller, args.command, args.__dict__)
 

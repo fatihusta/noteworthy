@@ -12,10 +12,9 @@ class ReservationController(NoteworthyPlugin):
         pass
 
     @grpc_method
-    def reserve(self, domain, public_key):
-        domain = domain.decode()
-        print(domain)
-        print(public_key)
+    def reserve(self, **kwargs):
+        domain = kwargs['argument'][0].decode()
+        #public_key = kwargs['argument'][1].decode()
         return f'Successfully reserved {domain}'
 
     @classmethod
@@ -24,6 +23,7 @@ class ReservationController(NoteworthyPlugin):
         cls.sub_parser = argparse.ArgumentParser(conflict_handler='resolve',
         usage='notectl grpc')
         cls.sub_parser.add_argument('argument', nargs='*', help='hostname of hub to join')
+        cls.sub_parser.add_argument('--rpc', action='store_true', help='invoke command on remote host')
 
 
 Controller = ReservationController
