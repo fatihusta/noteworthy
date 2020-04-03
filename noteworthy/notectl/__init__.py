@@ -72,3 +72,7 @@ class NoteworthyController:
                 print(f'Service {plugin} started')
             except NotImplementedError:
                 pass
+
+        print('noteworthy finished booting!')
+        # TODO tail log file
+        os.system('tail -f /dev/null')
