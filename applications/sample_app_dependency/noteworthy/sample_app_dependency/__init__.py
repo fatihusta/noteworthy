@@ -2,9 +2,9 @@ from noteworthy.notectl.plugins import NoteworthyPlugin
 from grpcz import grpc_controller, grpc_method
 
 @grpc_controller
-class SampledBundleController(NoteworthyPlugin):
+class SampleAppDependencyController(NoteworthyPlugin):
 
-    app_name = 'noteworthy-sampled-bundle'
+    app_name = 'noteworthy-sample-app-dependency'
 
     def __init__(self):
         pass
@@ -22,4 +22,4 @@ class SampledBundleController(NoteworthyPlugin):
         return 'OK'
 
 
-Controller = SampledBundleController
+Controller = SampleAppDependencyController

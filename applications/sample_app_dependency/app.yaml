@@ -1,0 +1,3 @@
+app:     sample_app_dependency
+plugins:
+  - grpc

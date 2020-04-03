@@ -58,5 +58,5 @@ MANIFEST_TEXT = f'''app:     {app_name}
 plugins:
   - grpc
 '''
-with open(f'{app_name}/build-manifest.yaml', 'w') as f:
+with open(f'{app_name}/app.yaml', 'w') as f:
     f.write(MANIFEST_TEXT)

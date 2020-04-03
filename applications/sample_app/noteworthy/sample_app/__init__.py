@@ -1,7 +1,6 @@
 from noteworthy.notectl.plugins import NoteworthyPlugin
 from grpcz import grpc_controller, grpc_method
 
-
 @grpc_controller
 class SampleAppController(NoteworthyPlugin):
 

@@ -42,7 +42,7 @@ class PackageController(NoteworthyPlugin):
     def _collect_package(self, app_name, build_dir, collected_modules):
         package_path = f'{self.APP_DIR}/{app_name}'
         # get manifest for package
-        manifest_path = f'{package_path}/build-manifest.yaml'
+        manifest_path = f'{package_path}/app.yaml'
         print(f'Loading manifest {manifest_path} ...')
         try:
             with open(manifest_path, 'r') as f:

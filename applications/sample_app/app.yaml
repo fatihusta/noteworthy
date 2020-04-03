@@ -2,4 +2,4 @@ app:     sample_app
 plugins:
   - grpc
 bundle:
-  - sampled_bundle
+  - sample_app_dependency
