@@ -1,0 +1,12 @@
+app: launcher
+plugins:
+  - docker
+  - wireguard
+  - nginx
+  - http_service
+  - app_manager
+stubs:
+  - reservation
+  - link
+bundle:
+  - messenger
