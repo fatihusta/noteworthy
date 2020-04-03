@@ -9,6 +9,8 @@ six==1.14.0
 wcwidth==0.1.8
 grpcio
 grpcio-tools
+PyYAML
+django
 
 
 # dev reqs
