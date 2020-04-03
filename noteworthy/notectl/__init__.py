@@ -1,5 +1,6 @@
 import os
 from grpc_tools import protoc
+import yaml
 
 from noteworthy.notectl.plugins import PluginManager
 from noteworthy.notectl.ascii import NOTEWORTHY
@@ -11,6 +12,10 @@ class NoteworthyController:
 
     def __init__(self):
         self.plugins = PluginManager.load_plugins()
+        # The app manifest that determines what "services"
+        # are started upon `notecl start`
+        # Also used for building launcher installable packages
+        self.manifest_path = '/opt/noteworthy/manifest.yaml'
 
     def list_plugins(self, **kwargs):
         '''
@@ -50,3 +55,20 @@ class NoteworthyController:
 
     def get_installed_apps(self):
         return [ p.Controller.DJANGO_APP_MODULE for name, p in self.plugins.items() if hasattr(p.Controller, 'DJANGO_APP_MODULE')]
+
+    def start(self, **kwargs):
+        try:
+            with open(self.manifest_path, 'r') as manifest_file:
+                manifest = yaml.safe_load(manifest_file)
+        except:
+            raise Exception(f'Unable to load {self.manifest_path}')
+
+        for plugin in manifest['plugins']:
+            if plugin not in self.plugins:
+                raise Exception(f'{self.manifest_path} defines plugin {plugin} that is not installed.')
+            try:
+                # TODO setup logging
+                self.plugins[plugin].Controller().start()
+                print(f'Service {plugin} started')
+            except NotImplementedError:
+                pass

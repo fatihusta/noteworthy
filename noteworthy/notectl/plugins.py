@@ -1,3 +1,4 @@
+import os
 import argparse
 import pkg_resources
 
@@ -22,3 +23,12 @@ class NoteworthyPlugin:
 
     def help(self, **kwargs):
         print('''Help is not available for this plugin.''')
+
+    def start(self, **kwargs):
+        raise NotImplementedError(f'Method start not implemented for {self.__class__.__name__}')
+
+    def run(self, **kwargs):
+        raise NotImplementedError(f'Method run not implemented for {self.__class__.__name__}')
+
+    def _start(self, plugin):
+        os.system(f'notectl {plugin} run&')

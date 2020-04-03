@@ -8,7 +8,7 @@ from grpcz import GRPCZServer
 
 class GrpcController(NoteworthyPlugin):
 
-    PLUGIN_NAME = 'noteworthy-grpc'
+    PLUGIN_NAME = 'grpc'
 
     def __init__(self):
         self.server = GRPCZServer()
@@ -20,8 +20,11 @@ class GrpcController(NoteworthyPlugin):
                 print(f'Registered GRPC controller for plugin: {plugin}')
                 self.server.register_controller(module.Controller())
 
-    def start(self, *args, **kwargs):
+    def run(self, *args, **kwargs):
         self.server.start()
+
+    def start(self, *args, **kwargs):
+        self._start(self.PLUGIN_NAME)
 
     @classmethod
     def _setup_argparse(cls, arg_parser):
