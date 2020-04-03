@@ -1,3 +1,4 @@
+import os
 import argparse
 import pkg_resources
 
@@ -16,9 +17,16 @@ class PluginManager:
 
 class NoteworthyPlugin:
 
+    def __init__(self, file=__file__):
+        self.plugin_path = self.get_plugin_path(file)
+
     @classmethod
     def _setup_argparse(cls, arg_parser):
         cls.arg_parser = arg_parser
 
     def help(self, **kwargs):
         print('''Help is not available for this plugin.''')
+
+    @staticmethod
+    def get_plugin_path(file):
+        return os.path.dirname(os.path.realpath(file))
