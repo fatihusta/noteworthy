@@ -1,0 +1,5 @@
+app:     sample_app
+plugins:
+  - grpc
+bundle:
+  - sampled_bundle

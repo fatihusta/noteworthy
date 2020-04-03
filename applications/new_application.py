@@ -26,6 +26,7 @@ with open(f'{app_name}/setup.py', 'w') as f:
 
 controller_name = ''.join([word.title() for word in app_name.split('_')])
 INIT_TEXT = f'''from noteworthy.notectl.plugins import NoteworthyPlugin
+from grpcz import grpc_controller, grpc_method
 
 @grpc_controller
 class {controller_name}Controller(NoteworthyPlugin):
@@ -36,6 +37,14 @@ class {controller_name}Controller(NoteworthyPlugin):
         pass
 
     @grpc_method
+    def start(self, **kwargs):
+        self._start(self.PLUGIN_NAME)
+
+    def run(self, **kwargs):
+        raise NotImplementedError(
+            f'Method run not implemented for {{self.__class__.__name__}}')
+
+    @grpc_method
     def check_health(self, **kargs):
         return 'OK'
 
@@ -44,3 +53,10 @@ Controller = {controller_name}Controller
 '''
 with open(f'{app_name}/noteworthy/{app_name}/__init__.py', 'w') as f:
     f.write(INIT_TEXT)
+
+MANIFEST_TEXT = f'''app:     {app_name}
+plugins:
+  - grpc
+'''
+with open(f'{app_name}/build-manifest.yaml', 'w') as f:
+    f.write(MANIFEST_TEXT)
