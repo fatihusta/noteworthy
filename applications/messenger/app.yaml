@@ -1,0 +1,6 @@
+app: messenger
+plugins:
+  - docker
+  - wireguard
+  - nginx
+  - http_service
