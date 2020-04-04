@@ -11,7 +11,8 @@ class PackageController(NoteworthyPlugin):
     PLUGIN_NAME = 'noteworthy-package'
     APP_DIR = '/opt/noteworthy/notectl/applications'
     PLUGIN_DIR = '/opt/noteworthy/notectl/plugins'
-    BUILD_DIR = '/opt/noteworthy/build'
+    BUILD_DIR = '/opt/noteworthy/dist/build'
+    SCRATCH_DIR = '/opt/noteworthy/dist/scratch'
 
     def __init__(self):
         pass
@@ -19,25 +20,29 @@ class PackageController(NoteworthyPlugin):
     def package(self, **kwargs):
         app_name = kwargs['app_name']
         version = kwargs['version'] or 'DEV'
+        package_name = f'{app_name}-{version}'
         print(f'Packaging {app_name} version {version}...')
-        build_dir = f'{self.BUILD_DIR}/{app_name}/{version}'
-        collect_dir = f'{build_dir}/tmp'
-        print(f'Cleaning {build_dir}...')
+        try:
+            # make sure scratch dir is clean
+            shutil.rmtree(self.SCRATCH_DIR)
+        except:
+            pass
+        build_dir = f'{self.BUILD_DIR}/{app_name}'
+        collect_dir = f'{self.SCRATCH_DIR}/{app_name}/{version}'
         Path(collect_dir).mkdir(parents=True, exist_ok=True)
-        shutil.rmtree(build_dir)
-        Path(collect_dir).mkdir(parents=True, exist_ok=True)
+        Path(build_dir).mkdir(parents=True, exist_ok=True)
         print('done.')
         collected_modules = set()
         print('Collecting modules...')
         self._collect_package(app_name, collect_dir, collected_modules)
         print('Zipping package...')
         shutil.make_archive(
-            f'{build_dir}/package', 'gztar', collect_dir)
+            f'{build_dir}/{package_name}', 'gztar', self.SCRATCH_DIR)
         print('done.')
         print('Cleaning up temp directories...')
-        shutil.rmtree(collect_dir)
+        shutil.rmtree(self.SCRATCH_DIR)
         print('done.')
-        print(f'App packaged at build/{app_name}/{version}/package.tar.gz')
+        print(f'App packaged at {self.BUILD_DIR}/{app_name}/{package_name}.tar.gz')
 
     def _collect_package(self, app_name, build_dir, collected_modules):
         package_path = f'{self.APP_DIR}/{app_name}'
