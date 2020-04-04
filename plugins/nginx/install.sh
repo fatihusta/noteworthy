@@ -1,3 +1,4 @@
 #!/bin/bash
 
-apk add nginx
+apt update
+apt install nginx -y
