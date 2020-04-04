@@ -25,6 +25,7 @@ class NoteworthyCLI:
             controller_cls = self.controller.plugins[plugin].Controller
             # use plugin arg parser to parse args
             plugin_args = controller_cls.sub_parser.parse_known_args(sys.argv[3:])[0]
+            controller_cls.args = sys.argv[3:]
             # instantiate the plugin
             if hasattr(plugin_args, 'rpc'):
                 plugin_controller = controller_cls.get_grpc_stub()
