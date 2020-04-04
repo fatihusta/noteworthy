@@ -15,7 +15,7 @@ class NoteworthyController:
         # The app manifest that determines what "services"
         # are started upon `notecl start`
         # Also used for building launcher installable packages
-        self.manifest_path = '/opt/noteworthy/manifest.yaml'
+        self.manifest_path = '/opt/noteworthy/dist/app.yaml'
 
     def list_plugins(self, **kwargs):
         '''
