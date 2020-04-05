@@ -5,6 +5,7 @@ plugins:
   - wireguard
   - nginx
   - http_service
+  - hub
 stubs:
   - reservation
   - link
