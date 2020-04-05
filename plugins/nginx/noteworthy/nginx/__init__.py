@@ -12,6 +12,8 @@ class NginxController(NoteworthyPlugin):
 
     def run(self, **kwargs):
         os.system("nginx -g 'daemon off;'")
-        
+
+    def start(self, **kwargs):
+        self._start(self.PLUGIN_NAME)
 
 Controller = NginxController
