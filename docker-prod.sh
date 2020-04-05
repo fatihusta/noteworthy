@@ -1,5 +1,9 @@
 #!/bin/bash
 
+cd /opt/noteworthy/grpcz
+rm -rf build/ dist/
+python setup.py install
+
 cd /opt/noteworthy/notectl
 rm -rf build/ dist/
 python setup.py install
