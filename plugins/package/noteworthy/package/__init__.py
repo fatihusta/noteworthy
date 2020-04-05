@@ -3,6 +3,7 @@ import argparse
 import sys
 import yaml
 import shutil
+from subprocess import check_output, STDOUT, CalledProcessError
 from pathlib import Path
 from noteworthy.notectl.plugins import NoteworthyPlugin
 
@@ -45,7 +46,8 @@ class PackageController(NoteworthyPlugin):
         print('Cleaning up temp directories...')
         shutil.rmtree(self.SCRATCH_DIR)
         print('done.')
-        print(f'App packaged at {self.BUILD_DIR}/{app_name}/{package_name}.tar.gz')
+        print(
+            f'App packaged at {self.BUILD_DIR}/{app_name}/{package_name}.tar.gz')
 
     def _collect_package(self, app_name, build_dir, collected_modules):
         package_path = f'{self.APP_DIR}/{app_name}'
@@ -82,7 +84,16 @@ class PackageController(NoteworthyPlugin):
     def _collect_plugin(self, plugin_name, build_dir, collected_modules):
         plugin_path = f'{self.PLUGIN_DIR}/{plugin_name}'
         print(f'Collecting {plugin_name}...')
-        shutil.copytree(plugin_path, f'{build_dir}/{plugin_name}')
+        plugin_build_path = f'{build_dir}/{plugin_name}'
+        shutil.copytree(plugin_path, plugin_build_path)
+        try:
+            check_output([f'{plugin_build_path}/build.sh'], stderr=STDOUT)
+        except CalledProcessError as exc:
+            sys.exit(exc.output)
+        except FileNotFoundError:
+            pass
+        except:
+            raise
         collected_modules.add(plugin_name)
         print('done.')
 
