@@ -34,7 +34,7 @@ class PackageController(NoteworthyPlugin):
         print('done.')
         collected_modules = set()
         print('Collecting modules...')
-        self._collect_package(app_name, collect_dir, collected_modules)
+        self._collect_package(app_name, version, collect_dir, collected_modules)
         print('Zipping package...')
         shutil.make_archive(
             f'{build_dir}/{package_name}', 'gztar', self.SCRATCH_DIR)
@@ -44,10 +44,11 @@ class PackageController(NoteworthyPlugin):
         print('done.')
         print(f'App packaged at {self.BUILD_DIR}/{app_name}/{package_name}.tar.gz')
 
-    def _collect_package(self, app_name, build_dir, collected_modules):
+    def _collect_package(self, app_name, version, build_dir, collected_modules):
         package_path = f'{self.APP_DIR}/{app_name}'
         # get manifest for package
         manifest_path = f'{package_path}/app.yaml'
+        shutil.copyfile(manifest_path, build_dir+f'/app.yaml')
         print(f'Loading manifest {manifest_path} ...')
         try:
             with open(manifest_path, 'r') as f:
@@ -69,7 +70,7 @@ class PackageController(NoteworthyPlugin):
         # collect bundled packages
         for package in manifest.get('bundle', []):
             if package not in collected_modules:
-                self._collect_package(package, build_dir, collected_modules)
+                self._collect_package(package, version, build_dir, collected_modules)
 
         # collect plugins
         for plugin in manifest.get('plugins', []):

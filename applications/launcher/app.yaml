@@ -1,6 +1,7 @@
 app: launcher
 plugins:
   - docker
+  - grpc
   - wireguard
   - nginx
   - http_service

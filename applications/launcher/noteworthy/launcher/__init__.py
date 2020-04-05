@@ -28,15 +28,25 @@ class LauncherController(NoteworthyPlugin):
             self.deploy_dir = os.path.join(self.plugin_path, 'deploy')
             Path(self.PACKAGE_CACHE).mkdir(parents=True, exist_ok=True)
             shutil.unpack_archive(args.archive, self.PACKAGE_CACHE)
-            for file in ['Dockerfile', 'install.sh', 'app.yaml']:
+            for file in ['Dockerfile', 'install.sh']:
                 shutil.copyfile(os.path.join(self.deploy_dir, file), os.path.join(self.app_dir, file))
             self.build_container()
+            self.docker.containers.run(f'noteworthy-{self.app}:{self.version}',
+            tty=True,
+            cap_add=['NET_ADMIN'],
+            network='noteworthy',
+            stdin_open=True,
+            name=f"noteworthy-{self.app}",
+            #auto_remove=True,
+            #volumes=['/opt/noteworthy/noteworth-wireguard/hub:/opt/noteworthy/noteworthy-wireguard/hub'],
+            detach=True)
         else:
             raise NotImplementedError('Installing from repository not supported yet.')
         print('Done.')
 
     def build_container(self, **kwargs):
-        self.docker.images.build(path=self.app_dir, tag=f'noteworthy-{self.app}:{self.version}')
+        self.docker.images.build(path=self.app_dir, tag=f'noteworthy-{self.app}:{self.version}',
+        nocache=True)
 
 
 Controller = LauncherController
