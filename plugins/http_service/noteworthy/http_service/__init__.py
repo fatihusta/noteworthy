@@ -12,6 +12,7 @@ class HttpServiceController(NoteworthyPlugin):
 
     def run(self, *args, **kwargs):
         os.chdir(os.path.join(self.plugin_path, 'rest_api'))
+        os.system('python manage.py migrate')
         os.system('python manage.py runserver 0.0.0.0:8001')
 
     def start(self, **kwargs):

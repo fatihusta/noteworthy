@@ -8,7 +8,7 @@ from noteworthy.notectl.ascii import NOTEWORTHY
 
 class NoteworthyController:
 
-    version_string = '0.0.2'
+    version_string = '0.0.7'
 
     def __init__(self):
         self.plugins = PluginManager.load_plugins()
@@ -54,9 +54,18 @@ class NoteworthyController:
 
 
     def get_installed_apps(self):
+        '''
+        Return the list of installed Django applications wrapped as Noteworthy plugins.
+        See http_service for the base Django project.
+        '''
         return [ p.Controller.DJANGO_APP_MODULE for name, p in self.plugins.items() if hasattr(p.Controller, 'DJANGO_APP_MODULE')]
 
     def start(self, **kwargs):
+        '''
+        This metod (notectl start) is the entrypoint for a Noteworthy application's docker container.
+        It consumes the application manifest `app.yaml` and calls `start` on every plugin listed under
+        the key `plugins`.
+        '''
         try:
             with open(self.manifest_path, 'r') as manifest_file:
                 manifest = yaml.safe_load(manifest_file)
