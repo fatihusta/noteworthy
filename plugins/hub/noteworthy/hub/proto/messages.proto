@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+
+package noteworthy_hub;
+
+
+message ReservationRequest {
+    // mydomain.noteworthy.im
+    string domain = 1;
+    // wireguard pub key
+    string pub_key = 2;
+    // auth_key / invitation code
+    string auth_code = 3;
+}
+
+message ReservationResponse {
+    // wireguard endpoint ip
+    string endpoint = 1;
+    // wireguard endpoint port
+    int32 port = 2;
+    // ip assigned to reservation holder by hub
+    string ip_assignment = 3;
+}
