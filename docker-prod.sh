@@ -12,4 +12,10 @@ for plugin in plugins/*/; do
     cd -
 done
 
+for application in applications/*/; do
+    cd $application
+    rm -rf build/ dist/
+    python setup.py install
+    cd -
+done
 
