@@ -8,5 +8,6 @@ setup(name='noteworthy-messenger',
       entry_points={'notectl.plugins':  'messenger = noteworthy.messenger'},
       # namespace packages wont work without zip_safe=False
       zip_safe=False,
-      install_requires=[]
+      install_requires=[],
+      include_package_data=True
       )
