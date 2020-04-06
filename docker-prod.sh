@@ -8,10 +8,6 @@ cd /opt/noteworthy/notectl
 rm -rf build/ dist/
 python setup.py install
 
-cd /opt/noteworthy/notectl/applications/launcher
-rm -rf build/ dist/
-python setup.py install
-
 # TODO don't install every plugin
 for plugin in plugins/*/; do
     cd $plugin
@@ -19,5 +15,9 @@ for plugin in plugins/*/; do
     python setup.py install
     cd -
 done
+
+cd /opt/noteworthy/notectl/applications/launcher
+rm -rf build/ dist/
+python setup.py install
 
 notectl package package launcher
