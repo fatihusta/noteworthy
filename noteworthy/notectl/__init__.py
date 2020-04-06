@@ -1,6 +1,7 @@
 import os
 from grpc_tools import protoc
 import yaml
+import docker
 
 from noteworthy.notectl.plugins import PluginManager
 from noteworthy.notectl.ascii import NOTEWORTHY
@@ -16,6 +17,7 @@ class NoteworthyController:
         # are started upon `notecl start`
         # Also used for building launcher installable packages
         self.manifest_path = '/opt/noteworthy/dist/app.yaml'
+        self.docker = docker.from_env()
 
     def list_plugins(self, **kwargs):
         '''
@@ -36,9 +38,15 @@ class NoteworthyController:
         print(f'Version: {self.version_string}')
 
     def install(self, **kwarags):
+        print('Please wait while Noteworthy installs...')
+        try:
+            self.docker.networks.create('noteworthy', check_duplicate=True)
+        except:
+            pass
         if 'launcher' not in self.plugins:
             raise Exception('Launcher must be installed to run `notectl install`.')
         self.plugins['launcher'].Controller().install('/opt/noteworthy/dist/build/launcher/launcher-DEV.tar.gz')
+
     def protoc(self, **kwargs):
         '''
         $ notectl protoc <service.proto>
@@ -89,3 +97,6 @@ class NoteworthyController:
         print('noteworthy finished booting!')
         # TODO tail log file
         os.system('tail -f /dev/null')
+
+    def shell(self, **kwargs):
+        os.system('ipython')
