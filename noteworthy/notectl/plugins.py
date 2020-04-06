@@ -1,6 +1,7 @@
 import os
 import argparse
 import pkg_resources
+from pathlib import Path
 
 class PluginManager:
 
@@ -17,9 +18,15 @@ class PluginManager:
 
 class NoteworthyPlugin:
 
+    base_dir = '/opt/noteworthy'
+
     def __init__(self, file=__file__):
         self.plugin_path = self.get_plugin_path(file)
         self.sub_parser = argparse.ArgumentParser()
+        self.config_dir = os.path.join(self.base_dir, f'.{self.PLUGIN_NAME}')
+
+    def create_config_dir(self):
+        Path(self.config_dir).mkdir(exist_ok=True)
 
     @classmethod
     def _setup_argparse(cls, arg_parser):
@@ -37,6 +44,10 @@ class NoteworthyPlugin:
 
     def _start(self, plugin):
         os.system(f'notectl {plugin} run&')
+
+    @property
+    def is_first_run(self):
+        return not os.path.exists(self.config_dir)
 
     @staticmethod
     def get_plugin_path(file):

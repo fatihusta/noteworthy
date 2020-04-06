@@ -15,6 +15,7 @@ python setup.py develop
 for plugin in plugins/*/; do
     cd $plugin
     python setup.py develop
+    ./install.sh
     cd -
 done
 
