@@ -45,7 +45,9 @@ class NoteworthyController:
             pass
         if 'launcher' not in self.plugins:
             raise Exception('Launcher must be installed to run `notectl install`.')
-        self.plugins['launcher'].Controller().install('/opt/noteworthy/dist/build/launcher/launcher-DEV.tar.gz')
+        self.plugins['launcher'].Controller().install(
+            '/opt/noteworthy/dist/build/launcher/launcher-DEV.tar.gz',
+            docker_access=True)
 
     def protoc(self, **kwargs):
         '''

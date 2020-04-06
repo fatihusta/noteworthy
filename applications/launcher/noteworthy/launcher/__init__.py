@@ -18,7 +18,7 @@ class LauncherController(NoteworthyPlugin):
         self.args = None
         self.docker = docker.from_env()
 
-    def install(self, archive_path: str = None, **kwargs):
+    def install(self, archive_path: str = None, docker_access: bool = False, **kwargs):
         self.sub_parser.add_argument(
              '--archive', help='path of archive to install')
         args = self.sub_parser.parse_known_args(self.args)[0]
@@ -29,6 +29,9 @@ class LauncherController(NoteworthyPlugin):
         # with make .docker
         # TODO figure out if version pinning is needed here
         env = os.environ.get('NOTEWORTHY_ENV', 'prod')
+        volumes = []
+        if docker_access:
+            volumes.append('/var/run/docker.sock:/var/run/docker.sock')
         if archive_path or args.archive:
             if not archive_path:
                 archive_path = args.archive
@@ -48,7 +51,7 @@ class LauncherController(NoteworthyPlugin):
             stdin_open=True,
             name=f"noteworthy-{app}",
             #auto_remove=True,
-            #volumes=['/opt/noteworthy/noteworth-wireguard/hub:/opt/noteworthy/noteworthy-wireguard/hub'],
+            volumes=volumes,
             detach=True)
         else:
             raise NotImplementedError(
