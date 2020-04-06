@@ -37,7 +37,7 @@ class NoteworthyController:
         print()
         print(f'Version: {self.version_string}')
 
-    def install(self, **kwarags):
+    def install(self, **kwargs):
         print('Please wait while Noteworthy installs...')
         try:
             self.docker.networks.create('noteworthy', check_duplicate=True)
@@ -45,9 +45,9 @@ class NoteworthyController:
             pass
         if 'launcher' not in self.plugins:
             raise Exception('Launcher must be installed to run `notectl install`.')
-        self.plugins['launcher'].Controller().install(
+        self.plugins['launcher'].Controller().install_launcher(
             '/opt/noteworthy/dist/build/launcher/launcher-DEV.tar.gz',
-            docker_access=True)
+            hub=kwargs['hub'])
 
     def protoc(self, **kwargs):
         '''
@@ -65,6 +65,7 @@ class NoteworthyController:
         arg_parser.add_argument('command', nargs='?', default='help', help=command_list + plugin_list)
         arg_parser.add_argument('action', nargs='?', default=None)
         arg_parser.add_argument('-d', '--debug', action='store_true', help='enable debugging output')
+        arg_parser.add_argument('--hub', action='store_true', help='configure this host as a hub')
 
 
     def get_installed_apps(self):
