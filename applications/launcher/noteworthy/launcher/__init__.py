@@ -18,17 +18,17 @@ class LauncherController(NoteworthyPlugin):
         self.args = None
         self.docker = docker.from_env()
 
-    def install(self, **kwargs):
-        self.sub_parser.add_argument(
-            '--archive', help='path of archive to install')
-        args = self.sub_parser.parse_known_args(self.args)[0]
-        if args.archive:
-            app, version = os.path.basename(args.archive).split('-')
+    def install(self, archive_path: str = None, **kwargs):
+        # self.sub_parser.add_argument(
+        #     '--archive', help='path of archive to install')
+        # args = self.sub_parser.parse_known_args(self.args)[0]
+        if archive_path:
+            app, version = os.path.basename(archive_path).split('-')
             version = version.replace('.tar.gz', '')
             app_dir = os.path.join(self.PACKAGE_CACHE, f'{app}/{version}')
             deploy_dir = os.path.join(self.plugin_path, 'deploy')
             Path(self.PACKAGE_CACHE).mkdir(parents=True, exist_ok=True)
-            shutil.unpack_archive(args.archive, self.PACKAGE_CACHE)
+            shutil.unpack_archive(archive_path, self.PACKAGE_CACHE)
             for file in ['Dockerfile', 'install.sh']:
                 shutil.copyfile(os.path.join(deploy_dir, file), os.path.join(app_dir, file))
             self._build_container(app_dir, app, version)

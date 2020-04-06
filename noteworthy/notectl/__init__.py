@@ -35,6 +35,10 @@ class NoteworthyController:
         print()
         print(f'Version: {self.version_string}')
 
+    def install(self, **kwarags):
+        if 'launcher' not in self.plugins:
+            raise Exception('Launcher must be installed to run `notectl install`.')
+        self.plugins['launcher'].Controller().install('/opt/noteworthy/dist/build/launcher/launcher-DEV.tar.gz')
     def protoc(self, **kwargs):
         '''
         $ notectl protoc <service.proto>
