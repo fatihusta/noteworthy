@@ -7,11 +7,11 @@ class RiotWebController(NoteworthyPlugin):
     PLUGIN_NAME = 'noteworthy-riot-web'
 
     def __init__(self):
-        pass
+        super().__init__(__file__)
 
-    def run(self, **kwargs):
-        tar = tarfile.open('/opt/noteworthy/dist/web_app.tar.gz')
-        tar.extractall(path='/riot-app')
+    def start(self, *args, **kwargs):
+        with tarfile.open(f'{self.plugin_path}/deploy/web_app.tar.gz') as tar:
+            tar.extractall(path='/riot-web')
 
 
 Controller = RiotWebController

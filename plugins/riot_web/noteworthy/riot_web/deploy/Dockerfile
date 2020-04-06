@@ -28,4 +28,4 @@ RUN cp /src/config.sample.json /src/webapp/config.json
 # Ensure we populate the version file
 RUN dos2unix /src/scripts/docker-write-version.sh && bash /src/scripts/docker-write-version.sh
 
-RUN tar -czvf /src/web_app.tar.gz /src/webapp
+RUN tar -czvf /src/web_app.tar.gz webapp/*

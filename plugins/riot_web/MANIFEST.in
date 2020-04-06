@@ -1,1 +1,1 @@
-recursive-include ext/web_app.tar.gz
+recursive-include noteworthy/riot_web/deploy *
