@@ -12,6 +12,7 @@ grpcio-tools
 PyYAML==5.3.1
 django
 docker
+certbot
 # TODO freeze versions
 
 # dev reqs

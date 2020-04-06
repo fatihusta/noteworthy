@@ -22,7 +22,7 @@ if [ ! -f "$FILE" ]; then
     echo -e "$HUB_PASSWORD\n$HUB_PASSWORD" |passwd wg-easy
     touch /home/wg-easy/.hushlogin
 
-    # sudo for netlink perms
+    # for netlink perms
     # because we want hub.py to init networking on first invocation from remote peer
     # may not be worth added complexity / risk
     echo "wg-easy ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers.d/wg-easy
