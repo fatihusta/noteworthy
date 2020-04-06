@@ -37,15 +37,15 @@ class NoteworthyController:
         print()
         print(f'Version: {self.version_string}')
 
-    def install(self, **kwargs):
-        print('Please wait while Noteworthy installs...')
+    def launch(self, **kwargs):
         try:
             self.docker.networks.create('noteworthy', check_duplicate=True)
         except:
             pass
         if 'launcher' not in self.plugins:
             raise Exception('Launcher must be installed to run `notectl install`.')
-        self.plugins['launcher'].Controller().install_launcher(
+        print('Please wait while Noteworthy launches...')
+        self.plugins['launcher'].Controller().launch_launcher(
             '/opt/noteworthy/dist/build/launcher/launcher-DEV.tar.gz',
             hub=kwargs['hub'], domain=kwargs['domain'])
 

@@ -58,7 +58,7 @@ class LauncherController(NoteworthyPlugin):
                 'Installing from repository not supported yet.')
         print('Done.')
     
-    def install_launcher(self, archive_path: str = None, hub: bool = False, domain: str = '', **kwargs):
+    def launch_launcher(self, archive_path: str = None, hub: bool = False, domain: str = '', **kwargs):
         self.sub_parser.add_argument(
              '--archive', help='path of archive to install')
         args = self.sub_parser.parse_known_args(self.args)[0]
@@ -71,6 +71,7 @@ class LauncherController(NoteworthyPlugin):
         env = os.environ.get('NOTEWORTHY_ENV', 'prod')
         volumes = []
         ports = {}
+        app_env = {}
         volumes.append('/var/run/docker.sock:/var/run/docker.sock')
         if archive_path or args.archive:
             if not archive_path:
@@ -84,9 +85,12 @@ class LauncherController(NoteworthyPlugin):
                         '443/tcp': 443,
                         '8000/tcp': 8000,
                       }
+                app_env['NOTEWORTHY_ROLE'] = 'hub'
             else:
+                app_env['NOTEWORTHY_ROLE'] = 'taproot'
                 if not domain:
                     raise Exception('Must specify --domain argument')
+            #provision link
             version = version.replace('.tar.gz', '')
             app_dir = os.path.join(self.PACKAGE_CACHE, f'{app}/{version}')
             deploy_dir = os.path.join(self.plugin_path, 'deploy')
@@ -95,6 +99,15 @@ class LauncherController(NoteworthyPlugin):
             shutil.copyfile(os.path.join(deploy_dir, 'install.sh'), os.path.join(app_dir, 'install.sh'))
             shutil.copyfile(os.path.join(deploy_dir, f'Dockerfile.{env}'), os.path.join(app_dir, 'Dockerfile'))
             self._build_container(app_dir, app_name, version)
+            # provision link TODO cleanup
+            # make sure link and launcher are running the same container image
+            # ie noteworthy-launcher:DEV isn't rebuilt between the time the link
+            # launches and launche launcher
+            if not hub:
+                hc = HubController.get_grpc_stub(self.hub_hostname)
+                hc.reserve_domain(domain, 'wg-pubkey', None)
+
+            # launch launcher container
             self.docker.containers.run(f'noteworthy-{app_name}:{version}',
             tty=True,
             cap_add=['NET_ADMIN'],
@@ -105,14 +118,7 @@ class LauncherController(NoteworthyPlugin):
             volumes=volumes,
             ports=ports,
             detach=True,
-            command='start')
-            #provision link
-            if not hub:
-                import time
-                time.sleep(5)
-                print('Waiting for link to boot')
-                hc = HubController.get_grpc_stub(self.hub_hostname)
-                hc.reserve_domain(domain, 'wg-pubkey', None)
+            environment=app_env)
         else:
             raise NotImplementedError(
                 'Installing from repository not supported yet.')

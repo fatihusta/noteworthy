@@ -18,6 +18,7 @@ class HubController(NoteworthyPlugin):
     @grpc_method(ReservationRequest, ReservationResponse)
     def reserve_domain(self, domain: str, pub_key: str, auth_code: str):
         volumes = []
+        app_env = {'NOTEWORTHY_ROLE': 'link'}
         ports = {'18521/udp': None}
         container_name = domain.replace('.', '-')
         self.docker.containers.run(f'noteworthy-launcher:DEV',
@@ -29,7 +30,8 @@ class HubController(NoteworthyPlugin):
         #auto_remove=True,
         volumes=volumes,
         ports=ports,
-        detach=True)
+        detach=True,
+        environment=app_env)
         return {"endpoint": '10.0.0.1', "port":1557, "ip_assignment":"10.0.0.2"}
 
 
