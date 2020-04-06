@@ -6,4 +6,6 @@ RUN chmod +x /opt/noteworthy/install.sh
 
 RUN /opt/noteworthy/install.sh
 
+ENV NOTEWORTHY_ENV dev
+
 ENTRYPOINT ["/usr/local/bin/notectl", "start"]
