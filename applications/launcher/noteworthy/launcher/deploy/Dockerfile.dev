@@ -1,4 +1,4 @@
-FROM decentralabs/noteworthy:latest
+FROM notectl:latest
 
 ADD . /opt/noteworthy/dist
 ADD install.sh /opt/noteworthy/
