@@ -25,7 +25,7 @@ class HubController(NoteworthyPlugin):
         cap_add=['NET_ADMIN'],
         network='noteworthy',
         stdin_open=True,
-        name=f"link-{container_name}",
+        name=f'{container_name}-link',
         #auto_remove=True,
         volumes=volumes,
         ports=ports,
