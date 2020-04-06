@@ -47,7 +47,7 @@ class NoteworthyController:
             raise Exception('Launcher must be installed to run `notectl install`.')
         self.plugins['launcher'].Controller().install_launcher(
             '/opt/noteworthy/dist/build/launcher/launcher-DEV.tar.gz',
-            hub=kwargs['hub'])
+            hub=kwargs['hub'], domain=kwargs['domain'])
 
     def protoc(self, **kwargs):
         '''
@@ -66,6 +66,7 @@ class NoteworthyController:
         arg_parser.add_argument('action', nargs='?', default=None)
         arg_parser.add_argument('-d', '--debug', action='store_true', help='enable debugging output')
         arg_parser.add_argument('--hub', action='store_true', help='configure this host as a hub')
+        arg_parser.add_argument('--domain', help='domain for your node')
 
 
     def get_installed_apps(self):
