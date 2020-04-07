@@ -26,7 +26,7 @@ class LauncherController(NoteworthyPlugin):
         args = self.sub_parser.parse_known_args(self.args)[0]
         # we use env here to figure out which Dockerfile we should use
         # when building an apps' container; in PROD we want to use the base
-        # decentralabs/noteworthy:latest container that the user already has
+        # decentralabs/noteworthy:latest container that the user has already downloaded
         # in dev we want to use decentralabs/noteworthy:DEV that we build locally
         # with make .docker
         # TODO figure out if version pinning is needed here
