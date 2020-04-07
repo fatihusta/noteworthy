@@ -5,9 +5,12 @@ import subprocess
 def is_configured(interface):
     return interface.encode() in subprocess.check_output(['cat', '/proc/net/dev'])
 
-def add_peer(interface, pubkey, allowed_ips, endpoint, keepalive='30'):
-    os.system(f'wg set {interface} peer {pubkey}\
- allowed-ips {allowed_ips} endpoint {endpoint} persistent-keepalive {keepalive}')
+def add_peer(interface, pubkey, allowed_ips, endpoint=None, keepalive='30'):
+    cmd = f'wg set {interface} peer {pubkey}\
+ allowed-ips {allowed_ips} persistent-keepalive {keepalive}'
+    if endpoint:
+        cmd = cmd + f' endpoint {endpoint}'
+    os.system(cmd)
 
 def add_interface(interface):
     os.system(f'ip link add {interface} type wireguard')

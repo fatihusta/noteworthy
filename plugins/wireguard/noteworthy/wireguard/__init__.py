@@ -24,11 +24,11 @@ class WireGuardController(NoteworthyPlugin):
             wg.genkey(wg_key_path)
             role = os.environ['NOTEWORTHY_ROLE']
             if role == 'hub':
-                ip = '10.9.0.1'
+                ip = '10.9.0.1/24'
             elif role == 'link':
-                ip = '10.0.0.1'
+                ip = '10.0.0.1/24'
             elif role == 'taproot':
-                ip = '10.0.0.2'
+                ip = '10.0.0.2/24'
             else:
                 raise Exception(f'Unrecognized NOTEWORTHY_ROLE: {role}')
             wg.wg_init('wg0', ip, wg_key_path)

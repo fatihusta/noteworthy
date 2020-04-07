@@ -18,7 +18,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   package='noteworthy_hub',
   syntax='proto3',
   serialized_options=None,
-  serialized_pb=b'\n\x0emessages.proto\x12\x0enoteworthy_hub\"H\n\x12ReservationRequest\x12\x0e\n\x06\x64omain\x18\x01 \x01(\t\x12\x0f\n\x07pub_key\x18\x02 \x01(\t\x12\x11\n\tauth_code\x18\x03 \x01(\t\"L\n\x13ReservationResponse\x12\x10\n\x08\x65ndpoint\x18\x01 \x01(\t\x12\x0c\n\x04port\x18\x02 \x01(\x05\x12\x15\n\rip_assignment\x18\x03 \x01(\tb\x06proto3'
+  serialized_pb=b'\n\x0emessages.proto\x12\x0enoteworthy_hub\"H\n\x12ReservationRequest\x12\x0e\n\x06\x64omain\x18\x01 \x01(\t\x12\x0f\n\x07pub_key\x18\x02 \x01(\t\x12\x11\n\tauth_code\x18\x03 \x01(\t\",\n\x13ReservationResponse\x12\x15\n\rlink_endpoint\x18\x01 \x01(\t\"7\n\x0ePeeringRequest\x12\x11\n\twg_pubkey\x18\x01 \x01(\t\x12\x12\n\nauth_token\x18\x02 \x01(\t\"A\n\x0fPeeringResponse\x12\x15\n\rhub_wg_pubkey\x18\x01 \x01(\t\x12\x17\n\x0fhub_wg_endpoint\x18\x02 \x01(\tb\x06proto3'
 )
 
 
@@ -77,22 +77,8 @@ _RESERVATIONRESPONSE = _descriptor.Descriptor(
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='endpoint', full_name='noteworthy_hub.ReservationResponse.endpoint', index=0,
+      name='link_endpoint', full_name='noteworthy_hub.ReservationResponse.link_endpoint', index=0,
       number=1, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=b"".decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR),
-    _descriptor.FieldDescriptor(
-      name='port', full_name='noteworthy_hub.ReservationResponse.port', index=1,
-      number=2, type=5, cpp_type=1, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR),
-    _descriptor.FieldDescriptor(
-      name='ip_assignment', full_name='noteworthy_hub.ReservationResponse.ip_assignment', index=2,
-      number=3, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=b"".decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -110,11 +96,89 @@ _RESERVATIONRESPONSE = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=108,
-  serialized_end=184,
+  serialized_end=152,
+)
+
+
+_PEERINGREQUEST = _descriptor.Descriptor(
+  name='PeeringRequest',
+  full_name='noteworthy_hub.PeeringRequest',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='wg_pubkey', full_name='noteworthy_hub.PeeringRequest.wg_pubkey', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='auth_token', full_name='noteworthy_hub.PeeringRequest.auth_token', index=1,
+      number=2, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=154,
+  serialized_end=209,
+)
+
+
+_PEERINGRESPONSE = _descriptor.Descriptor(
+  name='PeeringResponse',
+  full_name='noteworthy_hub.PeeringResponse',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='hub_wg_pubkey', full_name='noteworthy_hub.PeeringResponse.hub_wg_pubkey', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='hub_wg_endpoint', full_name='noteworthy_hub.PeeringResponse.hub_wg_endpoint', index=1,
+      number=2, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=211,
+  serialized_end=276,
 )
 
 DESCRIPTOR.message_types_by_name['ReservationRequest'] = _RESERVATIONREQUEST
 DESCRIPTOR.message_types_by_name['ReservationResponse'] = _RESERVATIONRESPONSE
+DESCRIPTOR.message_types_by_name['PeeringRequest'] = _PEERINGREQUEST
+DESCRIPTOR.message_types_by_name['PeeringResponse'] = _PEERINGRESPONSE
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
 ReservationRequest = _reflection.GeneratedProtocolMessageType('ReservationRequest', (_message.Message,), {
@@ -130,6 +194,20 @@ ReservationResponse = _reflection.GeneratedProtocolMessageType('ReservationRespo
   # @@protoc_insertion_point(class_scope:noteworthy_hub.ReservationResponse)
   })
 _sym_db.RegisterMessage(ReservationResponse)
+
+PeeringRequest = _reflection.GeneratedProtocolMessageType('PeeringRequest', (_message.Message,), {
+  'DESCRIPTOR' : _PEERINGREQUEST,
+  '__module__' : 'messages_pb2'
+  # @@protoc_insertion_point(class_scope:noteworthy_hub.PeeringRequest)
+  })
+_sym_db.RegisterMessage(PeeringRequest)
+
+PeeringResponse = _reflection.GeneratedProtocolMessageType('PeeringResponse', (_message.Message,), {
+  'DESCRIPTOR' : _PEERINGRESPONSE,
+  '__module__' : 'messages_pb2'
+  # @@protoc_insertion_point(class_scope:noteworthy_hub.PeeringResponse)
+  })
+_sym_db.RegisterMessage(PeeringResponse)
 
 
 # @@protoc_insertion_point(module_scope)

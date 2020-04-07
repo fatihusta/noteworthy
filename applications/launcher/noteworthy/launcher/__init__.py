@@ -58,7 +58,8 @@ class LauncherController(NoteworthyPlugin):
                 'Installing from repository not supported yet.')
         print('Done.')
     
-    def launch_launcher(self, archive_path: str = None, hub: bool = False, domain: str = '', **kwargs):
+    def launch_launcher(self, archive_path: str = None, hub: bool = False,
+            domain: str = '', hub_host: str = 'hub01.noteworthy.im', **kwargs):
         self.sub_parser.add_argument(
              '--archive', help='path of archive to install')
         args = self.sub_parser.parse_known_args(self.args)[0]
@@ -78,6 +79,7 @@ class LauncherController(NoteworthyPlugin):
                 archive_path = args.archive
             app, version = os.path.basename(archive_path).split('-')
             app_name = app
+            app_env['NOTEWORTHY_HUB'] = hub_host
             if hub:
                 app_name = app + '-hub'
                 ports={
@@ -103,10 +105,10 @@ class LauncherController(NoteworthyPlugin):
             # make sure link and launcher are running the same container image
             # ie noteworthy-launcher:DEV isn't rebuilt between the time the link
             # launches and launche launcher
-            if not hub:
+            if app_env['NOTEWORTHY_ROLE'] == 'taproot':
                 hc = HubController.get_grpc_stub(self.hub_hostname)
-                hc.reserve_domain(domain, 'wg-pubkey', None)
-
+                res = hc.reserve_domain(domain, 'wg-pubkey', None)
+                app_env['NOTEWORTHY_LINK_ENDPOINT'] = res.link_endpoint
             # launch launcher container
             self.docker.containers.run(f'noteworthy-{app_name}:{version}',
             tty=True,
