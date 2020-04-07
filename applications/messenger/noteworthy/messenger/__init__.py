@@ -1,9 +1,3 @@
-import os
-import shutil
-from pathlib import Path
-
-import docker
-
 from noteworthy.notectl.plugins import NoteworthyPlugin
 
 
@@ -11,15 +5,14 @@ class MessengerController(NoteworthyPlugin):
 
     PLUGIN_NAME = 'messenger'
 
-    PACKAGE_CACHE = '/var/noteworthy/cache/packages'
-
     def __init__(self):
         super().__init__(__file__)
-        self.args = None
-        self.docker = docker.from_env()
 
-    def start(self, **kwargs):
+    def run(self, *args, **kwargs):
         pass
+
+    def start(self, *args, **kwargs):
+        self._start(self.PLUGIN_NAME)
 
 
 Controller = MessengerController
