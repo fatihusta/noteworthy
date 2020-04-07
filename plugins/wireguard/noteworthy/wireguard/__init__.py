@@ -17,24 +17,50 @@ class WireGuardController(NoteworthyPlugin):
         super().__init__(__file__)
         self.docker = docker.from_env()
 
+    def pubkey(self, **kwargs):
+        '''
+        Loop forever until wg.key shows up
+        Used in provisioning.. probably a bad idea
+        '''
+        import time
+        key_path = os.path.join(self.config_dir, 'wg.key')
+        count = 0
+        while not os.path.exists(key_path):
+            if count > 30:
+                break
+            time.sleep(.5)
+            count = count + 1
+        print(wg.pubkey(key_path))
+
     def start(self, **kwargs):
+        from noteworthy.hub import HubController
+        wg_key_path = os.path.join(self.config_dir, 'wg.key')
         if self.is_first_run:
             self.create_config_dir()
-            wg_key_path = os.path.join(self.config_dir, 'wg.key')
             wg.genkey(wg_key_path)
-            role = os.environ['NOTEWORTHY_ROLE']
-            if role == 'hub':
-                ip = '10.9.0.1/24'
-            elif role == 'link':
-                ip = '10.0.0.1/24'
-            elif role == 'taproot':
-                ip = '10.0.0.2/24'
-            else:
-                raise Exception(f'Unrecognized NOTEWORTHY_ROLE: {role}')
-            wg.wg_init('wg0', ip, wg_key_path)
-        else:
-            print('already configed')
+        pubkey = wg.pubkey(wg_key_path)
+        role = os.environ['NOTEWORTHY_ROLE']
+        if role == 'hub':
+            # ip = '10.9.0.1/24'
+            # for now, do nothing
+            return
+        elif role == 'link':
+            my_ip = '10.0.0.1/24'
+            peer_ip = '10.0.0.2/32'
+            peer_pubkey = os.environ['TAPROOT_PUBKEY']
+            wg.init('wg0', my_ip, wg_key_path)
+            wg.add_peer('wg0', peer_pubkey, peer_ip)
+        elif role == 'taproot':
+            my_ip = '10.0.0.2/24'
+            peer_ip = '10.0.0.1/32'
+            # provision link node
+            hc = HubController.get_grpc_stub(f"{os.environ['NOTEWORTHY_HUB']}:8000")
+            res = hc.reserve_domain(os.environ['NOTEWORTHY_DOMAIN'], pubkey, None)
+            wg.init('wg0', my_ip, wg_key_path)
+            wg.add_peer('wg0', res.link_wg_pubkey, peer_ip, res.link_wg_endpoint)
 
+        else:
+            raise Exception(f'Unrecognized NOTEWORTHY_ROLE: {role}')
 
 
     @classmethod

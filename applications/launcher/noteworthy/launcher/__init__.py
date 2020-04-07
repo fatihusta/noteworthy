@@ -72,14 +72,15 @@ class LauncherController(NoteworthyPlugin):
         env = os.environ.get('NOTEWORTHY_ENV', 'prod')
         volumes = []
         ports = {}
-        app_env = {}
+        app_env = {
+                'NOTEWORTHY_HUB': hub_host,
+        }
         volumes.append('/var/run/docker.sock:/var/run/docker.sock')
         if archive_path or args.archive:
             if not archive_path:
                 archive_path = args.archive
             app, version = os.path.basename(archive_path).split('-')
             app_name = app
-            app_env['NOTEWORTHY_HUB'] = hub_host
             if hub:
                 app_name = app + '-hub'
                 ports={
@@ -89,6 +90,7 @@ class LauncherController(NoteworthyPlugin):
                       }
                 app_env['NOTEWORTHY_ROLE'] = 'hub'
             else:
+                app_env['NOTEWORTHY_DOMAIN'] = domain
                 app_env['NOTEWORTHY_ROLE'] = 'taproot'
                 if not domain:
                     raise Exception('Must specify --domain argument')
@@ -101,15 +103,8 @@ class LauncherController(NoteworthyPlugin):
             shutil.copyfile(os.path.join(deploy_dir, 'install.sh'), os.path.join(app_dir, 'install.sh'))
             shutil.copyfile(os.path.join(deploy_dir, f'Dockerfile.{env}'), os.path.join(app_dir, 'Dockerfile'))
             self._build_container(app_dir, app_name, version)
-            # provision link TODO cleanup
-            # make sure link and launcher are running the same container image
-            # ie noteworthy-launcher:DEV isn't rebuilt between the time the link
-            # launches and launche launcher
-            if app_env['NOTEWORTHY_ROLE'] == 'taproot':
-                hc = HubController.get_grpc_stub(self.hub_hostname)
-                res = hc.reserve_domain(domain, 'wg-pubkey', None)
-                app_env['NOTEWORTHY_LINK_ENDPOINT'] = res.link_endpoint
-            # launch launcher container
+
+            # deploy launcher / launcher-hub
             self.docker.containers.run(f'noteworthy-{app_name}:{version}',
             tty=True,
             cap_add=['NET_ADMIN'],

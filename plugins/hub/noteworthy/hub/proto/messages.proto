@@ -15,15 +15,6 @@ message ReservationRequest {
 
 message ReservationResponse {
     // wireguard endpoint ip
-    string link_endpoint = 1;
-}
-
-message PeeringRequest {
-    string wg_pubkey = 1;
-    string auth_token = 2;
-}
-
-message PeeringResponse {
-    string hub_wg_pubkey = 1;
-    string hub_wg_endpoint = 2;
+    string link_wg_endpoint = 1;
+    string link_wg_pubkey = 2;
 }

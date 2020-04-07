@@ -49,7 +49,7 @@ def configure_dns(interface, nameservers):
     '''
     pass
 
-def wg_init(interface, ip, pk_path):
+def init(interface, ip, pk_path):
     add_interface(interface)
     set_interface_private_key(interface, pk_path)
     set_interface_listen_port(interface, '18521')
