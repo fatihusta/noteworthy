@@ -105,7 +105,7 @@ class LauncherController(NoteworthyPlugin):
             self._build_container(app_dir, app_name, version)
 
             # deploy launcher / launcher-hub
-            self.docker.containers.run(f'noteworthy-{app_name}:{version}',
+            self.docker.containers.run(f'noteworthy-{app}:{version}',
             tty=True,
             cap_add=['NET_ADMIN'],
             network='noteworthy',
