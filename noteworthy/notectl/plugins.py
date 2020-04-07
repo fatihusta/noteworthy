@@ -24,6 +24,7 @@ class NoteworthyPlugin:
         self.plugin_path = self.get_plugin_path(file)
         self.sub_parser = argparse.ArgumentParser()
         self.config_dir = os.path.join(self.base_dir, f'.{self.PLUGIN_NAME}')
+        self.deploy_dir = os.path.join(self.plugin_path, 'deploy/')
 
     def create_config_dir(self):
         Path(self.config_dir).mkdir(exist_ok=True)
