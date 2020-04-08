@@ -60,7 +60,7 @@ class NginxController(NoteworthyPlugin):
         if not template_path:
             template_path = self.nginx_app_template
 
-        config = {'domain': f'.{domain}', 'container': ip_addr}
+        config = {'domain': f'{domain}', 'container': ip_addr}
         rendered_config = self._render_template(template_path, config)
         with open(os.path.join(self.nginx_sites_enabled, f'{app_name}.conf'), 'w') as output_file:
             output_file.write(rendered_config)
