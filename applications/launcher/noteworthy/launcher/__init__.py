@@ -90,6 +90,8 @@ class LauncherController(NoteworthyPlugin):
                       }
                 app_env['NOTEWORTHY_ROLE'] = 'hub'
             else:
+                dash_domain = domain.replace('.', '-')
+                app_name = app + f'-{dash_domain}'
                 app_env['NOTEWORTHY_DOMAIN'] = domain
                 app_env['NOTEWORTHY_ROLE'] = 'taproot'
                 if not domain:
