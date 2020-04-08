@@ -14,7 +14,8 @@ class NginxController(NoteworthyPlugin):
 
     def __init__(self):
         super().__init__(__file__)
-        self.nginx_config_template = os.path.join(self.deploy_dir, 'nginx.gateway.tmpl.conf')
+        self.nginx_gateway_template = os.path.join(self.deploy_dir, 'nginx.gateway.tmpl.conf')
+        self.nginx_app_template = os.path.join(self.deploy_dir, 'app.link.nginx.tmpl.conf')
         self.nginx_config_path = '/etc/nginx/nginx.conf'
         self.nginx_sites_enabled = '/etc/nginx/sites-enabled'
         if self.is_first_run:
@@ -45,18 +46,21 @@ class NginxController(NoteworthyPlugin):
         if isinstance(backends, str):
             backends = json.loads(backends)
 
-        rendered_config = self._render_template(self.nginx_config_template, backends)
+        rendered_config = self._render_template(self.nginx_gateway_template, backends)
         with open(self.nginx_config_path, 'w') as output_file:
             output_file.write(rendered_config)
         self._reload()
 
-    def set_http_proxy_pass(self, app_name, domain: str, ip_addr: str):
+    def set_http_proxy_pass(self, app_name, domain: str, ip_addr: str,
+        template_path: str = None):
         '''
         add new "virtualhost" site to nginx (ie noteworthy app)
         <app>.conf to nginx_sites_enabled
         '''
-        template_path = os.path.join(self.deploy_dir, 'app.link.nginx.tmpl.conf')
-        config = {'domain': f'.{domain}', 'ip_addr': ip_addr}
+        if not template_path:
+            template_path = self.nginx_app_template
+
+        config = {'domain': f'.{domain}', 'container': ip_addr}
         rendered_config = self._render_template(template_path, config)
         with open(os.path.join(self.nginx_sites_enabled, f'{app_name}.conf'), 'w') as output_file:
             output_file.write(rendered_config)
