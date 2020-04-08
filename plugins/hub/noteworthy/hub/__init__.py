@@ -46,7 +46,7 @@ class HubController(NoteworthyPlugin):
         link_wg_port = link_node.attrs['NetworkSettings']['Ports']['18521/udp'][0]['HostPort']
         link_ip = link_node.attrs['NetworkSettings']['Networks']['noteworthy']['IPAddress']
         backends =  { 'backends' : [{
-                                        'domain' : f'*.{domain}',
+                                        'domain' : f'.{domain}',
                                         'endpoint' : f'{link_ip}:443'
                                     }]
                     }

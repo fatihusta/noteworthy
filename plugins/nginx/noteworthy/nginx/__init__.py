@@ -24,7 +24,7 @@ class NginxController(NoteworthyPlugin):
         if os.environ['NOTEWORTHY_ROLE'] == 'link':
             self.set_link_tls_stream_backend(os.environ['NOTEWORTHY_DOMAIN'])
             launcher_nginx_conf = {
-                'domain'  : f"*.{os.environ['NOTEWORTHY_DOMAIN']}",
+                'domain'  : f".{os.environ['NOTEWORTHY_DOMAIN']}",
                 'link_ip' : '10.0.0.2'
             }
             self.add_app_nginx_config('launcher', 'link', launcher_nginx_conf)
@@ -63,13 +63,13 @@ class NginxController(NoteworthyPlugin):
         else:
             raise Exception(f'Unsupported role: {role} for NginxController.add_app_nginx_config')
         rendered_config = self._render_template(template_path, config)
-        with open(os.path.join(self.nginx_sites_enabled, f'{app}.conf'), 'w') as output_file:
+        with open(os.path.join(self.nginx_sites_enabled, f'{app_name}.conf'), 'w') as output_file:
             output_file.write(rendered_config)
         self._reload()
 
     def set_link_tls_stream_backend(self, domain: str):
         backends =  { 'backends' : [{
-                                               'domain' : f'*.{domain}',
+                                               'domain' : f'.{domain}',
                                              'endpoint' : '10.0.0.2:443'
                                             }]
                            }
