@@ -1,4 +1,5 @@
 import os
+import json
 import shutil
 
 from jinja2 import Template
@@ -12,42 +13,68 @@ class NginxController(NoteworthyPlugin):
 
     def __init__(self):
         super().__init__(__file__)
-        self.nginx_gateway_template = os.path.join(self.deploy_dir, 'nginx.gateway.tmpl.conf')
+        self.nginx_config_template = os.path.join(self.deploy_dir, 'nginx.gateway.tmpl.conf')
         self.nginx_config_path = '/etc/nginx/nginx.test.conf'
+        self.nginx_sites_enabled = '/etc/nginx/sites-enabled'
 
     def run(self, **kwargs):
         os.system("nginx -g 'daemon off;'")
 
     def start(self, **kwargs):
+        if os.environ['NOTEWORTHY_ROLE'] == 'link':
+            self.set_link_tls_stream_backend(os.environ['NOTEWORTHY_DOMAIN'])
+            launcher_nginx_conf = {
+                'domain'  : f"*.{os.environ['NOTEWORTHY_DOMAIN']}",
+                'link_ip' : '10.0.0.2'
+            }
+            self.add_app_nginx_config('launcher', 'link', launcher_nginx_conf)
         self._start(self.PLUGIN_NAME)
-
 
     def _reload(self, **kwargs):
         os.system('nginx -s reload')
 
-    def write_config(self, config, template_path, output_path, **kwargs):
+    def _render_template(self, template_path, config):
         with open(template_path, 'r') as template:
             t = Template(template.read())
-        rendered_template = t.render(config)
-        with open(output_path, 'w') as output_file:
-            output_file.write(rendered_template)
+        return t.render(config)
 
-    def write_gateway_config(self, **kwargs):
-        config = self.tls_stream_backends
-        self.write_config(config, self.nginx_gateway_template, self.nginx_config_path)
+    def write_config(self, backends):
+        '''
+        writes main nginx config to self.nginx_config_path
+        used to config transparent tls-proxying gateway->link & link->taproot
+        '''
+        if isinstance(backends, str):
+            backends = json.loads(backends)
 
-    def serve_domain(self, domain, config, get_certs=True):
-        if get_certs:
-            cert_info = self._cerbot(domain)
-        self._write_config(domain, config, cert_info)
+        rendered_config = self._render_template(self.nginx_config_template, backends)
+        with open(self.nginx_config_path, 'w') as output_file:
+            output_file.write(rendered_config)
         self._reload()
 
-    @property
-    def tls_stream_backends(self):
-        return { 'backends' : [{
-                             'domain' : '*.root.community',
-                             'endpoint' : '172.18.0.2:443'
-                           }]
-            }
+    def add_app_nginx_config(self, app_name, role, config):
+        '''
+        add new "virtualhost" site to nginx (ie noteworthy app)
+        <app>.conf to nginx_sites_enabled
+        '''
+        if role == 'link':
+            template_path = os.path.join(self.deploy_dir, 'app.link.nginx.tmpl.conf')
+        elif role == 'hub':
+            template_path = os.path.join(self.deploy_dir, 'app.gateway.nginx.tmpl.conf')
+        else:
+            raise Exception(f'Unsupported role: {role} for NginxController.add_app_nginx_config')
+        rendered_config = self._render_template(template_path, config)
+        with open(os.path.join(self.nginx_sites_enabled, f'{app}.conf'), 'w') as output_file:
+            output_file.write(rendered_config)
+        self._reload()
+
+    def set_link_tls_stream_backend(self, domain: str):
+        backends =  { 'backends' : [{
+                                               'domain' : f'*.{domain}',
+                                             'endpoint' : '10.0.0.2:443'
+                                            }]
+                           }
+        self.write_config(backends)
+
+
 
 Controller = NginxController

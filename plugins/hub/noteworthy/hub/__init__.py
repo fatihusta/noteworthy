@@ -19,9 +19,11 @@ class HubController(NoteworthyPlugin):
 
     @grpc_method(ReservationRequest, ReservationResponse)
     def reserve_domain(self, domain: str, pub_key: str, auth_code: str):
+        from noteworthy.nginx import NginxController
         volumes = []
         app_env = {
                    'NOTEWORTHY_ROLE': 'link',
+                   'NOTEWORTHY_DOMAIN': domain,
                    'TAPROOT_PUBKEY': pub_key
                    }
         ports = {
@@ -42,6 +44,22 @@ class HubController(NoteworthyPlugin):
         link_node = self.docker.containers.get(link_node.attrs['Id'])
         link_wg_pubkey = link_node.exec_run('notectl wireguard pubkey').output.decode().strip()
         link_wg_port = link_node.attrs['NetworkSettings']['Ports']['18521/udp'][0]['HostPort']
+        link_ip = link_node.attrs['NetworkSettings']['Networks']['noteworthy']['IPAddress']
+        backends =  { 'backends' : [{
+                                        'domain' : f'*.{domain}',
+                                        'endpoint' : f'{link_ip}:443'
+                                    }]
+                    }
+        launcher_nginx_conf = {
+            'domain'  : f'*.{domain}',
+            'link_ip' : link_ip
+        }
+        nc = NginxController()
+        # cant do this here
+        # need to write config atomically with a lock
+        # TODO fix
+        nc.write_config(backends)
+        nc.add_app_nginx_config('launcher', 'hub', launcher_nginx_conf)
         return {
                 "link_wg_endpoint": f"{os.environ['NOTEWORTHY_HUB']}:{link_wg_port}",
                 "link_wg_pubkey": link_wg_pubkey

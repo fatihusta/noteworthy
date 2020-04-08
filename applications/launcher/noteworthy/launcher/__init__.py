@@ -102,7 +102,7 @@ class LauncherController(NoteworthyPlugin):
             shutil.unpack_archive(archive_path, self.PACKAGE_CACHE)
             shutil.copyfile(os.path.join(deploy_dir, 'install.sh'), os.path.join(app_dir, 'install.sh'))
             shutil.copyfile(os.path.join(deploy_dir, f'Dockerfile.{env}'), os.path.join(app_dir, 'Dockerfile'))
-            self._build_container(app_dir, app_name, version)
+            self._build_container(app_dir, app, version)
 
             # deploy launcher / launcher-hub
             self.docker.containers.run(f'noteworthy-{app}:{version}',

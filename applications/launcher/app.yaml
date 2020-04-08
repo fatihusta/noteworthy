@@ -9,5 +9,5 @@ plugins:
 stubs:
   - reservation
   - link
-bundle:
-  - messenger
+# bundle:
+#   - messenger
