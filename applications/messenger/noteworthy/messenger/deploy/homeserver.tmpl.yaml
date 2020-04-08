@@ -17,12 +17,12 @@ server_name:                                      "matrix.{{ domain }}"
 
 # When running as a daemon, the file to store the pid in
 #
-pid_file:                                         /homeserver.pid
+pid_file:                                         {{ config_dir }}/homeserver.pid
 
 # The path to the web client which will be served at /_matrix/client/
 # if 'webclient' is configured under the 'listeners' configuration.
 #
-web_client_location:                              "/riot-web/webapp"
+web_client_location:                              "{{ web_client_location }}"
 
 # The public-facing base URL that clients use to access this HS
 # (not including _matrix/...). This is the same URL a user would
@@ -570,7 +570,7 @@ database:
   # Arguments to pass to the engine
   args:
     # Path to the database
-    database:                                     "/homeserver.db"
+    database:                                     "{{ config_dir }}/homeserver.db"
 
 # Number of events to cache in memory.
 #
@@ -582,7 +582,7 @@ database:
 # A yaml python logging config file as described by
 # https://docs.python.org/3.7/library/logging.config.html#configuration-dictionary-schema
 #
-log_config:                                       "/matrix.{{ domain }}.log.config"
+log_config:                                       "{{ config_dir }}/matrix.{{ domain }}.log.config"
 
 
 ## Ratelimiting ##
@@ -676,7 +676,7 @@ log_config:                                       "/matrix.{{ domain }}.log.conf
 
 # Directory where uploaded images and attachments are stored.
 #
-media_store_path:                                 "/media_store"
+media_store_path:                                 "{{ config_dir }}/media_store"
 
 # Media storage providers allow media to be stored in different
 # locations.
@@ -836,13 +836,13 @@ media_store_path:                                 "/media_store"
 
 ## TURN ##
 
-turn_allow_guests:                                false
-turn_shared_secret:                               {{ turn_secret }}
-turn_uris:
-- turns:matrix.{{ domain }}?transport=udp
-- turns:matrix.{{ domain }}?transport=tcp
-- turn:matrix.{{ domain }}?transport=udp
-- turn:matrix.{{ domain }}?transport=tcp
+# turn_allow_guests:                              false
+# turn_shared_secret:                             {{ turn_secret }}
+# turn_uris:
+# - turns:matrix.{{ domain }}?transport=udp
+# - turns:matrix.{{ domain }}?transport=tcp
+# - turn:matrix.{{ domain }}?transport=udp
+# - turn:matrix.{{ domain }}?transport=tcp
 
 # The public URIs of the TURN server to give to clients
 #
@@ -1141,7 +1141,7 @@ form_secret:                                      "{{ form_secret }}"
 
 # Path to the signing key to sign messages with
 #
-signing_key_path:                                 "/matrix.{{ domain }}.signing.key"
+signing_key_path:                                 "{{ config_dir }}/matrix.{{ domain }}.signing.key"
 
 # The keys that the server used to sign messages with but won't use
 # to sign new messages.

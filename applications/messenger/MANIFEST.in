@@ -1,1 +1,1 @@
-recursive-include noteworthy/launcher/deploy *
+recursive-include noteworthy/messenger/deploy *
