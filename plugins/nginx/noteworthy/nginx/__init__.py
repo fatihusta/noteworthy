@@ -53,18 +53,16 @@ class NginxController(NoteworthyPlugin):
         <app>.conf to nginx_sites_enabled
         '''
         template_path = os.path.join(self.deploy_dir, 'app.link.nginx.tmpl.conf')
-        config = {'domain': domain, 'ip_addr':ip_addr}
+        config = {'domain': f'.{domain}', 'ip_addr': ip_addr}
         rendered_config = self._render_template(template_path, config)
         with open(os.path.join(self.nginx_sites_enabled, f'{app_name}.conf'), 'w') as output_file:
             output_file.write(rendered_config)
         self._reload()
 
     def set_tls_stream_backend(self, domain: str, ip: str):
-        backends =  { 'backends' : [{
-                                               'domain' : f'~.{domain}',
-                                             'endpoint' : f'{ip}:443'
-                                            }]
-                           }
+        backends =  { 'backends' : [ { 'domain' : f'~.{domain}',
+                                     'endpoint' : f'{ip}:443'
+                                     } ] }
         self.write_config(backends)
 
     def certbot(self, domains: list):
