@@ -78,6 +78,7 @@ class LauncherController(NoteworthyPlugin):
                 'NOTEWORTHY_HUB': hub_host,
         }
         volumes.append('/var/run/docker.sock:/var/run/docker.sock')
+        volumes.append('/usr/local/bin/docker:/usr/local/bin/docker')
         if archive_path or args.archive:
             if not archive_path:
                 archive_path = args.archive
@@ -131,7 +132,9 @@ class LauncherController(NoteworthyPlugin):
             path=app_dir, tag=f'noteworthy-{app}:{version}', nocache=True)
 
     def start(self, **kwargs):
-        self.install('/opt/noteworthy/dist/build/messenger/messenger-DEV.tar.gz')
+        if os.environ['NOTEWORTHY_ROLE'] == 'taproot':
+            os.system('notectl package package messenger')
+            self.install('/opt/noteworthy/dist/build/messenger/messenger-DEV.tar.gz')
 
 
     @classmethod

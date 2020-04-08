@@ -27,7 +27,7 @@ class NginxController(NoteworthyPlugin):
     def start(self, **kwargs):
         if os.environ['NOTEWORTHY_ROLE'] == 'link':
             self.add_tls_stream_backend(os.environ['NOTEWORTHY_DOMAIN'], '10.0.0.2')
-            self.set_http_proxy_pass('launcher', os.environ['NOTEWORTHY_DOMAIN'], '10.0.0.2')
+            self.set_http_proxy_pass('launcher', f".{os.environ['NOTEWORTHY_DOMAIN']}", '10.0.0.2')
         self._start(self.PLUGIN_NAME)
 
     def _reload(self, **kwargs):

@@ -8,5 +8,3 @@ for plugin in */; do
     ./install.sh
     cd -
 done
-
-#notectl package package messenger

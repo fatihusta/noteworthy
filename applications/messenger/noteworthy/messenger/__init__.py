@@ -9,7 +9,7 @@ from noteworthy.notectl.plugins import NoteworthyPlugin
 
 class LauncherController(NoteworthyPlugin):
 
-    PLUGIN_NAME = 'launcher'
+    PLUGIN_NAME = 'messenger'
 
     PACKAGE_CACHE = '/var/noteworthy/cache/packages'
 
