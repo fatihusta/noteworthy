@@ -1,3 +1,4 @@
+import argparse
 import os
 import shutil
 from pathlib import Path
@@ -21,8 +22,6 @@ class LauncherController(NoteworthyPlugin):
         self.hub_hostname = os.environ.get('NOTEWORTHY_HUB', '192.168.1.9:8000')
 
     def install(self, archive_path: str = None, **kwargs):
-        self.sub_parser.add_argument(
-             '--archive', help='path of archive to install')
         args = self.sub_parser.parse_known_args(self.args)[0]
         # we use env here to figure out which Dockerfile we should use
         # when building an apps' container; in PROD we want to use the base
@@ -65,8 +64,6 @@ class LauncherController(NoteworthyPlugin):
     
     def launch_launcher(self, archive_path: str = None, hub: bool = False,
             domain: str = '', hub_host: str = 'hub01.noteworthy.im', **kwargs):
-        self.sub_parser.add_argument(
-             '--archive', help='path of archive to install')
         args = self.sub_parser.parse_known_args(self.args)[0]
         # we use env here to figure out which Dockerfile we should use
         # when building an apps' container; in PROD we want to use the base
@@ -124,8 +121,6 @@ class LauncherController(NoteworthyPlugin):
             detach=True,
             environment=app_env)
 
-            #install messenger
-            self.install('/opt/noteworthy/dist/build/messenger/messenger-DEV.tar.gz')
         else:
             raise NotImplementedError(
                 'Installing from repository not supported yet.')
@@ -135,5 +130,16 @@ class LauncherController(NoteworthyPlugin):
         self.docker.images.build(
             path=app_dir, tag=f'noteworthy-{app}:{version}', nocache=True)
 
+    def start(self, **kwargs):
+        self.install('/opt/noteworthy/dist/build/messenger/messenger-DEV.tar.gz')
+
+
+    @classmethod
+    def _setup_argparse(cls, arg_parser):
+        super()._setup_argparse(arg_parser)
+        cls.sub_parser = argparse.ArgumentParser(conflict_handler='resolve',
+        usage='notectl launcher')
+        cls.sub_parser.add_argument(
+             '--archive', help='path of archive to install')
 
 Controller = LauncherController

@@ -99,6 +99,10 @@ class NoteworthyController:
             except NotImplementedError:
                 pass
 
+        # Call start on app's Controller
+        self.plugins[manifest['app']].Controller().start()
+
+
         print('noteworthy finished booting!')
         # TODO tail log file
         os.system('tail -f /dev/null')
