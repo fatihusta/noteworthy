@@ -14,7 +14,7 @@ class NginxController(NoteworthyPlugin):
     def __init__(self):
         super().__init__(__file__)
         self.nginx_config_template = os.path.join(self.deploy_dir, 'nginx.gateway.tmpl.conf')
-        self.nginx_config_path = '/etc/nginx/nginx.test.conf'
+        self.nginx_config_path = '/etc/nginx/nginx.conf'
         self.nginx_sites_enabled = '/etc/nginx/sites-enabled'
 
     def run(self, **kwargs):

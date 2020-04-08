@@ -51,7 +51,7 @@ class HubController(NoteworthyPlugin):
                                     }]
                     }
         launcher_nginx_conf = {
-            'domain'  : f'*.{domain}',
+            'domain'  : f'.{domain}',
             'link_ip' : link_ip
         }
         nc = NginxController()
