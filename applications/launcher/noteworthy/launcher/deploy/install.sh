@@ -9,3 +9,4 @@ for plugin in */; do
     cd -
 done
 
+#notectl package package messenger

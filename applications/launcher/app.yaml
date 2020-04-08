@@ -6,8 +6,9 @@ plugins:
   - nginx
   - http_service
   - hub
+  - package
 stubs:
   - reservation
   - link
-# bundle:
-#   - messenger
+bundle:
+  - messenger
