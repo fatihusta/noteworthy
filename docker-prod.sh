@@ -21,4 +21,3 @@ rm -rf build/ dist/
 python setup.py install
 
 notectl package package launcher
-notectl package package messenger
