@@ -10,6 +10,7 @@ from noteworthy.notectl.plugins import PluginManager
 class MessengerController(NoteworthyPlugin):
 
     PLUGIN_NAME = 'messenger'
+    PACKAGE_CACHE = '/var/noteworthy/cache/packages'
 
     SECRET_ALPHABET = string.digits + string.ascii_letters + ".,;^&*-_+=#~@"
     SECRET_LENGTH = 50
