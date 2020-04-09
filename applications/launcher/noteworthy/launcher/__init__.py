@@ -30,6 +30,7 @@ class LauncherController(NoteworthyPlugin):
         # with make .docker
         # TODO figure out if version pinning is needed here
         env = os.environ.get('NOTEWORTHY_ENV', 'prod')
+        app_env = { 'NOTEWORTHY_DOMAIN': os.environ['NOTEWORTHY_DOMAIN'] }
         volumes = []
         if archive_path or args.archive:
             if not archive_path:
@@ -50,7 +51,8 @@ class LauncherController(NoteworthyPlugin):
             name=f"noteworthy-{app}",
             #auto_remove=True,
             volumes=volumes,
-            detach=True)
+            detach=True,
+            environment=app_env)
             # setup app's nginx config
             from noteworthy.nginx import NginxController
             nc = NginxController()
