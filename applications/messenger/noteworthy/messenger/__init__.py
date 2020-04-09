@@ -2,7 +2,6 @@ import os
 import string
 import secrets
 from jinja2 import Template
-from synapse.config.homeserver import HomeServerConfig
 from noteworthy.notectl.plugins import NoteworthyPlugin
 from noteworthy.notectl.plugins import PluginManager
 
@@ -43,6 +42,7 @@ class MessengerController(NoteworthyPlugin):
             self.config_dir, 'homeserver.yaml')
         self._generate_file_from_template(
             homeserver_tmpl, homeserver_target, configs)
+        from synapse.config.homeserver import HomeServerConfig
         HomeServerConfig.load_or_generate_config('Noteworthy Messenger',
         ['-c', homeserver_target, '--generate-missing-configs'])
 
