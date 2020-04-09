@@ -22,7 +22,6 @@ class LauncherController(NoteworthyPlugin):
         self.hub_hostname = os.environ.get('NOTEWORTHY_HUB', '192.168.1.9:8000')
 
     def install(self, archive_path: str = None, **kwargs):
-        args = self.sub_parser.parse_known_args(self.args)[0]
         # we use env here to figure out which Dockerfile we should use
         # when building an apps' container; in PROD we want to use the base
         # decentralabs/noteworthy:latest container that the user has already downloaded
@@ -32,9 +31,9 @@ class LauncherController(NoteworthyPlugin):
         env = os.environ.get('NOTEWORTHY_ENV', 'prod')
         app_env = { 'NOTEWORTHY_DOMAIN': os.environ['NOTEWORTHY_DOMAIN'] }
         volumes = []
-        if archive_path or args.archive:
+        if archive_path or self.args.archive:
             if not archive_path:
-                archive_path = args.archive
+                archive_path = self.args.archive
             app, version = os.path.basename(archive_path).split('-')
             version = version.replace('.tar.gz', '')
             app_dir = os.path.join(self.PACKAGE_CACHE, f'{app}/{version}')
@@ -56,9 +55,13 @@ class LauncherController(NoteworthyPlugin):
             # setup app's nginx config
             from noteworthy.nginx import NginxController
             nc = NginxController()
-            nc.set_http_proxy_pass(app, os.environ['NOTEWORTHY_DOMAIN'], f"noteworthy-{app}",
-                os.path.join(self.PACKAGE_CACHE,
-                    f'{app}/{version}/{app}/noteworthy/{app}/deploy/nginx.conf'))
+            try:
+                nc.set_http_proxy_pass(app, os.environ['NOTEWORTHY_DOMAIN'], f"noteworthy-{app}",
+                    os.path.join(self.PACKAGE_CACHE,
+                        f'{app}/{version}/{app}/noteworthy/{app}/deploy/nginx.conf'))
+            except:
+                print(f'No nginx config found for app {app}')
+            
         else:
             raise NotImplementedError(
                 'Installing from repository not supported yet.')
@@ -66,7 +69,6 @@ class LauncherController(NoteworthyPlugin):
     
     def launch_launcher(self, archive_path: str = None, hub: bool = False,
             domain: str = '', hub_host: str = 'hub01.noteworthy.im', **kwargs):
-        args = self.sub_parser.parse_known_args(self.args)[0]
         # we use env here to figure out which Dockerfile we should use
         # when building an apps' container; in PROD we want to use the base
         # decentralabs/noteworthy:latest container that the user already has
@@ -81,7 +83,7 @@ class LauncherController(NoteworthyPlugin):
         }
         volumes.append('/var/run/docker.sock:/var/run/docker.sock')
         volumes.append('/usr/local/bin/docker:/usr/local/bin/docker')
-        if archive_path or args.archive:
+        if archive_path or self.args.archive:
             if not archive_path:
                 archive_path = args.archive
             app, version = os.path.basename(archive_path).split('-')

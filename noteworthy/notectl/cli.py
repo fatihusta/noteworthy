@@ -31,6 +31,7 @@ class NoteworthyCLI:
                 plugin_controller = controller_cls.get_grpc_stub()
             else:
                 plugin_controller = controller_cls()
+                plugin_controller.args = plugin_args
             if self.args.debug:
                 print(plugin_args)
             NoteworthyCLI._invoke_method(plugin_controller, command, plugin_args.__dict__)
