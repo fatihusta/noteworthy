@@ -30,6 +30,7 @@ class LauncherController(NoteworthyPlugin):
         # TODO figure out if version pinning is needed here
         env = os.environ.get('NOTEWORTHY_ENV', 'prod')
         app_env = { 'NOTEWORTHY_DOMAIN': os.environ['NOTEWORTHY_DOMAIN'] }
+        dashed_domain = os.environ['NOTEWORTHY_DOMAIN'].replace('.', '-')
         volumes = []
         if archive_path or self.args.archive:
             if not archive_path:
@@ -47,7 +48,7 @@ class LauncherController(NoteworthyPlugin):
             cap_add=['NET_ADMIN'],
             network='noteworthy',
             stdin_open=True,
-            name=f"noteworthy-{app}",
+            name=f"noteworthy-{app}-{dashed_domain}",
             #auto_remove=True,
             volumes=volumes,
             detach=True,
