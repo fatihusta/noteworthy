@@ -28,6 +28,9 @@ class NginxController(NoteworthyPlugin):
         if os.environ['NOTEWORTHY_ROLE'] == 'link':
             self.add_tls_stream_backend(os.environ['NOTEWORTHY_DOMAIN'], '10.0.0.2')
             self.set_http_proxy_pass('launcher', f".{os.environ['NOTEWORTHY_DOMAIN']}", '10.0.0.2')
+        elif os.environ['NOTEWORTHY_ROLE'] == 'taproot':
+            self.certbot([os.environ['NOTEWORTHY_DOMAIN'], f"matrix.{os.environ['NOTEWORTHY_DOMAIN']}"])
+
         self._start(self.PLUGIN_NAME)
 
     def _reload(self, **kwargs):
@@ -73,10 +76,11 @@ class NginxController(NoteworthyPlugin):
 
     def certbot(self, domains: list):
         '''
-        certbot certonly --non-interactive --agree-tos --webroot -m hi@decentralabs.io -w /var/www/html -d demo.noteworthy.im -d matrix.demo.notworthy.im
-        certbot install --cert-path /etc/letsencrypt/live/hub.root.community/cert.pem --key-path /etc/letsencrypt/live/hub.root.community/privkey.pem --fullchain-path /etc/letsencrypt/live/hub.root.community/fullchain.pem -d root.community --redirect
+        Get Let's Encrypt certs wit Certbot
         '''
-        pass
+        domain_param = ' -d '.join(domains)
+        os.system(f'certbot certonly --non-interactive --agree-tos --webroot -m hi@decentralabs.io -w /var/www/html -d {domain_param}')
+        os.system(f'certbot install --cert-path /etc/letsencrypt/live/{domains[0]}/cert.pem --key-path /etc/letsencrypt/live/{domains[0]}/privkey.pem --fullchain-path /etc/letsencrypt/live/{ domains[0] }/fullchain.pem -d { domains[0] } --redirect')
 
     def read_yaml_file(self, filename):
         with open(filename, 'r') as peer_file:
@@ -84,7 +88,7 @@ class NginxController(NoteworthyPlugin):
         return res
 
     def store_link(self, domain: str, ip_addr: str):
-        link = { 'domain': f'~.{domain}',
+        link = { 'domain': f'~{domain}',
                     'endpoint': f'{ip_addr}:443'}
 
         with open(os.path.join(self.config_dir, f'{domain}.yaml'), 'w') as link_file:
