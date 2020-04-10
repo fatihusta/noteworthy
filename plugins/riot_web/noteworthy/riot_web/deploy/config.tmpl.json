@@ -1,0 +1,22 @@
+{
+    "default_server_config": {
+        "m.homeserver": {
+            "base_url": "http://matrix.{{ domain }}",
+            "server_name": "{{ domain }}"
+        },
+        "m.identity_server": {
+            "base_url": "https://vector.im"
+        }
+    },
+    "brand": "Noteworthy",
+    "disable_custom_urls": true,
+    "disable_guests": false,
+    "disable_login_language_selector": false,
+    "defaultCountryCode": "US",
+    "features": {
+      "feature_pinning": "labs",
+      "feature_custom_status": "labs",
+      "feature_custom_tags": "labs",
+      "feature_state_counters": "labs"
+    }
+}

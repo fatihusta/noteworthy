@@ -43,12 +43,13 @@ class LauncherController(NoteworthyPlugin):
             shutil.copyfile(os.path.join(self.deploy_dir, 'install.sh'), os.path.join(app_dir, 'install.sh'))
             shutil.copyfile(os.path.join(self.deploy_dir, f'Dockerfile.{env}'), os.path.join(app_dir, 'Dockerfile'))
             self._build_container(app_dir, app, version)
+            app_container_name = f"noteworthy-{app}-{dashed_domain}"
             self.docker.containers.run(f'noteworthy-{app}:{version}',
             tty=True,
             cap_add=['NET_ADMIN'],
             network='noteworthy',
             stdin_open=True,
-            name=f"noteworthy-{app}-{dashed_domain}",
+            name=app_container_name,
             #auto_remove=True,
             volumes=volumes,
             detach=True,
@@ -57,17 +58,17 @@ class LauncherController(NoteworthyPlugin):
             from noteworthy.nginx import NginxController
             nc = NginxController()
             try:
-                nc.set_http_proxy_pass(app, os.environ['NOTEWORTHY_DOMAIN'], f"noteworthy-{app}",
+                nc.set_http_proxy_pass(app, os.environ['NOTEWORTHY_DOMAIN'], app_container_name,
                     os.path.join(self.PACKAGE_CACHE,
                         f'{app}/{version}/{app}/noteworthy/{app}/deploy/nginx.conf'))
             except:
                 print(f'No nginx config found for app {app}')
-            
+
         else:
             raise NotImplementedError(
                 'Installing from repository not supported yet.')
         print('Done.')
-    
+
     def launch_launcher(self, archive_path: str = None, hub: bool = False,
             domain: str = '', hub_host: str = 'hub01.noteworthy.im', **kwargs):
         # we use env here to figure out which Dockerfile we should use

@@ -1,5 +1,6 @@
 import tarfile
 import os
+from jinja2 import Template
 from noteworthy.notectl.plugins import NoteworthyPlugin
 
 
@@ -16,6 +17,18 @@ class RiotWebController(NoteworthyPlugin):
             with tarfile.open(tar_path) as tar:
                 self.create_config_dir()
                 tar.extractall(path=self.config_dir)
+            config_tmpl = os.path.join(self.deploy_dir, 'config.tmpl.json')
+            config_target = os.path.join(self.config_dir, 'webapp/config.json')
+            configs = {'domain': os.environ['NOTEWORTHY_DOMAIN']}
+            self._generate_file_from_template(
+                config_tmpl, config_target, configs)
+
+    def _generate_file_from_template(self, tmpl_path, target, configs):
+        with open(tmpl_path, 'r') as f:
+            tmpl = Template(f.read())
+        rendered = tmpl.render(configs)
+        with open(target, 'w') as f:
+            f.write(rendered)
 
 
 Controller = RiotWebController
