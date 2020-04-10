@@ -87,7 +87,7 @@ class LauncherController(NoteworthyPlugin):
         volumes.append('/usr/local/bin/docker:/usr/local/bin/docker')
         if archive_path or self.args.archive:
             if not archive_path:
-                archive_path = args.archive
+                archive_path = self.args.archive
             app, version = os.path.basename(archive_path).split('-')
             app_name = app
             if hub:
@@ -139,6 +139,7 @@ class LauncherController(NoteworthyPlugin):
 
     def start(self, **kwargs):
         if os.environ['NOTEWORTHY_ROLE'] == 'taproot':
+            # TODO dont install automatically
             os.system('notectl package package messenger')
             self.install('/opt/noteworthy/dist/build/messenger/messenger-DEV.tar.gz')
 
