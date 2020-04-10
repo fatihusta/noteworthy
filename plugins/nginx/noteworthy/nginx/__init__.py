@@ -24,11 +24,33 @@ class NginxController(NoteworthyPlugin):
     def run(self, **kwargs):
         os.system("nginx -g 'daemon off;'")
 
+    def poll_for_good_status(self, endpoint, max_tries=30):
+        '''
+        Poll http endpoint until we get a good http response (< 400)
+        '''
+        import time
+        from http import client
+        def do_request(endpoint, count=0):
+            c = client.HTTPConnection(endpoint)
+            c.request('GET', '/')
+            resp = c.getresponse()
+            if resp.status < 400:
+                return True
+            if count >= max_tries:
+                raise Exception(f'HTTP poll for good status (< 400) at {endpoint} failed.')
+            time.sleep(1)
+            do_request(endpoint, count+1)
+        return do_request(endpoint)
+
+
     def start(self, **kwargs):
         if os.environ['NOTEWORTHY_ROLE'] == 'link':
             self.add_tls_stream_backend(os.environ['NOTEWORTHY_DOMAIN'], '10.0.0.2')
             self.set_http_proxy_pass('launcher', f".{os.environ['NOTEWORTHY_DOMAIN']}", '10.0.0.2')
         elif os.environ['NOTEWORTHY_ROLE'] == 'taproot':
+            # TODO emit events for these type of interdependent interactions
+            self.poll_for_good_status(os.environ['NOTEWORTHY_DOMAIN'])
+            # Request Let's Encrypt certs with certbot
             self.certbot([os.environ['NOTEWORTHY_DOMAIN'], f"matrix.{os.environ['NOTEWORTHY_DOMAIN']}"])
 
         self._start(self.PLUGIN_NAME)
