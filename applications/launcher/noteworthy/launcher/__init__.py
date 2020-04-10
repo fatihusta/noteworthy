@@ -4,6 +4,7 @@ import shutil
 from pathlib import Path
 
 import docker
+from jinja2 import Template
 
 from noteworthy.notectl.plugins import NoteworthyPlugin
 from noteworthy.hub import HubController
@@ -19,7 +20,15 @@ class LauncherController(NoteworthyPlugin):
         super().__init__(__file__)
         self.args = None
         self.docker = docker.from_env()
-        self.hub_hostname = os.environ.get('NOTEWORTHY_HUB', '192.168.1.9:8000')
+        self.hub_hostname = os.environ.get('NOTEWORTHY_HUB', 'noteworthy.im:8000')
+
+    # TODO move this code to a lib; its duplicated here and in riot-web plugin
+    def _generate_file_from_template(self, tmpl_path, target, configs):
+        with open(tmpl_path, 'r') as f:
+            tmpl = Template(f.read())
+        rendered = tmpl.render(configs)
+        with open(target, 'w') as f:
+            f.write(rendered)
 
     def install(self, archive_path: str = None, **kwargs):
         # we use env here to figure out which Dockerfile we should use
@@ -139,6 +148,13 @@ class LauncherController(NoteworthyPlugin):
 
     def start(self, **kwargs):
         if os.environ['NOTEWORTHY_ROLE'] == 'taproot':
+            # write out .well-known/matrix/server so matrix federation works
+            well_know_target = '/var/www/html/.well-known/matrix/'
+            Path(well_know_target).mkdir(parents=True, exist_ok=True)
+            self._generate_file_from_template(os.path.join(self.deploy_dir, 'server'),
+                os.path.join(well_know_target, 'server'),
+                {'domain': os.environ['NOTEWORTHY_DOMAIN']})
+
             # TODO dont install automatically
             os.system('notectl package package messenger')
             self.install('/opt/noteworthy/dist/build/messenger/messenger-DEV.tar.gz')
