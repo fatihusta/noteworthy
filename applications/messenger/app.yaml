@@ -1,2 +1,3 @@
 app:     messenger
-plugins: []
+plugins:
+  - riot_web
