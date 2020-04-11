@@ -19,7 +19,6 @@ class MessengerController(NoteworthyPlugin):
         self.plugins = PluginManager.load_plugins()
 
     def run(self, *args, **kwargs):
-        configs = {'domain': os.environ['NOTEWORTHY_DOMAIN']}
         if self.is_first_run:
             self._run_first_time_setup()
         hs_config = os.path.join(self.config_dir, 'homeserver.yaml')
@@ -27,8 +26,11 @@ class MessengerController(NoteworthyPlugin):
 
     def _run_first_time_setup(self):
         self.create_config_dir()
-        riot = self.plugins['riot_web'].Controller()
-        web_client_location = os.path.join(riot.config_dir, 'webapp')
+        if 'riot_web' in self.plugins:
+            riot = self.plugins['riot_web'].Controller()
+            web_client_location = os.path.join(riot.config_dir, 'webapp')
+        else:
+            web_client_location = None
         configs = {
             'domain': os.environ['NOTEWORTHY_DOMAIN'],
             'registration_shared_secret': self._get_new_secret(),

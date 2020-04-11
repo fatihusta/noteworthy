@@ -217,7 +217,11 @@ listeners:
     bind_addresses:                               ['0.0.0.0']
 
     resources:
+    {% if web_client_location %}
       - names:                                    [client, federation, webclient]
+    {% else %}
+      - names:                                    [client, federation]
+    {% endif %}
         compress:                                 false
 
     # example additional_resources:
