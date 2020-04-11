@@ -3,7 +3,6 @@ FROM decentralabs/noteworthy:latest
 ADD . /opt/noteworthy/dist
 # TODO fix messenger install hack
 ADD messenger /opt/noteworthy/notectl/applications/messenger
-ADD riot_web /opt/noteworthy/notectl/plugins/riot-web
 ADD install.sh /opt/noteworthy/
 RUN chmod +x /opt/noteworthy/install.sh
 
