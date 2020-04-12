@@ -64,7 +64,7 @@ class LauncherController(NoteworthyPlugin):
             volumes=volumes,
             detach=True,
             environment=app_env,
-            restart_policy={"Name": "always", "MaximumRetryCount": 5})
+            restart_policy={"Name": "always"})
             # setup app's nginx config
             from noteworthy.nginx import NginxController
             nc = NginxController()
@@ -138,7 +138,7 @@ class LauncherController(NoteworthyPlugin):
             ports=ports,
             detach=True,
             environment=app_env,
-            restart_policy={"Name": "always", "MaximumRetryCount": 5})
+            restart_policy={"Name": "always"})
 
         else:
             raise NotImplementedError(

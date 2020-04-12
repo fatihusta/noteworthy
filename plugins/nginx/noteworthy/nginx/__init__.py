@@ -18,8 +18,6 @@ class NginxController(NoteworthyPlugin):
         self.nginx_app_template = os.path.join(self.deploy_dir, 'app.link.nginx.tmpl.conf')
         self.nginx_config_path = '/etc/nginx/nginx.conf'
         self.nginx_sites_enabled = '/etc/nginx/sites-enabled'
-        if self.is_first_run:
-            self.create_config_dir()
 
     def run(self, **kwargs):
         os.system("nginx -g 'daemon off;'")

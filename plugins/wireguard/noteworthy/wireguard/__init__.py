@@ -49,36 +49,37 @@ class WireGuardController(NoteworthyPlugin):
             my_ip = '10.0.0.1/24'
             peer_ip = '10.0.0.2/32'
             peer_pubkey = os.environ['TAPROOT_PUBKEY']
-            wg.init('wg0', my_ip, wg_key_path)
-            wg.add_peer('wg0', peer_pubkey, peer_ip)
+            endpoint = None
         elif role == 'taproot':
             my_ip = '10.0.0.2/24'
             peer_ip = '10.0.0.1/32'
-            if self.is_first_run:
+            if not os.path.exists(os.path.join(self.config_dir, 'link.yaml')):
                 # provision link node
                 hc = HubController.get_grpc_stub(f"{os.environ['NOTEWORTHY_HUB']}:8000")
                 res = hc.reserve_domain(os.environ['NOTEWORTHY_DOMAIN'], pubkey, None)
                 self.store_link(res.link_wg_endpoint, res.link_wg_pubkey)
+                peer_pubkey = res.link_wg_pubkey
+                endpoint = res.link_wg_endpoint
             else:
                 res = self.get_link()
-            wg.init('wg0', my_ip, wg_key_path)
-            wg.add_peer('wg0', res.link_wg_pubkey, peer_ip, res.link_wg_endpoint)
+                peer_pubkey = res['pubkey']
+                endpoint = res['endpoint']
 
         else:
             raise Exception(f'Unrecognized NOTEWORTHY_ROLE: {role}')
 
+        wg.init('wg0', my_ip, wg_key_path)
+        wg.add_peer('wg0', peer_pubkey, peer_ip, endpoint)
+
     def store_link(self, endpoint, pubkey):
         link_data = {'endpoint': endpoint, 'pubkey': pubkey}
         with open(os.path.join(self.config_dir, 'link.yaml'), 'w') as yaml_file:
-            yaml_file.write(yaml.dumps(link_data))
+            yaml_file.write(yaml.dump(link_data))
 
     def get_link(self,):
         with open(os.path.join(self.config_dir, 'link.yaml'), 'r') as yaml_file:
             link_data = yaml.safe_load(yaml_file.read())
-        res = object()
-        res.link_wg_pubkey = link_data['pubkey']
-        res.link_wg_endpoint = link_data['endpoint']
-        return res
+        return link_data
 
     @classmethod
     def _setup_argparse(cls, arg_parser):
