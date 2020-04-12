@@ -15,6 +15,7 @@ docker
 certbot
 certbot-nginx
 Jinja2
+dockerpty
 # TODO freeze versions
 
 # dev reqs

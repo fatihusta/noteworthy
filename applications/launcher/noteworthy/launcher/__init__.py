@@ -4,6 +4,7 @@ import shutil
 from pathlib import Path
 
 import docker
+import dockerpty
 from jinja2 import Template
 
 from noteworthy.notectl.plugins import NoteworthyPlugin
@@ -159,6 +160,12 @@ class LauncherController(NoteworthyPlugin):
             os.system('notectl package package messenger')
             self.install('/opt/noteworthy/dist/build/messenger/messenger-DEV.tar.gz')
 
+    def create_user(self, **kwargs):
+        # use docker proxy for invoking shell commands
+        # via the docker exec
+        dashed_domain = os.environ['NOTEWORTHY_DOMAIN'].replace('.', '-')
+        c = self.docker.containers.list(filters={'name':f'noteworthy-messenger-{dashed_domain}'})[0]
+        dockerpty.exec_command(self.docker.api, c.id, 'register_new_matrix_user -c /opt/noteworthy/.messenger/homeserver.yaml http://localhost:8008')
 
     @classmethod
     def _setup_argparse(cls, arg_parser):
