@@ -40,7 +40,8 @@ class HubController(NoteworthyPlugin):
         volumes=volumes,
         ports=ports,
         detach=True,
-        environment=app_env)
+        environment=app_env,
+        restart_policy={"Name": "always", "MaximumRetryCount": 5})
         link_node = self.docker.containers.get(link_node.attrs['Id'])
         link_wg_pubkey = link_node.exec_run('notectl wireguard pubkey').output.decode().strip()
         link_wg_port = link_node.attrs['NetworkSettings']['Ports']['18521/udp'][0]['HostPort']

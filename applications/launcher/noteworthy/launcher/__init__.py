@@ -63,7 +63,8 @@ class LauncherController(NoteworthyPlugin):
             #auto_remove=True,
             volumes=volumes,
             detach=True,
-            environment=app_env)
+            environment=app_env,
+            restart_policy={"Name": "always", "MaximumRetryCount": 5})
             # setup app's nginx config
             from noteworthy.nginx import NginxController
             nc = NginxController()
@@ -136,7 +137,8 @@ class LauncherController(NoteworthyPlugin):
             volumes=volumes,
             ports=ports,
             detach=True,
-            environment=app_env)
+            environment=app_env,
+            restart_policy={"Name": "always", "MaximumRetryCount": 5})
 
         else:
             raise NotImplementedError(
@@ -149,16 +151,18 @@ class LauncherController(NoteworthyPlugin):
 
     def start(self, **kwargs):
         if os.environ['NOTEWORTHY_ROLE'] == 'taproot':
-            # write out .well-known/matrix/server so matrix federation works
-            well_know_target = '/var/www/html/.well-known/matrix/'
-            Path(well_know_target).mkdir(parents=True, exist_ok=True)
-            self._generate_file_from_template(os.path.join(self.deploy_dir, 'server'),
-                os.path.join(well_know_target, 'server'),
-                {'domain': os.environ['NOTEWORTHY_DOMAIN']})
+            if self.is_first_run:
+                self.create_config_dir()
+                # write out .well-known/matrix/server so matrix federation works
+                well_know_target = '/var/www/html/.well-known/matrix/'
+                Path(well_know_target).mkdir(parents=True, exist_ok=True)
+                self._generate_file_from_template(os.path.join(self.deploy_dir, 'server'),
+                    os.path.join(well_know_target, 'server'),
+                    {'domain': os.environ['NOTEWORTHY_DOMAIN']})
 
-            # TODO dont install automatically
-            os.system('notectl package package messenger')
-            self.install('/opt/noteworthy/dist/build/messenger/messenger-DEV.tar.gz')
+                # TODO dont install automatically
+                os.system('notectl package package messenger')
+                self.install('/opt/noteworthy/dist/build/messenger/messenger-DEV.tar.gz')
 
     def create_user(self, **kwargs):
         # use docker proxy for invoking shell commands

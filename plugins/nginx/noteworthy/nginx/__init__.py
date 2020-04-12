@@ -45,14 +45,16 @@ class NginxController(NoteworthyPlugin):
 
     def start(self, **kwargs):
         self._start(self.PLUGIN_NAME)
-        if os.environ['NOTEWORTHY_ROLE'] == 'link':
-            self.add_tls_stream_backend(os.environ['NOTEWORTHY_DOMAIN'], '10.0.0.2')
-            self.set_http_proxy_pass('launcher', f".{os.environ['NOTEWORTHY_DOMAIN']}", '10.0.0.2')
-        elif os.environ['NOTEWORTHY_ROLE'] == 'taproot':
-            # TODO emit events for these type of interdependent interactions
-            self.poll_for_good_status(os.environ['NOTEWORTHY_DOMAIN'])
-            # Request Let's Encrypt certs with certbot
-            self.certbot([os.environ['NOTEWORTHY_DOMAIN'], f"matrix.{os.environ['NOTEWORTHY_DOMAIN']}"])
+        if self.is_first_run:
+            self.create_config_dir()
+            if os.environ['NOTEWORTHY_ROLE'] == 'link':
+                self.add_tls_stream_backend(os.environ['NOTEWORTHY_DOMAIN'], '10.0.0.2')
+                self.set_http_proxy_pass('launcher', f".{os.environ['NOTEWORTHY_DOMAIN']}", '10.0.0.2')
+            elif os.environ['NOTEWORTHY_ROLE'] == 'taproot':
+                # TODO emit events for these type of interdependent interactions
+                self.poll_for_good_status(os.environ['NOTEWORTHY_DOMAIN'])
+                # Request Let's Encrypt certs with certbot
+                self.certbot([os.environ['NOTEWORTHY_DOMAIN'], f"matrix.{os.environ['NOTEWORTHY_DOMAIN']}"])
 
 
     def _reload(self, **kwargs):

@@ -4,6 +4,7 @@ import os
 import sys
 
 import getpass
+import yaml
 
 from noteworthy.notectl.plugins import NoteworthyPlugin
 from noteworthy.wireguard import wg
@@ -53,15 +54,31 @@ class WireGuardController(NoteworthyPlugin):
         elif role == 'taproot':
             my_ip = '10.0.0.2/24'
             peer_ip = '10.0.0.1/32'
-            # provision link node
-            hc = HubController.get_grpc_stub(f"{os.environ['NOTEWORTHY_HUB']}:8000")
-            res = hc.reserve_domain(os.environ['NOTEWORTHY_DOMAIN'], pubkey, None)
+            if self.is_first_run:
+                # provision link node
+                hc = HubController.get_grpc_stub(f"{os.environ['NOTEWORTHY_HUB']}:8000")
+                res = hc.reserve_domain(os.environ['NOTEWORTHY_DOMAIN'], pubkey, None)
+                self.store_link(res.link_wg_endpoint, res.link_wg_pubkey)
+            else:
+                res = self.get_link()
             wg.init('wg0', my_ip, wg_key_path)
             wg.add_peer('wg0', res.link_wg_pubkey, peer_ip, res.link_wg_endpoint)
 
         else:
             raise Exception(f'Unrecognized NOTEWORTHY_ROLE: {role}')
 
+    def store_link(self, endpoint, pubkey):
+        link_data = {'endpoint': endpoint, 'pubkey': pubkey}
+        with open(os.path.join(self.config_dir, 'link.yaml'), 'w') as yaml_file:
+            yaml_file.write(yaml.dumps(link_data))
+
+    def get_link(self,):
+        with open(os.path.join(self.config_dir, 'link.yaml'), 'r') as yaml_file:
+            link_data = yaml.safe_load(yaml_file.read())
+        res = object()
+        res.link_wg_pubkey = link_data['pubkey']
+        res.link_wg_endpoint = link_data['endpoint']
+        return res
 
     @classmethod
     def _setup_argparse(cls, arg_parser):
