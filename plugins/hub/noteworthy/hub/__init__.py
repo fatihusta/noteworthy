@@ -52,7 +52,7 @@ class HubController(NoteworthyPlugin):
         # need to write config atomically with a lock
         # TODO fix
         nc.add_tls_stream_backend(domain, link_ip)
-        nc.set_http_proxy_pass(container_name, f'.{domain}', link_ip)
+        nc.set_http_proxy_pass(container_name, f'{domain} matrix.{domain}', link_ip)
         return {
                 "link_wg_endpoint": f"{os.environ['NOTEWORTHY_HUB']}:{link_wg_port}",
                 "link_wg_pubkey": link_wg_pubkey
