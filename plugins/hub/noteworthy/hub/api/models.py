@@ -7,14 +7,14 @@ from django.utils import timezone
 from .managers import BetaUserManager
 
 
-class Reservation(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+class Beta_Reservation(models.Model):
+    beta_user = models.ForeignKey(BetaUser,blank = True)
     domain = models.CharField(max_length=255)
 
 class BetaUser(AbstractBaseUser):
     email = models.EmailField(_('email address'), unique=True)
     date_joined = models.DateTimeField(default=timezone.now)
-
+    beta_key = models.UUIDField(blank = True, null = True)
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
 
