@@ -81,7 +81,8 @@ class LauncherController(NoteworthyPlugin):
         print('Done.')
 
     def launch_launcher(self, archive_path: str = None, hub: bool = False,
-            domain: str = '', hub_host: str = 'hub01.noteworthy.im', **kwargs):
+            domain: str = '', hub_host: str = 'hub01.noteworthy.im',
+            auth_code: str = '', **kwargs):
         # we use env here to figure out which Dockerfile we should use
         # when building an apps' container; in PROD we want to use the base
         # decentralabs/noteworthy:latest container that the user already has
@@ -114,6 +115,7 @@ class LauncherController(NoteworthyPlugin):
                 app_name = app + f'-{dash_domain}'
                 app_env['NOTEWORTHY_DOMAIN'] = domain
                 app_env['NOTEWORTHY_ROLE'] = 'taproot'
+                app_env['NOTEWORTHY_AUTH_CODE'] = auth_code
                 if not domain:
                     raise Exception('Must specify --domain argument')
             #provision link

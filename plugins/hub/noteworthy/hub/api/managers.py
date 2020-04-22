@@ -14,10 +14,11 @@ class BetaUserManager(BaseUserManager):
         return user
 
     def keyless_users(self):
-        return super(BetaUserManager, self).get_queryset().filter(beta_key__isnull=True)
+        return self.get_queryset().filter(beta_key__isnull=True)
 
     def provision_beta_keys(self, num_keys):
         users = self.keyless_users().order_by('date_joined')[:num_keys]
         for user in users:
-            user.update(beta_key=uuid.uuid4())
+            user.beta_key = uuid.uuid4()
+            user.save()
         return users

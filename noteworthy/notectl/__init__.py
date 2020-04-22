@@ -47,7 +47,7 @@ class NoteworthyController:
         print('Please wait while Noteworthy launches...')
         self.plugins['launcher'].Controller().launch_launcher(
             '/opt/noteworthy/dist/build/launcher/launcher-DEV.tar.gz',
-            hub=kwargs['hub'], domain=kwargs['domain'], hub_host=kwargs['hub_host'])
+            hub=kwargs['hub'], domain=kwargs['domain'], hub_host=kwargs['hub_host'], auth_code=kwargs['auth_code'])
 
     def protoc(self, **kwargs):
         '''
@@ -68,6 +68,7 @@ class NoteworthyController:
         arg_parser.add_argument('--hub', action='store_true', help='configure this host as a hub')
         arg_parser.add_argument('--domain', help='domain for your node')
         arg_parser.add_argument('--hub-host', help='ip or hostname of noteworthy hub')
+        arg_parser.add_argument('--auth-code', help='reservation key to auth with your host')
 
 
     def get_installed_apps(self):

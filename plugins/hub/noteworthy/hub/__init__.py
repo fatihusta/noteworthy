@@ -19,6 +19,7 @@ class HubController(NoteworthyPlugin):
 
     @grpc_method(ReservationRequest, ReservationResponse)
     def reserve_domain(self, domain: str, pub_key: str, auth_code: str):
+        self._validate_reservation(domain, auth_code)
         from noteworthy.nginx import NginxController
         volumes = []
         app_env = {
@@ -57,7 +58,33 @@ class HubController(NoteworthyPlugin):
                 "link_wg_pubkey": link_wg_pubkey
                }
 
+    def _validate_reservation(self, domain, auth_code):
+        self._setup_django()
+        from noteworthy.hub.api import models
+        user = models.BetaUser.objects.get(beta_key=auth_code)
+        has_user_reserved = models.BetaReservation.objects.filter(beta_user=user).exists()
+        if has_user_reserved:
+            user_res = models.BetaReservation.objects.get(beta_user=user)
+            user_domain = user_res.domain
+            if domain != user_domain:
+                raise Exception(f'User, {user}, has already reserved a different domain.')
+        else:
+            is_domain_taken = models.BetaReservation.objects.filter(domain=domain).exists()
+            if is_domain_taken:
+                raise Exception(f'Domain, {domain}, is already reserved.')
+            models.BetaReservation.objects.create(domain=domain, beta_user=user)
+        '''
+        perhaps this code should instead return a response that can be used
+        by the client application making the reservation request
+        TODO: what's best practice for grpc error stuffs?
+        '''
 
+
+    def _setup_django(self):
+        os.environ['DJANGO_SETTINGS_MODULE'] = 'noteworthy.http_service.rest_api.rest_api.settings'
+        import django
+        django.setup()
+        return django
     # @grpc_method(PeeringRequest, PeeringResponse)
     # def add_peer(self, wg_pubkey: str, auth_token: str):
     #     # TODO make this role check a decorator
