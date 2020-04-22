@@ -59,6 +59,8 @@ class HubController(NoteworthyPlugin):
                }
 
     def _validate_reservation(self, domain, auth_code):
+        if not auth_code:
+            raise Exception('auth_code is required to reserve domain.')
         self._setup_django()
         from noteworthy.hub.api import models
         user = models.BetaUser.objects.get(beta_key=auth_code)
