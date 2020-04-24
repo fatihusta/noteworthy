@@ -7,13 +7,6 @@ import yaml
 class HubController(NoteworthyPlugin):
 
     PLUGIN_NAME = 'noteworthy-hub'
-    link_config = {
-        'sites': sites,
-        'domain': domains,
-        'ports': ports,
-        'link_name': link_name,
-        'app_env': app_env
-    }
 
 
     def __init__(self):
