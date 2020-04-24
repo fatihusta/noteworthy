@@ -46,8 +46,8 @@ class NginxController(NoteworthyPlugin):
         if self.is_first_run:
             self.create_config_dir()
             if os.environ['NOTEWORTHY_ROLE'] == 'link':
-                self.add_tls_stream_backend(os.environ['NOTEWORTHY_DOMAIN'], '10.0.0.2')
-                self.set_http_proxy_pass('launcher', f".{os.environ['NOTEWORTHY_DOMAIN']}", '10.0.0.2')
+                self.add_tls_stream_backend('launcher', os.environ['NOTEWORTHY_NGINX_DOMAIN'], '10.0.0.2')
+                self.set_http_proxy_pass('launcher', os.environ['NOTEWORTHY_NGINX_DOMAIN'], '10.0.0.2')
             elif os.environ['NOTEWORTHY_ROLE'] == 'taproot':
                 # TODO emit events for these type of interdependent interactions
                 self.poll_for_good_status(os.environ['NOTEWORTHY_DOMAIN'])
@@ -76,7 +76,7 @@ class NginxController(NoteworthyPlugin):
             output_file.write(rendered_config)
         self._reload()
 
-    def set_http_proxy_pass(self, app_name, domain: str, ip_addr: str,
+    def set_http_proxy_pass(self, app_name: str, domain: str, ip_addr: str,
         template_path: str = None):
         '''
         add new "virtualhost" site to nginx (ie noteworthy app)
@@ -85,14 +85,14 @@ class NginxController(NoteworthyPlugin):
         if not template_path:
             template_path = self.nginx_app_template
 
-        config = {'domain': f'{domain}', 'container': ip_addr}
+        config = {'domain': domain, 'container': ip_addr}
         rendered_config = self._render_template(template_path, config)
         with open(os.path.join(self.nginx_sites_enabled, f'{app_name}.conf'), 'w') as output_file:
             output_file.write(rendered_config)
         self._reload()
 
-    def add_tls_stream_backend(self, domain: str, ip_addr: str):
-        self.store_link(domain, ip_addr)
+    def add_tls_stream_backend(self, app_name: str, domain: str, ip_addr: str):
+        self.store_link(app_name, domain, ip_addr)
         backends = self.get_link_set()
         self.write_config(backends)
 
@@ -109,11 +109,11 @@ class NginxController(NoteworthyPlugin):
             res = yaml.safe_load(peer_file.read())
         return res
 
-    def store_link(self, domain: str, ip_addr: str):
-        link = { 'domain': f'~{domain}',
+    def store_link(self, app_name: str, domain: str, ip_addr: str):
+        link = { 'domain': f'{domain}',
                     'endpoint': f'{ip_addr}:443'}
 
-        with open(os.path.join(self.config_dir, f'{domain}.yaml'), 'w') as link_file:
+        with open(os.path.join(self.config_dir, f'{app_name}.yaml'), 'w') as link_file:
             link_file.write(yaml.dump(link))
 
     def get_link_set(self):

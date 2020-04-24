@@ -1,100 +1,109 @@
 import os
 from noteworthy.notectl.plugins import NoteworthyPlugin
-
 import docker
-
-from grpcz import grpc_controller, grpc_method
-
-from noteworthy.hub.proto.messages_pb2 import (ReservationRequest, ReservationResponse)
 from noteworthy.wireguard import wg
+import yaml
 
-@grpc_controller
 class HubController(NoteworthyPlugin):
 
     PLUGIN_NAME = 'noteworthy-hub'
-    DJANGO_APP_MODULE = 'noteworthy.hub.api'
+    link_config = {
+        'sites': sites,
+        'domain': domains,
+        'ports': ports,
+        'link_name': link_name,
+        'app_env': app_env
+    }
+
 
     def __init__(self):
+        super().__init__(__file__)
         self.docker = docker.from_env()
 
-    @grpc_method(ReservationRequest, ReservationResponse)
-    def reserve_domain(self, domain: str, pub_key: str, auth_code: str):
-        self._validate_reservation(domain, auth_code)
-        from noteworthy.nginx import NginxController
-        volumes = []
-        app_env = {
-                   'NOTEWORTHY_ROLE': 'link',
-                   'NOTEWORTHY_DOMAIN': domain,
-                   'TAPROOT_PUBKEY': pub_key
-                   }
-        ports = {
-                    '18521/udp': None, # random wireguard port
-                }
-        container_name = domain.replace('.', '-')
-        link_node = self.docker.containers.run(f'noteworthy-launcher:DEV',
-        tty=True,
-        cap_add=['NET_ADMIN'],
-        network='noteworthy',
-        stdin_open=True,
-        name=f'{container_name}-link',
-        #auto_remove=True,
-        volumes=volumes,
-        ports=ports,
-        detach=True,
-        environment=app_env,
-        restart_policy={"Name": "always"})
-        link_node = self.docker.containers.get(link_node.attrs['Id'])
+    def provision_link(self, link_name: str, domain: str, pub_key: str, sites: str):
+        domain_regex = self._validate_domain_regex(domain, sites)
+        link_node = self._get_or_create_link(link_name, domain_regex, pub_key)
         link_wg_pubkey = link_node.exec_run('notectl wireguard pubkey').output.decode().strip()
         link_wg_port = link_node.attrs['NetworkSettings']['Ports']['18521/udp'][0]['HostPort']
+        link_udp_proxy_port = link_node.attrs['NetworkSettings']['Ports']['18522/udp'][0]['HostPort']
         link_ip = link_node.attrs['NetworkSettings']['Networks']['noteworthy']['IPAddress']
         nc = NginxController()
-        # cant do this here
-        # need to write config atomically with a lock
-        # TODO fix
-        nc.add_tls_stream_backend(domain, link_ip)
-        nc.set_http_proxy_pass(container_name, f'{domain} matrix.{domain}', link_ip)
+        nc.add_tls_stream_backend(link_name, f'~{domain}', link_ip)
+        nc.set_http_proxy_pass(link_name, f'.{domain}', link_ip)
         return {
-                "link_wg_endpoint": f"{os.environ['NOTEWORTHY_HUB']}:{link_wg_port}",
-                "link_wg_pubkey": link_wg_pubkey
-               }
+            "link_wg_endpoint": f"{os.environ['NOTEWORTHY_HUB']}:{link_wg_port}",
+            "link_udp_proxy_endpoint": f"{os.environ['NOTEWORTHY_HUB']}:{link_udp_proxy_port}",
+            "link_wg_pubkey": link_wg_pubkey}
 
-    def _validate_reservation(self, domain, auth_code):
-        if not auth_code:
-            raise Exception('auth_code is required to reserve domain.')
-        self._setup_django()
-        from noteworthy.hub.api import models
-        user = models.BetaUser.objects.get(beta_key=auth_code)
-        has_user_reserved = models.BetaReservation.objects.filter(beta_user=user).exists()
-        if has_user_reserved:
-            user_res = models.BetaReservation.objects.get(beta_user=user)
-            user_domain = user_res.domain
-            if domain != user_domain:
-                raise Exception(f'User, {user}, has already reserved a different domain.')
-        else:
-            is_domain_taken = models.BetaReservation.objects.filter(domain=domain).exists()
-            if is_domain_taken:
-                raise Exception(f'Domain, {domain}, is already reserved.')
-            models.BetaReservation.objects.create(domain=domain, beta_user=user)
-        '''
-        perhaps this code should instead return a response that can be used
-        by the client application making the reservation request
-        TODO: what's best practice for grpc error stuffs?
-        '''
+    def _validate_domain_regex(self, domain, sites):
+        sites = [site.strip() for site in sites.split(';') if site.strip()]
+        #TODO: check sites are all slugs!
+        #TODO: check domain is a valid domain ('.' separated slugs)!!!
+        piped_sites = '|'.join(sites)
+        domain_regex = f'[{piped_sites}].{domain}'
+        return domain_regex
 
+    def _get_or_create_link(self, link_name, domain_regex, pub_key):
+        try:
+            link_node = self.docker.containers.get(link_name)
+        except docker.errors.NotFound:
+            return self._create_link_from_config(link_name, domain_regex, pub_key)
 
-    def _setup_django(self):
-        os.environ['DJANGO_SETTINGS_MODULE'] = 'noteworthy.http_service.rest_api.rest_api.settings'
-        import django
-        django.setup()
-        return django
-    # @grpc_method(PeeringRequest, PeeringResponse)
-    # def add_peer(self, wg_pubkey: str, auth_token: str):
-    #     # TODO make this role check a decorator
-    #     # TODO limit the number of peers
-    #     if os.environ['NOTEWORTHY_ROLE'] != 'link':
-    #         raise Exception('RPC method add_peer only supported by link nodes')
-    #     hub_wg_pubkey = wg.pubkey('/opt/noteworthy/.wireguard/wg.key')
-    #     wg.add_peer('wg0', wg_pubkey, '10.0.0.2/32')
-    #     return {'hub_wg_pubkey': hub_wg_pubkey, 'hub_wg_endpoint': ''}
+        try:
+            current_config = self._read_yaml_config(link_name)
+        except IOError:
+            link_node.stop()
+            link_node.remove()
+            return self._create_link_from_config(link_name, domain_regex, pub_key)
+
+        does_match = self._does_match_config(current_config, domain_regex, pub_key)
+        if not does_match:
+            link_node.stop()
+            link_node.remove()
+            link_node = self._create_link_from_config(link_config)
+        return link_node
+
+    def _does_match_config(self, current_config, domain_regex, pub_key):
+        return (current_config.get('pub_key') == pub_key) and (current_config.get('domain_regex') == domain_regex)
+
+    def _create_link_from_config(self, link_name, domain_regex, pub_key):
+        # piped_sites = '|'.join(sites)
+        # domain_regex = f'[{piped_sites}].{domain}'
+        link_node = self.docker.containers.run(
+            f'noteworthy-launcher:DEV',
+            tty=True,
+            cap_add=['NET_ADMIN'],
+            network='noteworthy',
+            stdin_open=True,
+            name=link_name,
+            #auto_remove=True,
+            ports={
+                '18521/udp': None, # random wireguard port
+                '18522/udp': None # random udp proxy port
+            },
+            detach=True,
+            environment={
+                'NOTEWORTHY_ROLE': 'link',
+                'NOTEWORTHY_NGINX_DOMAIN': domain_regex,
+                'TAPROOT_PUBKEY': pub_key
+            },
+            restart_policy={"Name": "always"})
+        self._write_yaml_config(link_name, {
+            'domain_regex': domain_regex,
+            'pub_key': pub_key
+        })
+        return link_node
+
+    def _read_yaml_config(self, filename):
+        file_path = os.path.join(self.config_dir, f'{filename}.yaml')
+        with open(file_path, 'r') as f:
+            res = yaml.safe_load(f.read())
+        return res
+
+    def _write_yaml_config(self, filename, data):
+        file_path = os.path.join(self.config_dir, f'{filename}.yaml')
+        with open(file_path, 'w') as f:
+            f.write(yaml.dump(data))
+        return file_path
 
 Controller = HubController
