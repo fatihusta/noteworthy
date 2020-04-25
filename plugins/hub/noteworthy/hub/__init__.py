@@ -53,13 +53,15 @@ class HubController(NoteworthyPlugin):
         try:
             current_config = self._read_yaml_config(link_name)
         except IOError:
-            link_node.stop()
+            if link_node.status == 'running':
+                link_node.stop()
             link_node.remove()
             return self._create_link_from_config(link_name, domain_regex, pub_key)
 
         does_match = self._does_match_config(current_config, domain_regex, pub_key)
         if not does_match:
-            link_node.stop()
+            if link_node.status == 'running':
+                link_node.stop()
             link_node.remove()
             link_node = self._create_link_from_config(link_config)
         return link_node
@@ -68,8 +70,6 @@ class HubController(NoteworthyPlugin):
         return (current_config.get('pub_key') == pub_key) and (current_config.get('domain_regex') == domain_regex)
 
     def _create_link_from_config(self, link_name, domain_regex, pub_key):
-        # piped_sites = '|'.join(sites)
-        # domain_regex = f'[{piped_sites}].{domain}'
         link_node = self.docker.containers.run(
             f'noteworthy-launcher:DEV',
             tty=True,
