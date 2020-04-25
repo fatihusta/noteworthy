@@ -1,6 +1,7 @@
 import os
 import docker
 import re
+import uuid
 
 from better_profanity import profanity
 from grpcz import grpc_controller, grpc_method
