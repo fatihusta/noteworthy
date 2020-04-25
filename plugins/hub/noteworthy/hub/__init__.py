@@ -36,13 +36,24 @@ class HubController(NoteworthyPlugin):
 
     def _validate_domain_regex(self, domain, sites):
         sites = [site.strip() for site in sites.split(';') if site.strip()]
-        #TODO: check sites are all slugs!
-        #TODO: check domain is a valid domain ('.' separated slugs)!!!
+        if not self._is_valid_hostname(domain):
+            raise Exception('Invalid domain syntax!')
+        for site in sites:
+            if not self._is_valid_hostname(site):
+                raise Exception('Invalid site syntax!')
         piped_sites = '|'.join(sites)
         piped_sites_match = piped_sites.replace('.', '\\.')
         domain_match = domain.replace('.', '\\.')
         domain_regex = f'~*^(({piped_sites_match})\\.)?{domain_match}$'
         return domain_regex
+
+    def _is_valid_hostname(self, hostname):
+        if len(hostname) > 255:
+            return False
+        if hostname[-1] == ".":
+            hostname = hostname[:-1] # strip exactly one dot from the right, if present
+        allowed = re.compile('(?!-)[A-Z\d-]{1,63}(?<!-)$', re.IGNORECASE)
+        return all(allowed.match(x) for x in hostname.split('.'))
 
     def _get_or_create_link(self, link_name, domain_regex, pub_key):
         try:
