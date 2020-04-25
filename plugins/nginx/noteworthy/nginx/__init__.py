@@ -46,8 +46,8 @@ class NginxController(NoteworthyPlugin):
         if self.is_first_run:
             self.create_config_dir()
             if os.environ['NOTEWORTHY_ROLE'] == 'link':
-                self.add_tls_stream_backend('launcher', os.environ['NOTEWORTHY_NGINX_DOMAIN'], '10.0.0.2')
-                self.set_http_proxy_pass('launcher', os.environ['NOTEWORTHY_NGINX_DOMAIN'], '10.0.0.2')
+                self.add_tls_stream_backend('launcher', os.environ['NOTEWORTHY_DOMAIN_REGEX'], '10.0.0.2')
+                self.set_http_proxy_pass('launcher', os.environ['NOTEWORTHY_DOMAIN_REGEX'], '10.0.0.2')
             elif os.environ['NOTEWORTHY_ROLE'] == 'taproot':
                 # TODO emit events for these type of interdependent interactions
                 self.poll_for_good_status(os.environ['NOTEWORTHY_DOMAIN'])

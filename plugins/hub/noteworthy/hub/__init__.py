@@ -13,6 +13,10 @@ class HubController(NoteworthyPlugin):
         super().__init__(__file__)
         self.docker = docker.from_env()
 
+    def start(self):
+        if self.is_first_run:
+            self.create_config_dir()
+
     def provision_link(self, link_name: str, domain: str, pub_key: str, sites: str):
         domain_regex = self._validate_domain_regex(domain, sites)
         link_node = self._get_or_create_link(link_name, domain_regex, pub_key)
@@ -21,8 +25,10 @@ class HubController(NoteworthyPlugin):
         link_udp_proxy_port = link_node.attrs['NetworkSettings']['Ports']['18522/udp'][0]['HostPort']
         link_ip = link_node.attrs['NetworkSettings']['Networks']['noteworthy']['IPAddress']
         nc = NginxController()
-        nc.add_tls_stream_backend(link_name, f'~{domain}', link_ip)
-        nc.set_http_proxy_pass(link_name, f'.{domain}', link_ip)
+        domain_match = domain.replace('.', '\\.')
+        all_subdomains = f'~*^(.+\\.)?{domain_match}$'
+        nc.add_tls_stream_backend(link_name, all_subdomains, link_ip)
+        nc.set_http_proxy_pass(link_name, all_subdomains, link_ip)
         return {
             "link_wg_endpoint": f"{os.environ['NOTEWORTHY_HUB']}:{link_wg_port}",
             "link_udp_proxy_endpoint": f"{os.environ['NOTEWORTHY_HUB']}:{link_udp_proxy_port}",
@@ -33,7 +39,9 @@ class HubController(NoteworthyPlugin):
         #TODO: check sites are all slugs!
         #TODO: check domain is a valid domain ('.' separated slugs)!!!
         piped_sites = '|'.join(sites)
-        domain_regex = f'[{piped_sites}].{domain}'
+        piped_sites_match = piped_sites.replace('.', '\\.')
+        domain_match = domain.replace('.', '\\.')
+        domain_regex = f'~*^(({piped_sites_match})\\.)?{domain_match}$'
         return domain_regex
 
     def _get_or_create_link(self, link_name, domain_regex, pub_key):
@@ -77,7 +85,7 @@ class HubController(NoteworthyPlugin):
             detach=True,
             environment={
                 'NOTEWORTHY_ROLE': 'link',
-                'NOTEWORTHY_NGINX_DOMAIN': domain_regex,
+                'NOTEWORTHY_DOMAIN_REGEX': domain_regex,
                 'TAPROOT_PUBKEY': pub_key
             },
             restart_policy={"Name": "always"})
