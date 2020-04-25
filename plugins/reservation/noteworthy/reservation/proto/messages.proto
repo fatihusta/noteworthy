@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+
+package noteworthy_reservation;
+
+
+message ReservationRequest {
+    // mydomain.noteworthy.im
+    string domain = 1;
+    // wireguard pub key
+    string pub_key = 2;
+    // auth_key / invitation code
+    string auth_code = 3;
+}
+
+message ReservationResponse {
+    // wireguard endpoint ip
+    string link_wg_endpoint = 1;
+    string link_wg_pubkey = 2;
+    string link_udp_proxy_endpoint = 3;
+}
