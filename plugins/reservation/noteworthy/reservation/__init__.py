@@ -32,10 +32,9 @@ class ReservationController(NoteworthyPlugin):
 
     def _get_user_by_auth(self, auth_code):
         from noteworthy.reservation.api.models import BetaUser
-        if isinstance(auth_code, uuid.UUID):
-            auth_code = str(auth_code)
-        beta_key = uuid.UUID(auth_code) # determine is valid uuid
-        user = BetaUser.objects.get(beta_key=beta_key)
+        if not isinstance(auth_code, uuid.UUID):
+            auth_code = uuid.UUID(auth_code) # determine is valid uuid
+        user = BetaUser.objects.get(beta_key=auth_code)
         return user
 
     def _validate_reservation(self, user, base_domain, subdomain, site):
