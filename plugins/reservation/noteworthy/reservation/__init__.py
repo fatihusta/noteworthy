@@ -32,6 +32,8 @@ class ReservationController(NoteworthyPlugin):
 
     def _get_user_by_auth(self, auth_code):
         from noteworthy.reservation.api.models import BetaUser
+        if isinstance(auth_code, uuid.UUID):
+            auth_code = str(auth_code)
         beta_key = uuid.UUID(auth_code) # determine is valid uuid
         user = BetaUser.objects.get(beta_key=beta_key)
         return user
@@ -74,6 +76,10 @@ class ReservationController(NoteworthyPlugin):
 
 
     def _is_valid_hostname(self, hostname):
+        # empty string not valid
+        if not hostname:
+            return False
+        # fqdn max length
         if len(hostname) > 255:
             return False
         if hostname[-1] == ".":
