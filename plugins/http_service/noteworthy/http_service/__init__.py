@@ -27,4 +27,8 @@ class HttpServiceController(NoteworthyPlugin):
         usage='notectl http_service')
         cls.sub_parser.add_argument('argument', nargs='*', help='hostname of hub to join')
 
+    def shell(self, **kwargs):
+        os.chdir(os.path.join(self.plugin_path, 'rest_api'))
+        os.system('python manage.py shell')
+
 Controller = HttpServiceController

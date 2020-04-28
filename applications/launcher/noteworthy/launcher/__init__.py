@@ -38,7 +38,6 @@ class LauncherController(NoteworthyPlugin):
         # in dev we want to use decentralabs/noteworthy:DEV that we build locally
         # with make .docker
         # TODO figure out if version pinning is needed here
-        env = os.environ.get('NOTEWORTHY_ENV', 'prod')
         app_env = { 'NOTEWORTHY_DOMAIN': os.environ['NOTEWORTHY_DOMAIN'] }
         dashed_domain = os.environ['NOTEWORTHY_DOMAIN'].replace('.', '-')
         volumes = []
@@ -51,7 +50,7 @@ class LauncherController(NoteworthyPlugin):
             Path(self.PACKAGE_CACHE).mkdir(parents=True, exist_ok=True)
             shutil.unpack_archive(archive_path, self.PACKAGE_CACHE)
             shutil.copyfile(os.path.join(self.deploy_dir, 'install.sh'), os.path.join(app_dir, 'install.sh'))
-            shutil.copyfile(os.path.join(self.deploy_dir, f'Dockerfile.{env}'), os.path.join(app_dir, 'Dockerfile'))
+            shutil.copyfile(os.path.join(self.deploy_dir, f'Dockerfile'), os.path.join(app_dir, 'Dockerfile'))
             self._build_container(app_dir, app, version)
             app_container_name = f"noteworthy-{app}-{dashed_domain}"
             self.docker.containers.run(f'noteworthy-{app}:{version}',
@@ -83,13 +82,6 @@ class LauncherController(NoteworthyPlugin):
     def launch_launcher(self, archive_path: str = None, hub: bool = False,
             domain: str = '', hub_host: str = 'hub01.noteworthy.im',
             auth_code: str = '', **kwargs):
-        # we use env here to figure out which Dockerfile we should use
-        # when building an apps' container; in PROD we want to use the base
-        # decentralabs/noteworthy:latest container that the user already has
-        # in dev we want to use decentralabs/noteworthy:DEV that we build locally
-        # with make .docker
-        # TODO figure out if version pinning is needed here
-        env = os.environ.get('NOTEWORTHY_ENV', 'prod')
         volumes = []
         ports = {}
         app_env = {
