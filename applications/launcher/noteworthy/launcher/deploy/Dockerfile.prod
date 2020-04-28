@@ -1,4 +1,5 @@
-FROM decentralabs/noteworthy:latest
+ARG RELEASE_TAG
+FROM decentralabs/noteworthy:$RELEASE_TAG
 
 ADD . /opt/noteworthy/dist
 # TODO fix messenger install hack

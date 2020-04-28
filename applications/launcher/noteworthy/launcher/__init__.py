@@ -148,8 +148,11 @@ class LauncherController(NoteworthyPlugin):
         print('Done.')
 
     def _build_container(self, app_dir, app, version):
+        # read release tag from /opt/noteworthy/release
+        with open('/opt/noteworthy/release', 'r') as tag_file:
+            release_tag = tag_file.read().strip()
         self.docker.images.build(
-            path=app_dir, tag=f'noteworthy-{app}:{version}', nocache=True)
+            path=app_dir, tag=f'noteworthy-{app}:{version}', nocache=True, buildargs={'RELEASE_TAG': release_tag})
 
     def start(self, **kwargs):
         if os.environ['NOTEWORTHY_ROLE'] == 'taproot':
