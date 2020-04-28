@@ -4,6 +4,8 @@ from noteworthy.notectl.plugins import NoteworthyPlugin
 import docker
 from noteworthy.wireguard import wg
 import yaml
+import time
+
 
 class HubController(NoteworthyPlugin):
 
@@ -60,17 +62,14 @@ class HubController(NoteworthyPlugin):
         try:
             current_config = self._read_yaml_config(link_name)
         except IOError:
-            if link_node.status == 'running':
-                link_node.stop()
-            link_node.remove()
+            link_node.remove(force=True)
             return self._create_link_from_config(link_name, domain_regex, pub_key)
 
         does_match = self._does_match_config(current_config, domain_regex, pub_key)
         if not does_match:
-            if link_node.status == 'running':
-                link_node.stop()
-            link_node.remove()
-            link_node = self._create_link_from_config(link_config)
+            link_node.remove(force=True)
+            link_node = self._create_link_from_config(link_name, domain_regex, pub_key)
+
         return link_node
 
     def _does_match_config(self, current_config, domain_regex, pub_key):
@@ -100,7 +99,16 @@ class HubController(NoteworthyPlugin):
             'domain_regex': domain_regex,
             'pub_key': pub_key
         })
-        return link_node
+
+        # wait for container to enter running state before continuing
+        count = 0
+        while link_node.status != 'running' and count < 5:
+            time.sleep(1)
+            link_node = self.docker.containers.get(link_name)
+            if link_node.status == 'running':
+                return self.docker.containers.get(link_name)
+            count = count + 1
+        raise Exception('Timeout exceeding waiting for link to enter running state.')
 
     def _read_yaml_config(self, filename):
         file_path = os.path.join(self.config_dir, f'{filename}.yaml')
