@@ -1,4 +1,5 @@
 import os
+import re
 from noteworthy.notectl.plugins import NoteworthyPlugin
 import docker
 from noteworthy.wireguard import wg
@@ -17,34 +18,29 @@ class HubController(NoteworthyPlugin):
         if self.is_first_run:
             self.create_config_dir()
 
-    def provision_link(self, link_name: str, domain: str, pub_key: str, sites: str):
-        domain_regex = self._validate_domain_regex(domain, sites)
+    def provision_link(self, link_name: str, domains: list, pub_key: str):
+        domain_regex = self._validate_domain_regex(domains)
         link_node = self._get_or_create_link(link_name, domain_regex, pub_key)
         link_wg_pubkey = link_node.exec_run('notectl wireguard pubkey').output.decode().strip()
         link_wg_port = link_node.attrs['NetworkSettings']['Ports']['18521/udp'][0]['HostPort']
         link_udp_proxy_port = link_node.attrs['NetworkSettings']['Ports']['18522/udp'][0]['HostPort']
         link_ip = link_node.attrs['NetworkSettings']['Networks']['noteworthy']['IPAddress']
+        from noteworthy.nginx import NginxController
         nc = NginxController()
-        domain_match = domain.replace('.', '\\.')
-        all_subdomains = f'~*^(.+\\.)?{domain_match}$'
-        nc.add_tls_stream_backend(link_name, all_subdomains, link_ip)
-        nc.set_http_proxy_pass(link_name, all_subdomains, link_ip)
+        nc.add_tls_stream_backend(link_name, domain_regex, link_ip)
+        nc.set_http_proxy_pass(link_name, domain_regex, link_ip)
         return {
             "link_wg_endpoint": f"{os.environ['NOTEWORTHY_HUB']}:{link_wg_port}",
             "link_udp_proxy_endpoint": f"{os.environ['NOTEWORTHY_HUB']}:{link_udp_proxy_port}",
             "link_wg_pubkey": link_wg_pubkey}
 
-    def _validate_domain_regex(self, domain, sites):
-        sites = [site.strip() for site in sites.split(';') if site.strip()]
-        if not self._is_valid_hostname(domain):
-            raise Exception('Invalid domain syntax!')
-        for site in sites:
-            if not self._is_valid_hostname(site):
-                raise Exception('Invalid site syntax!')
-        piped_sites = '|'.join(sites)
-        piped_sites_match = piped_sites.replace('.', '\\.')
-        domain_match = domain.replace('.', '\\.')
-        domain_regex = f'~*^(({piped_sites_match})\\.)?{domain_match}$'
+    def _validate_domain_regex(self, domains):
+        for domain in domains:
+            if not self._is_valid_hostname(domain):
+                raise Exception(f'Invalid domain syntax: {domain}')
+        piped_domains = '|'.join(domains)
+        piped_domains_match = piped_domains.replace('.', '\\.')
+        domain_regex = f'~^({piped_domains_match})$'
         return domain_regex
 
     def _is_valid_hostname(self, hostname):

@@ -20,44 +20,46 @@ class ReservationController(NoteworthyPlugin):
     @grpc_method(ReservationRequest, ReservationResponse)
     def reserve_domain(self, domain: str, pub_key: str, auth_code: str):
         user = self._get_user_by_auth(auth_code)
-        base_domain, subdomain, site = self._validate_domain(domain)
-        link, sites = self._validate_reservation(user, base_domain, subdomain, site)
-        delimited_sites = ';'.join([site.site for site in sites])
+        base_domain, subdomain = self._validate_domain(domain)
+        reservation = self._validate_reservation(user, base_domain, subdomain)
+        reserved_domain = '.'.join([subdomain, base_domain])
+        matrix_domain = '.'.join(['matrix', reserved_domain])
+        link_domains = [reserved_domain, matrix_domain]
         from noteworthy.hub import HubController
         hc = HubController()
+        link_name = f'link-reservation-{reservation.id}'
         link_info = hc.provision_link(
-            link_name=f'link-{link.id}', domain=link.domain, pub_key=pub_key,
-            sites=delimited_sites)
+            link_name=link_name, domains=link_domains, pub_key=pub_key)
+        from noteworthy.reservation.api.models import Link
+        Link.objects.create(
+            user=user, reservation=reservation,
+            wg_endpoint = link_info['link_wg_endpoint'],
+            udp_proxy_endpoint = link_info['link_udp_proxy_endpoint'],
+            wg_pubkey = link_info['link_wg_pubkey'])
         return link_info
 
     def _get_user_by_auth(self, auth_code):
-        from noteworthy.reservation.api.models import BetaUser
+        from noteworthy.reservation.api.models import User
         if not isinstance(auth_code, uuid.UUID):
             auth_code = uuid.UUID(auth_code) # determine is valid uuid
-        user = BetaUser.objects.get(beta_key=auth_code)
+        user = User.objects.get(auth_code=auth_code)
         return user
 
-    def _validate_reservation(self, user, base_domain, subdomain, site):
-        from noteworthy.reservation.api.models import BetaLink, BetaSite
-        user_links = BetaLink.objects.filter(beta_user=user)
-        matching_link = user_links.filter(base_domain=base_domain, subdomain=subdomain)
-        link = None
-        if matching_link.exists():
-            link = matching_link[0]
+    def _validate_reservation(self, user, base_domain, subdomain):
+        from noteworthy.reservation.api.models import Reservation
+        user_reservations = Reservation.objects.filter(user=user)
+        matching_reservation = user_reservations.filter(base_domain=base_domain,
+                                                        subdomain=subdomain)
+        reservation = None
+        if matching_reservation.exists():
+            reservation = matching_reservation[0]
         else:
-            num_links = user_links.count()
-            if user.num_links_allowed and (num_links >= user.num_links_allowed):
-                raise Exception('User has reached link limit.')
-            link = BetaLink.objects.create(beta_user=user, base_domain=base_domain, subdomain=subdomain)
-        matching_site = BetaSite.objects.filter(beta_link=link, site=site)
-        if not matching_site.exists():
-            user_sites = BetaSite.objects.filter(beta_user=user)
-            num_sites = user_sites.count()
-            if user.num_sites_allowed and (num_sites >= user.num_sites_allowed):
-                raise Exception('User has reached site limit.')
-            BetaSite.objects.create(beta_user=user, beta_link=link, site=site)
-        link_sites = BetaSite.objects.filter(beta_link=link)
-        return link, link_sites
+            num_reservations = user_reservations.count()
+            if user.num_reservations_allowed and (num_reservations >= user.num_reservations_allowed):
+                raise Exception('User has reached domain reservation limit!')
+            reservation = Reservation.objects.create(
+                user=user, base_domain=base_domain, subdomain=subdomain)
+        return reservation
 
     def _validate_domain(self, domain):
         if not self._is_valid_hostname(domain):
@@ -66,13 +68,12 @@ class ReservationController(NoteworthyPlugin):
             raise Error('Profanity Detected in domain.')
         labels = domain.split('.')
         base_domain = '.'.join(labels[-2:])
-        subdomain = '.'.join(labels[-3:-2])
-        site = '.'.join(labels[:-3])
+        subdomain = '.'.join(labels[:-2])
+        if '.' in subdomain:
+            raise Error('Reserved domains must be of syntax: "sub.domain.tld"')
         if (not subdomain) and (base_domain == 'noteworthy.im'):
             raise Error('Cannot reserve noteworthy.im')
-        return base_domain, subdomain, site
-
-
+        return base_domain, subdomain
 
     def _is_valid_hostname(self, hostname):
         # empty string not valid

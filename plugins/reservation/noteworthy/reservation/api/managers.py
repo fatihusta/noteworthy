@@ -3,7 +3,7 @@ from django.utils.translation import ugettext_lazy as _
 import uuid
 
 
-class BetaUserManager(BaseUserManager):
+class UserManager(BaseUserManager):
     def create_user(self, email, **extra_fields):
         if not email:
             raise ValueError(_('The Email must be set'))
@@ -14,11 +14,11 @@ class BetaUserManager(BaseUserManager):
         return user
 
     def keyless_users(self):
-        return self.get_queryset().filter(beta_key__isnull=True)
+        return self.get_queryset().filter(auth_code__isnull=True)
 
-    def provision_beta_keys(self, num_keys):
-        users = self.keyless_users().order_by('date_joined')[:num_keys]
+    def provision_auth_codes(self, num_codes):
+        users = self.keyless_users().order_by('date_joined')[:num_codes]
         for user in users:
-            user.beta_key = uuid.uuid4()
+            user.auth_code = uuid.uuid4()
             user.save()
         return users

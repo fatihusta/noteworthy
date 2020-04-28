@@ -34,7 +34,6 @@ class WireGuardController(NoteworthyPlugin):
         print(wg.pubkey(key_path))
 
     def start(self, **kwargs):
-        from noteworthy.reservation import ReservationController
         wg_key_path = os.path.join(self.config_dir, 'wg.key')
         if self.is_first_run:
             self.create_config_dir()
@@ -55,6 +54,7 @@ class WireGuardController(NoteworthyPlugin):
             peer_ip = '10.0.0.1/32'
             if not os.path.exists(os.path.join(self.config_dir, 'link.yaml')):
                 # provision link node
+                from noteworthy.reservation import ReservationController
                 hc = ReservationController.get_grpc_stub(f"{os.environ['NOTEWORTHY_HUB']}:8000")
                 res = hc.reserve_domain(os.environ['NOTEWORTHY_DOMAIN'], pubkey, os.environ['NOTEWORTHY_AUTH_CODE'])
                 self.store_link(res.link_wg_endpoint, res.link_wg_pubkey)
