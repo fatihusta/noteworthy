@@ -63,16 +63,16 @@ class ReservationController(NoteworthyPlugin):
 
     def _validate_domain(self, domain):
         if not self._is_valid_hostname(domain):
-            raise Error('Domain must be a valid hostname')
+            raise Exception('Domain must be a valid hostname')
         if profanity.contains_profanity(domain):
-            raise Error('Profanity Detected in domain.')
+            raise Exception('Profanity Detected in domain.')
         labels = domain.split('.')
         base_domain = '.'.join(labels[-2:])
         subdomain = '.'.join(labels[:-2])
         if '.' in subdomain:
-            raise Error('Reserved domains must be of syntax: "sub.domain.tld"')
+            raise Exception('Reserved domains must be of syntax: "sub.domain.tld"')
         if (not subdomain) and (base_domain == 'noteworthy.im'):
-            raise Error('Cannot reserve noteworthy.im')
+            raise Exception('Cannot reserve noteworthy.im')
         return base_domain, subdomain
 
     def _is_valid_hostname(self, hostname):

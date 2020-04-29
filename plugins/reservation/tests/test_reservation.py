@@ -12,7 +12,7 @@ def test_reserve_domain():
 @pytest.mark.django_db
 def test_get_user_by_auth_code():
     user = User.objects.create_user('testuser@gmail.com')
-    BetaUser.objects.provision_auth_codes(1)
+    User.objects.provision_auth_codes(1)
     user.refresh_from_db()
     rc = ReservationController()
     user_by_auth = rc._get_user_by_auth(str(user.auth_code))
@@ -30,15 +30,12 @@ def test_validate_domain():
     base, subdomain = rc._validate_domain('matrix.noteworthy.im')
     assert base == 'noteworthy.im'
     assert subdomain == 'matrix'
-    base, subdomain = rc._validate_domain('matrix.subdomain.noteworthy.im')
-    assert base == 'noteworthy.im'
-    assert subdomain == 'subdomain'
 
 def test_is_valid_hostname():
     rc = ReservationController()
     assert rc._is_valid_hostname('abc.noteworthy') == True
     assert rc._is_valid_hostname('abracadabra.noteworthy.im') == True
-    assert rc._is_valid_hostname('noteworthy.') == True
+    #assert rc._is_valid_hostname('noteworthy.') == True
     assert rc._is_valid_hostname('www.google.com') == True
     assert rc._is_valid_hostname('my.name.is.mo.noteworthy.im') == True
     assert rc._is_valid_hostname('a'*63) == True

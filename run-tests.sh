@@ -8,8 +8,8 @@ if [ -z "$WORKSPACE" ]
 then
     # DO THIS ON DEV / LOCAL
     WORKSPACE=/opt/noteworthy
-    docker run -v "/usr/local/bin/docker:/usr/local/bin/docker" -v "/var/run/docker.sock:/var/run/docker.sock" -v `pwd`:/opt/noteworthy -e WORKSPACE=$WORKSPACE --rm --entrypoint $WORKSPACE/notectl/test-entrypoint.sh decentralabs/noteworthy:DEV
+    docker run -v "/usr/local/bin/docker:/usr/local/bin/docker" -v "/var/run/docker.sock:/var/run/docker.sock" -v `pwd`/notectl:/opt/noteworthy -e WORKSPACE=$WORKSPACE --rm --entrypoint pytest noteworthy:dev
 else
     # DO THIS ON CI
-    docker run --volumes-from jenkins -e WORKSPACE=$WORKSPACE --rm --entrypoint $WORKSPACE/notectl/test-entrypoint.sh decentralabs/noteworthy:DEV
+    docker run --volumes-from jenkins -e WORKSPACE=$WORKSPACE --rm --entrypoint pytest noteworthy:dev
 fi
