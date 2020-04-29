@@ -11,13 +11,13 @@ https://docs.djangoproject.com/en/3.0/ref/settings/
 """
 
 import os
-
+from noteworthy.http_service import HttpServiceController
 from noteworthy.notectl import NoteworthyController
-
+hsc = HttpServiceController()
 nc = NoteworthyController()
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+BASE_DIR = hsc.config_dir
 
 
 # Quick-start development settings - unsuitable for production
