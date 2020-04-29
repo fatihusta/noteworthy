@@ -30,12 +30,15 @@ def test_validate_domain():
     base, subdomain = rc._validate_domain('matrix.noteworthy.im')
     assert base == 'noteworthy.im'
     assert subdomain == 'matrix'
+    with pytest.raises(Exception) as exception:
+        base, subdomain = rc._validate_domain('matrix.subdomain.noteworthy.im')
+    assert 'Reserved domains must be of syntax: "sub.domain.tld"' in str(exception)
 
 def test_is_valid_hostname():
     rc = ReservationController()
     assert rc._is_valid_hostname('abc.noteworthy') == True
     assert rc._is_valid_hostname('abracadabra.noteworthy.im') == True
-    #assert rc._is_valid_hostname('noteworthy.') == True
+    assert rc._is_valid_hostname('noteworthy.') == True
     assert rc._is_valid_hostname('www.google.com') == True
     assert rc._is_valid_hostname('my.name.is.mo.noteworthy.im') == True
     assert rc._is_valid_hostname('a'*63) == True
