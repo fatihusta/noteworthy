@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+
+package grpcz;
+
+message Any {
+    bytes value = 1;
+}
+
+message GRPCZRequest {
+    // ie 'controller.method'
+    string module_path = 1;
+    Any request = 2;
+}
+
+message GRPCZResponse {
+    bool ok = 1;
+    string result = 2;
+    Any response = 3;
+}
+
+
+service Dispatch {
+    rpc call(GRPCZRequest) returns (GRPCZResponse);
+}

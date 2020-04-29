@@ -1,13 +1,15 @@
 #!/bin/bash
 
+pip install -r /opt/noteworthy/requirements.txt
+
 cd /opt/noteworthy/grpcz
 rm -rf build/ dist/
 python setup.py develop
 
-cd /opt/noteworthy/notectl/applications/launcher
+cd /opt/noteworthy/applications/launcher
 python setup.py develop
 
-cd /opt/noteworthy/notectl
+cd /opt/noteworthy
 rm -rf build/ dist/
 python setup.py develop
 
@@ -15,9 +17,9 @@ python setup.py develop
 for plugin in plugins/*/; do
     cd $plugin
     python setup.py develop
-    ./install.sh
+    if [ -f "./install.sh" ]; then
+        ./install.sh
+    fi
     cd -
 done
 
-
-bash
