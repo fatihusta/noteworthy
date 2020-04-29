@@ -30,6 +30,7 @@ def test_validate_domain():
     base, subdomain = rc._validate_domain('matrix.noteworthy.im')
     assert base == 'noteworthy.im'
     assert subdomain == 'matrix'
+    # TODO define explicit exception types
     with pytest.raises(Exception) as exception:
         base, subdomain = rc._validate_domain('matrix.subdomain.noteworthy.im')
     assert 'Reserved domains must be of syntax: "sub.domain.tld"' in str(exception)
