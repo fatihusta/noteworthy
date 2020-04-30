@@ -1,0 +1,14 @@
+app:     launcher
+plugins:
+  shared:
+    - wireguard
+    - http_service
+    - nginx
+  hub:
+    - grpc
+    - hub
+    - reservation
+  taproot: []
+stubs:
+  - reservation
+  - link

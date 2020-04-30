@@ -16,7 +16,6 @@ class NoteworthyController:
         # The app manifest that determines what "services"
         # are started upon `notecl start`
         # Also used for building launcher installable packages
-        self.manifest_path = '/opt/noteworthy/dist/app.yaml'
         self.docker = docker.from_env()
 
     def list_plugins(self, **kwargs):
@@ -46,7 +45,6 @@ class NoteworthyController:
             raise Exception('Launcher must be installed to run `notectl install`.')
         print('Please wait while Noteworthy launches...')
         self.plugins['launcher'].Controller().launch_launcher(
-            '/opt/noteworthy/dist/build/launcher/launcher-DEV.tar.gz',
             hub=kwargs['hub'], domain=kwargs['domain'],
             hub_host=kwargs['hub_host'], auth_code=kwargs['auth_code'],
             profile=kwargs['profile'])
@@ -90,7 +88,7 @@ class NoteworthyController:
         try:
             with open(self.manifest_path, 'r') as manifest_file:
                 manifest = yaml.safe_load(manifest_file)
-        except:
+        except yaml.scanner.ScannerError:
             raise Exception(f'Unable to load {self.manifest_path}')
 
         for plugin in manifest['plugins']:

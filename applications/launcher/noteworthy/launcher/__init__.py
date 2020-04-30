@@ -84,7 +84,7 @@ class LauncherController(NoteworthyPlugin):
                 'Installing from repository not supported yet.')
         print('Done.')
 
-    def launch_launcher(self, archive_path: str = None, hub: bool = False,
+    def launch_launcher(self, hub: bool = False,
             domain: str = '', hub_host: str = 'hub01.noteworthy.im',
             auth_code: str = '', profile: str = 'default', **kwargs):
         profile = profile or 'default'
@@ -96,59 +96,42 @@ class LauncherController(NoteworthyPlugin):
         }
         volumes.append('/var/run/docker.sock:/var/run/docker.sock')
         volumes.append('/usr/local/bin/docker:/usr/local/bin/docker')
-        if archive_path or self.args.archive:
-            if not archive_path:
-                archive_path = self.args.archive
-            app, version = os.path.basename(archive_path).split('-')
-            app_name = app
-            if hub:
-                app_name = app + '-hub'
-                ports={
-                        '80/tcp' : 80,
-                        '443/tcp': 443,
-                        '8000/tcp': 8000,
-                      }
-                app_env['NOTEWORTHY_ROLE'] = 'hub'
-            else:
-                dash_domain = domain.replace('.', '-')
-                app_name = f'{dash_domain}-{app}'
-                app_env['NOTEWORTHY_DOMAIN'] = domain
-                app_env['NOTEWORTHY_ROLE'] = 'taproot'
-                app_env['NOTEWORTHY_AUTH_CODE'] = auth_code
-                if not domain:
-                    raise Exception('Must specify --domain argument')
-            #provision link
-            version = version.replace('.tar.gz', '')
-            app_dir = os.path.join(self.PACKAGE_CACHE, f'{app}/{version}')
-            deploy_dir = os.path.join(self.plugin_path, 'deploy')
-            Path(self.PACKAGE_CACHE).mkdir(parents=True, exist_ok=True)
-            shutil.unpack_archive(archive_path, self.PACKAGE_CACHE)
-            shutil.copyfile(os.path.join(deploy_dir, 'install.sh'), os.path.join(app_dir, 'install.sh'))
-            shutil.copyfile(os.path.join(deploy_dir, 'Dockerfile'), os.path.join(app_dir, 'Dockerfile'))
-            self._build_container(app_dir, app, version)
-
-            # create and add profiles volume
-            profile_volume = self._create_profile_volume(app_name, profile)
-            volumes.append(f'{profile_volume.name}:/opt/noteworthy/profiles')
-
-            # deploy launcher / launcher-hub
-            self.docker.containers.run(f'noteworthy-{app}:{version}',
-            tty=True,
-            cap_add=['NET_ADMIN'],
-            network='noteworthy',
-            stdin_open=True,
-            name=f"noteworthy-{app_name}-{profile}",
-            #auto_remove=True,
-            volumes=volumes,
-            ports=ports,
-            detach=True,
-            environment=app_env,
-            restart_policy={"Name": "always"})
-
+        app = 'launcher'
+        if hub:
+            app_name = app + '-hub'
+            ports={
+                    '80/tcp' : 80,
+                    '443/tcp': 443,
+                    '8000/tcp': 8000,
+                    }
+            app_env['NOTEWORTHY_ROLE'] = 'hub'
         else:
-            raise NotImplementedError(
-                'Installing from repository not supported yet.')
-        print('Done.')
+            dash_domain = domain.replace('.', '-')
+            app_name = f'{dash_domain}-{app}'
+            app_env['NOTEWORTHY_DOMAIN'] = domain
+            app_env['NOTEWORTHY_ROLE'] = 'taproot'
+            app_env['NOTEWORTHY_AUTH_CODE'] = auth_code
+            if not domain:
+                raise Exception('Must specify --domain argument')
+
+        # create and add profiles volume
+        profile_volume = self._create_profile_volume(app_name, profile)
+        volumes.append(f'{profile_volume.name}:/opt/noteworthy/profiles')
+
+        release_tag = self._load_release_tag()
+        # deploy launcher / launcher-hub
+        self.docker.containers.run(f'decentralabs/noteworthy:{release_tag}',
+        entrypoint='notectl launcher start',
+        tty=True,
+        cap_add=['NET_ADMIN'],
+        network='noteworthy',
+        stdin_open=True,
+        name=f"noteworthy-{app_name}-{profile}",
+        volumes=volumes,
+        ports=ports,
+        detach=True,
+        environment=app_env,
+        restart_policy={"Name": "always"})
 
     def _build_container(self, app_dir, app, version):
         # read release tag from /opt/noteworthy/release
@@ -162,7 +145,13 @@ class LauncherController(NoteworthyPlugin):
         volume = self.docker.volumes.create(name=profile_volume_name)
         return volume
 
+    def _load_release_tag(self):
+        with open('/opt/noteworthy/release', 'r') as tag_file:
+            return tag_file.read().strip()
+
     def start(self, **kwargs):
+        self.start_dependencies()
+
         if os.environ['NOTEWORTHY_ROLE'] == 'taproot':
             if self.is_first_run:
                 self.create_config_dir()
@@ -173,9 +162,9 @@ class LauncherController(NoteworthyPlugin):
                     os.path.join(well_know_target, 'server'),
                     {'domain': os.environ['NOTEWORTHY_DOMAIN']})
 
-                # TODO dont install automatically
-                os.system('notectl package package messenger')
-                self.install('/opt/noteworthy/dist/build/messenger/messenger-DEV.tar.gz')
+        print('noteworthy finished booting!')
+        # TODO tail log file
+        os.system('tail -f /dev/null')
 
     def create_user(self, **kwargs):
         # use docker proxy for invoking shell commands

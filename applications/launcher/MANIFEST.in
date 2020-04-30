@@ -1,1 +1,2 @@
 recursive-include noteworthy/launcher/deploy *
+include noteworthy/launcher/service.yaml
