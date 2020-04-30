@@ -8,6 +8,7 @@ setup(name='noteworthy-messenger',
       entry_points={'notectl.plugins':  'messenger = noteworthy.messenger'},
       # namespace packages wont work without zip_safe=False
       zip_safe=False,
-      install_requires=['matrix-synapse==1.12.3', 'PyJWT==1.7.1'],
+      # matrix-synapse moved to requirements.txt for Dockerfile cache gainz
+      #install_requires=['PyJWT==1.7.1'],
       include_package_data=True
       )

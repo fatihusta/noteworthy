@@ -8,7 +8,6 @@ import dockerpty
 from jinja2 import Template
 
 from noteworthy.notectl.plugins import NoteworthyPlugin
-from noteworthy.hub import HubController
 
 
 class LauncherController(NoteworthyPlugin):
