@@ -1,3 +1,4 @@
+import argparse
 import os
 import docker
 import re
@@ -92,5 +93,17 @@ class ReservationController(NoteworthyPlugin):
         import django
         django.setup()
         return django
+
+    def invite(self, **kwargs):
+        from noteworthy.reservation.api.models import User
+        User.objects.create_user(kwargs['email'])
+        print(f"{kwargs['email']}: {User.objects.provision_auth_codes(1)[0].auth_code}")
+
+    @classmethod
+    def _setup_argparse(cls, arg_parser):
+        super()._setup_argparse(arg_parser)
+        cls.sub_parser = argparse.ArgumentParser(conflict_handler='resolve',
+        usage='notectl reservation')
+        cls.sub_parser.add_argument('email', help='invite user to join this hub')
 
 Controller = ReservationController
