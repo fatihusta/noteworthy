@@ -22,6 +22,7 @@ class MessengerController(NoteworthyPlugin):
         if self.is_first_run:
             self._run_first_time_setup()
         hs_config = os.path.join(self.config_dir, 'homeserver.yaml')
+        os.chdir(self.config_dir)
         os.system(f'synctl start {hs_config}')
 
     def _run_first_time_setup(self):

@@ -38,7 +38,10 @@ class LauncherController(NoteworthyPlugin):
         # in dev we want to use decentralabs/noteworthy:DEV that we build locally
         # with make .docker
         # TODO figure out if version pinning is needed here
-        app_env = { 'NOTEWORTHY_DOMAIN': os.environ['NOTEWORTHY_DOMAIN'] }
+        profile = kwargs.get('profile') or os.environ['NOTEWORTHY_PROFILE']
+        app_env = {
+            'NOTEWORTHY_DOMAIN': os.environ['NOTEWORTHY_DOMAIN'],
+            'NOTEWORTHY_PROFILE': profile}
         dashed_domain = os.environ['NOTEWORTHY_DOMAIN'].replace('.', '-')
         volumes = []
         if archive_path or self.args.archive:
@@ -52,7 +55,10 @@ class LauncherController(NoteworthyPlugin):
             shutil.copyfile(os.path.join(self.deploy_dir, 'install.sh'), os.path.join(app_dir, 'install.sh'))
             shutil.copyfile(os.path.join(self.deploy_dir, f'Dockerfile'), os.path.join(app_dir, 'Dockerfile'))
             self._build_container(app_dir, app, version)
-            app_container_name = f"noteworthy-{app}-{dashed_domain}"
+            app_name = f'{dashed_domain}-{app}'
+            app_container_name = f"noteworthy-{app_name}-{profile}"
+            profile_volume = self._create_profile_volume(app_name, profile)
+            volumes.append(f'{profile_volume.name}:/opt/noteworthy/profiles')
             self.docker.containers.run(f'noteworthy-{app}:{version}',
             tty=True,
             cap_add=['NET_ADMIN'],
@@ -81,11 +87,13 @@ class LauncherController(NoteworthyPlugin):
 
     def launch_launcher(self, archive_path: str = None, hub: bool = False,
             domain: str = '', hub_host: str = 'hub01.noteworthy.im',
-            auth_code: str = '', **kwargs):
+            auth_code: str = '', profile: str = 'default', **kwargs):
+        profile = profile or 'default'
         volumes = []
         ports = {}
         app_env = {
                 'NOTEWORTHY_HUB': hub_host,
+                'NOTEWORTHY_PROFILE': profile
         }
         volumes.append('/var/run/docker.sock:/var/run/docker.sock')
         volumes.append('/usr/local/bin/docker:/usr/local/bin/docker')
@@ -104,7 +112,7 @@ class LauncherController(NoteworthyPlugin):
                 app_env['NOTEWORTHY_ROLE'] = 'hub'
             else:
                 dash_domain = domain.replace('.', '-')
-                app_name = app + f'-{dash_domain}'
+                app_name = f'{dash_domain}-{app}'
                 app_env['NOTEWORTHY_DOMAIN'] = domain
                 app_env['NOTEWORTHY_ROLE'] = 'taproot'
                 app_env['NOTEWORTHY_AUTH_CODE'] = auth_code
@@ -120,13 +128,17 @@ class LauncherController(NoteworthyPlugin):
             shutil.copyfile(os.path.join(deploy_dir, 'Dockerfile'), os.path.join(app_dir, 'Dockerfile'))
             self._build_container(app_dir, app, version)
 
+            # create and add profiles volume
+            profile_volume = self._create_profile_volume(app_name, profile)
+            volumes.append(f'{profile_volume.name}:/opt/noteworthy/profiles')
+
             # deploy launcher / launcher-hub
             self.docker.containers.run(f'noteworthy-{app}:{version}',
             tty=True,
             cap_add=['NET_ADMIN'],
             network='noteworthy',
             stdin_open=True,
-            name=f"noteworthy-{app_name}",
+            name=f"noteworthy-{app_name}-{profile}",
             #auto_remove=True,
             volumes=volumes,
             ports=ports,
@@ -145,6 +157,11 @@ class LauncherController(NoteworthyPlugin):
             release_tag = tag_file.read().strip()
         self.docker.images.build(
             path=app_dir, tag=f'noteworthy-{app}:{version}', nocache=True, buildargs={'RELEASE_TAG': release_tag})
+
+    def _create_profile_volume(self, app, profile_name):
+        profile_volume_name = f'noteworthy-{app}-{profile_name}-vol'
+        volume = self.docker.volumes.create(name=profile_volume_name)
+        return volume
 
     def start(self, **kwargs):
         if os.environ['NOTEWORTHY_ROLE'] == 'taproot':
@@ -165,7 +182,8 @@ class LauncherController(NoteworthyPlugin):
         # use docker proxy for invoking shell commands
         # via the docker exec
         dashed_domain = os.environ['NOTEWORTHY_DOMAIN'].replace('.', '-')
-        c = self.docker.containers.list(filters={'name':f'noteworthy-messenger-{dashed_domain}'})[0]
+        profile = kwargs.get('profile') or os.environ['NOTEWORTHY_PROFILE']
+        c = self.docker.containers.list(filters={'name':f'noteworthy-{dashed_domain}-messenger-{profile}'})[0]
         dockerpty.exec_command(self.docker.api, c.id, 'register_new_matrix_user -c /opt/noteworthy/.messenger/homeserver.yaml http://localhost:8008')
 
     @classmethod

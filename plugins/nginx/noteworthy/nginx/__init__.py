@@ -2,7 +2,7 @@ import os
 import json
 import shutil
 import yaml
-
+from pathlib import Path
 from jinja2 import Template
 
 from noteworthy.notectl.plugins import NoteworthyPlugin
@@ -18,6 +18,10 @@ class NginxController(NoteworthyPlugin):
         self.nginx_app_template = os.path.join(self.deploy_dir, 'app.link.nginx.tmpl.conf')
         self.nginx_config_path = '/etc/nginx/nginx.conf'
         self.nginx_sites_enabled = '/etc/nginx/sites-enabled'
+        self.sites_dir = os.path.join(self.config_dir, 'sites')
+        self.tls_backend_dir = os.path.join(self.config_dir, 'backends')
+        self.letsencrypt_bk = os.path.join(self.config_dir, 'letsencrypt')
+        self.letsencrypt_live = 'etc/letsencrypt/live'
 
     def run(self, **kwargs):
         os.system("nginx -g 'daemon off;'")
@@ -45,6 +49,9 @@ class NginxController(NoteworthyPlugin):
         self._start(self.PLUGIN_NAME)
         if self.is_first_run:
             self.create_config_dir()
+            Path(self.sites_dir).mkdir(exist_ok=True)
+            Path(self.tls_backend_dir).mkdir(exist_ok=True)
+            Path(self.letsencrypt_bk).mkdir(exist_ok=True)
             if os.environ['NOTEWORTHY_ROLE'] == 'link':
                 self.add_tls_stream_backend('launcher', os.environ['NOTEWORTHY_DOMAIN_REGEX'], '10.0.0.2')
                 self.set_http_proxy_pass('launcher', os.environ['NOTEWORTHY_DOMAIN_REGEX'], '10.0.0.2')
@@ -53,10 +60,24 @@ class NginxController(NoteworthyPlugin):
                 self.poll_for_good_status(os.environ['NOTEWORTHY_DOMAIN'])
                 # Request Let's Encrypt certs with certbot
                 self.certbot([os.environ['NOTEWORTHY_DOMAIN'], f"matrix.{os.environ['NOTEWORTHY_DOMAIN']}"])
+        else:
+            self._reconfigure_nginx()
+            self._reload()
 
 
     def _reload(self, **kwargs):
         os.system('nginx -s reload')
+
+    def _reconfigure_nginx(self):
+        backends = self.get_link_set()
+        self.write_config(backends)
+        os.system(f'cp -r {self.sites_dir}/* {self.nginx_sites_enabled}')
+        Path(self.letsencrypt_live).mkdir(parents=True, exist_ok=True)
+        os.system(f'cp -r {self.letsencrypt_bk}/* {self.letsencrypt_live}')
+        domains = os.listdir(self.letsencrypt_live)
+        for domain in domains:
+            os.system(f'certbot install --cert-path /etc/letsencrypt/live/{domain}/cert.pem --key-path /etc/letsencrypt/live/{domain}/privkey.pem --fullchain-path /etc/letsencrypt/live/{ domain }/fullchain.pem -d { domains } --redirect')
+
 
     def _render_template(self, template_path, config):
         with open(template_path, 'r') as template:
@@ -89,6 +110,8 @@ class NginxController(NoteworthyPlugin):
         rendered_config = self._render_template(template_path, config)
         with open(os.path.join(self.nginx_sites_enabled, f'{app_name}.conf'), 'w') as output_file:
             output_file.write(rendered_config)
+        with open(os.path.join(self.sites_dir, f'{app_name}.conf'), 'w') as output_file:
+            output_file.write(rendered_config)
         self._reload()
 
     def add_tls_stream_backend(self, app_name: str, domain: str, ip_addr: str):
@@ -102,6 +125,7 @@ class NginxController(NoteworthyPlugin):
         '''
         domain_param = ' -d '.join(domains)
         os.system(f'certbot certonly --non-interactive --agree-tos --webroot -m hi@decentralabs.io -w /var/www/html -d {domain_param}')
+        os.system(f'cp -r {self.letsencrypt_live}/* {self.letsencrypt_bk}')
         os.system(f'certbot install --cert-path /etc/letsencrypt/live/{domains[0]}/cert.pem --key-path /etc/letsencrypt/live/{domains[0]}/privkey.pem --fullchain-path /etc/letsencrypt/live/{ domains[0] }/fullchain.pem -d { domains[0] } --redirect')
 
     def read_yaml_file(self, filename):
@@ -113,13 +137,13 @@ class NginxController(NoteworthyPlugin):
         link = { 'domain': f'{domain}',
                     'endpoint': f'{ip_addr}:443'}
 
-        with open(os.path.join(self.config_dir, f'{app_name}.yaml'), 'w') as link_file:
+        with open(os.path.join(self.tls_backend_dir, f'{app_name}.yaml'), 'w') as link_file:
             link_file.write(yaml.dump(link))
 
     def get_link_set(self):
 
-        links = [ self.read_yaml_file(os.path.join(self.config_dir, link_file))
-                    for link_file in os.listdir(self.config_dir) ]
+        links = [ self.read_yaml_file(os.path.join(self.tls_backend_dir, link_file))
+                    for link_file in os.listdir(self.tls_backend_dir) ]
         return {
             'backends': links
         }
