@@ -11,8 +11,8 @@ from noteworthy.notectl.plugins import NoteworthyPlugin
 class PackageController(NoteworthyPlugin):
 
     PLUGIN_NAME = 'noteworthy-package'
-    APP_DIR = '/opt/noteworthy/notectl/applications'
-    PLUGIN_DIR = '/opt/noteworthy/notectl/plugins'
+    APP_DIR = '/opt/noteworthy/applications'
+    PLUGIN_DIR = '/opt/noteworthy/plugins'
     BUILD_DIR = '/opt/noteworthy/dist/build'
     SCRATCH_DIR = '/opt/noteworthy/dist/scratch'
 

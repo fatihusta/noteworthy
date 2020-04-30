@@ -19,6 +19,8 @@ class HubController(NoteworthyPlugin):
     def start(self):
         if self.is_first_run:
             self.create_config_dir()
+        else:
+            self._restart_links()
 
     def provision_link(self, link_name: str, domains: list, pub_key: str):
         domain_regex = self._validate_domain_regex(domains)
@@ -109,6 +111,16 @@ class HubController(NoteworthyPlugin):
                 return self.docker.containers.get(link_name)
             count = count + 1
         raise Exception('Timeout exceeding waiting for link to enter running state.')
+
+    def _restart_links(self):
+        # TODO this works because only link.yaml files are in the config atm
+        link_names = [link_file.replace('.yaml', '')
+                      for link_file in os.listdir(self.config_dir)]
+        links = [dict(self._read_yaml_config(link_name), name=link_name)
+                 for link_name in link_names]
+        for link in links:
+            self._get_or_create_link(link['name'], link['domain_regex'],
+                                     link['pub_key'])
 
     def _read_yaml_config(self, filename):
         file_path = os.path.join(self.config_dir, f'{filename}.yaml')

@@ -14,7 +14,7 @@ class HttpServiceController(NoteworthyPlugin):
         os.chdir(os.path.join(self.plugin_path, 'rest_api'))
         if self.is_first_run:
             self.create_config_dir()
-            os.system('python manage.py migrate')
+        os.system('python manage.py migrate')
         os.system('python manage.py runserver 0.0.0.0:8001')
 
     def start(self, **kwargs):
