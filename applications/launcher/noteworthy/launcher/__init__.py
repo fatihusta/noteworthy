@@ -120,7 +120,7 @@ class LauncherController(NoteworthyPlugin):
 
         release_tag = self._load_release_tag()
         # deploy launcher / launcher-hub
-        self.docker.containers.run(f'decentralabs/noteworthy:{release_tag}',
+        self.docker.containers.run(f"decentralabs/noteworthy:{app_env['NOTEWORTHY_ROLE']}-{release_tag}",
         entrypoint='notectl launcher start',
         tty=True,
         cap_add=['NET_ADMIN'],

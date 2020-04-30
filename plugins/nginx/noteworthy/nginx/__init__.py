@@ -1,6 +1,7 @@
 import os
 import json
 import shutil
+import time
 import yaml
 from pathlib import Path
 from jinja2 import Template
@@ -24,6 +25,8 @@ class NginxController(NoteworthyPlugin):
         self.letsencrypt_live = 'etc/letsencrypt/live'
 
     def run(self, **kwargs):
+        if os.path.exists('/run/nginx.pid'):
+            return
         os.system("nginx -g 'daemon off;'")
 
     def poll_for_good_status(self, endpoint, max_tries=30):
@@ -33,7 +36,7 @@ class NginxController(NoteworthyPlugin):
         import time
         from http import client
         def do_request(endpoint, count=0):
-            c = client.HTTPConnection(endpoint)
+            c = client.HTTPConnection(endpoint, timeout=1)
             c.request('GET', '/')
             resp = c.getresponse()
             if resp.status < 400:
@@ -47,6 +50,17 @@ class NginxController(NoteworthyPlugin):
 
     def start(self, **kwargs):
         self._start(self.PLUGIN_NAME)
+        # wait for nginx to start
+        count = 0
+        while not os.path.exists('/run/nginx.pid') and count <= 5:
+            time.sleep(1)
+            running = os.path.exists('/run/nginx.pid')
+            if running:
+                break
+            if count == 5:
+                raise Exception('Giving up waiting for nginx to start. Check nginx config.')
+            count = count + 1
+
         if self.is_first_run:
             self.create_config_dir()
             Path(self.sites_dir).mkdir(exist_ok=True)

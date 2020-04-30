@@ -1,6 +1,6 @@
 #!/bin/bash
 
-pip install -r /opt/noteworthy/requirements.txt
+pip install -r /opt/noteworthy/requirements.dev.txt
 
 cd /opt/noteworthy/grpcz
 rm -rf build/ dist/

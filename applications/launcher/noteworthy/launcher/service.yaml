@@ -1,4 +1,4 @@
-app:     launcher
+app: launcher
 plugins:
   shared:
     - wireguard
@@ -8,7 +8,5 @@ plugins:
     - grpc
     - hub
     - reservation
-  taproot: []
-stubs:
-  - reservation
-  - link
+  taproot:
+    - reservation_client

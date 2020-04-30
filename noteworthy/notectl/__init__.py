@@ -1,5 +1,4 @@
 import os
-from grpc_tools import protoc
 import yaml
 import docker
 
@@ -56,6 +55,7 @@ class NoteworthyController:
         '''Generate protobuf Python gRPC
            TODO move to dev-tools plugin
         '''
+        from grpc_tools import protoc
         cwd = os.getcwd()
         protoc.main([f'-I{cwd}', '--python_out=.', '--grpc_python_out=.', kwargs['action']])
 
@@ -78,36 +78,6 @@ class NoteworthyController:
         See http_service for the base Django project.
         '''
         return [ p.Controller.DJANGO_APP_MODULE for name, p in self.plugins.items() if hasattr(p.Controller, 'DJANGO_APP_MODULE')]
-
-    def start(self, **kwargs):
-        '''
-        This metod (notectl start) is the entrypoint for a Noteworthy application's docker container.
-        It consumes the application manifest `app.yaml` and calls `start` on every plugin listed under
-        the key `plugins`.
-        '''
-        try:
-            with open(self.manifest_path, 'r') as manifest_file:
-                manifest = yaml.safe_load(manifest_file)
-        except yaml.scanner.ScannerError:
-            raise Exception(f'Unable to load {self.manifest_path}')
-
-        for plugin in manifest['plugins']:
-            if plugin not in self.plugins:
-                raise Exception(f'{self.manifest_path} defines plugin {plugin} that is not installed.')
-            try:
-                # TODO setup logging
-                self.plugins[plugin].Controller().start()
-                print(f'Service {plugin} started')
-            except NotImplementedError:
-                pass
-
-        # Call start on app's Controller
-        self.plugins[manifest['app']].Controller().start()
-
-
-        print('noteworthy finished booting!')
-        # TODO tail log file
-        os.system('tail -f /dev/null')
 
     def shell(self, **kwargs):
         os.system('ipython')
