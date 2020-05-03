@@ -18,9 +18,7 @@ class TestController:
         '''
         print(f'Hello, {name}. You are {age} years old!')
 
-
-
 if __name__ == '__main__':
     cli = NoteworthyCLI()
     cli.register_controller(TestController)
-    cli.dispatch(sys.argv)
+    cli.dispatch()

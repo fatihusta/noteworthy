@@ -5,10 +5,13 @@ import docker
 
 from noteworthy.notectl.plugins import PluginManager
 from noteworthy.notectl.ascii import NOTEWORTHY
-
+from clicz import cli_method
 
 class NoteworthyController:
+    '''manage your Noteworthy deployments
+    '''
 
+    command_name = 'system'
     version_string = '0.0.7'
 
     def __init__(self):
@@ -19,9 +22,10 @@ class NoteworthyController:
         self.docker = docker.from_env()
         self.arg_parser = argparse.ArgumentParser()
 
-    def list_plugins(self, **kwargs):
+    @cli_method 
+    def list_plugins(self):
         '''
-        $ notectl list_plugins
+        List installed plugins
         '''
         print('Installed plugins')
         print('-'*20)
@@ -89,3 +93,17 @@ class NoteworthyController:
         self.arg_parser.add_argument('--profile', default='default', help='profile under which to launch apps and use persistent configs')
         args = self.arg_parser.parse_args()
         print(f'I will install {args.application}')
+
+
+    def say_hello(self, name: str, age: int):
+        '''
+        Say hello to a person and print age.
+        ---
+        Args:
+            name: Name of the person
+            age: Age of the person
+        '''
+        print(f'Hello {name}. You are {age} years old.')
+
+def clicz_entrypoint(clicz):
+    clicz.register_controller(NoteworthyController)

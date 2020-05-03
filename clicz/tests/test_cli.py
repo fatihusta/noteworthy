@@ -8,8 +8,8 @@ class TestController:
 
     @cli_method
     def say_hi_autogen_help(self, name: str, fav_color: str = 'green'):
-        '''
-            Description: This is a description of the method.
+        '''This is a description of the method.
+            ---
             Args:
                 name: Name to say hello to
                 fav_color: Your favorite color
@@ -19,9 +19,10 @@ class TestController:
 
     @cli_method
     def say_hi_incomplete_docstring(self, name: str, fav_color: str = 'green'):
-        '''
-            Args:
-                bullshit: yea
+        '''\
+        ---
+        Args:
+            bullshit: yea
         '''
         self.called = True
         self.args = [name]
@@ -39,6 +40,7 @@ class TestController:
     @cli_method
     def say_hi_malformed_docstring(self, name, fav_color = 'green'):
         '''
+        ---
         Args:
             Broken
         - Malformed docstring
@@ -50,6 +52,7 @@ class TestController:
     def say_hi_missing_arg_key(self, name):
         '''
         Valid yaml but not allowed.
+        ---
         '''
         pass
 

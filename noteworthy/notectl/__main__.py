@@ -6,7 +6,7 @@
 #  |_| \_|\____/  |_|  |______|   \/  \/   \____/|_|  \_\ |_|  |_|  |_|  |_|  
 import sys
 
-from noteworthy.notectl.cli import NoteworthyCLI
+from clicz import NoteworthyCLI
 
 
 def main():
