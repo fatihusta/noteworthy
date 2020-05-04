@@ -5,7 +5,7 @@ class TestController:
     enable_cli = True
     enable_grpc = True
 
-    command_name = 'deploy'
+    PLUGIN_NAME = 'deploy'
 
     @cli_method
     def say_hello(self, name: str, age: int, color: str = None) -> None:

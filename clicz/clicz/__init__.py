@@ -17,7 +17,7 @@ class Color:
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
 
-class NoteworthyCLI:
+class CLICZ:
 
     def __init__(self):
         '''
@@ -73,13 +73,13 @@ class NoteworthyCLI:
         return method(*method.get_invocation_args(args))
 
     def register_controller(self, controller):
-        self.registered_controllers[controller.command_name] = controller
+        self.registered_controllers[controller.PLUGIN_NAME] = controller
         self.parsers = {}
-        self.parsers[controller.command_name] = self.sub_parser_factory.add_parser(controller.command_name, help=inspect.getdoc(controller))
-        controller_sub_parser_factory = self.parsers[controller.command_name].add_subparsers(title='commands', dest='subcommand', required=True, metavar='')
+        self.parsers[controller.PLUGIN_NAME] = self.sub_parser_factory.add_parser(controller.PLUGIN_NAME, help=inspect.getdoc(controller))
+        controller_sub_parser_factory = self.parsers[controller.PLUGIN_NAME].add_subparsers(title='commands', dest='subcommand', required=True, metavar='')
         for method_name, method in vars(controller).items():
             if hasattr(method, 'cli_method'):
-                self._build_method_argparser(controller_sub_parser_factory, controller.command_name, method_name, method)
+                self._build_method_argparser(controller_sub_parser_factory, controller.PLUGIN_NAME, method_name, method)
 
     def _register_proxy_commands(self, aliases, controller_name, method_name):
         for alias in aliases:

@@ -6,13 +6,16 @@ import uuid
 
 from better_profanity import profanity
 from grpcz import grpc_controller, grpc_method
+from clicz import cli_method
 from noteworthy.notectl.plugins import NoteworthyPlugin
 from noteworthy.reservation.proto.messages_pb2 import (ReservationRequest, ReservationResponse)
 
 @grpc_controller
 class ReservationController(NoteworthyPlugin):
+    '''Manage reservations / invites for Noteworthy beta
+    '''
 
-    PLUGIN_NAME = 'noteworthy-reservation'
+    PLUGIN_NAME = 'reservation'
     DJANGO_APP_MODULE = 'noteworthy.reservation.api'
 
     def __init__(self):
@@ -94,10 +97,18 @@ class ReservationController(NoteworthyPlugin):
         django.setup()
         return django
 
-    def invite(self, **kwargs):
+    @cli_method
+    def invite(self, email: str):
+        '''Invite a user to the Noteworthy beta
+        ---
+        Args:
+            email: Email of user to generate invite for
+        '''
         from noteworthy.reservation.api.models import User
-        User.objects.create_user(kwargs['email'])
-        print(f"{kwargs['email']}: {User.objects.provision_auth_codes(1)[0].auth_code}")
+        User.objects.create_user(email)
+        print(f"{email}: {User.objects.provision_auth_codes(1)[0].auth_code}")
+
+    invite.clicz_aliases = ['invite']
 
     @classmethod
     def _setup_argparse(cls, arg_parser):

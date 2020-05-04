@@ -5,7 +5,7 @@ class TestController:
     '''This docstring will describe this controller in the CLI.
     '''
 
-    command_name = 'test'
+    PLUGIN_NAME = 'test'
 
     @cli_method
     def say_hello(self, name: str, age: int):

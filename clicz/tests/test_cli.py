@@ -4,7 +4,7 @@ from noteworthy.cli import NoteworthyCLI, cli_method
 
 class TestController:
 
-    command_name = 'test'
+    PLUGIN_NAME = 'test'
 
     @cli_method
     def say_hi_autogen_help(self, name: str, fav_color: str = 'green'):

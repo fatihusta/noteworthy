@@ -6,12 +6,12 @@
 #  |_| \_|\____/  |_|  |______|   \/  \/   \____/|_|  \_\ |_|  |_|  |_|  |_|  
 import sys
 
-from clicz import NoteworthyCLI
+from clicz import CLICZ
 
 
 def main():
 
-    cli = NoteworthyCLI()
+    cli = CLICZ()
     cli.dispatch()
 
     sys.exit(0)

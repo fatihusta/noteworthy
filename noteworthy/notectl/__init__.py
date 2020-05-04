@@ -11,7 +11,7 @@ class NoteworthyController:
     '''manage Noteworthy deployments
     '''
 
-    command_name = 'noteworthy'
+    PLUGIN_NAME = 'noteworthy'
     version_string = '0.0.7'
 
     def __init__(self):
@@ -97,3 +97,5 @@ class NoteworthyController:
 
 def clicz_entrypoint(clicz):
     clicz.register_controller(NoteworthyController)
+    for _, plugin_module in PluginManager.load_plugins().items():
+        clicz.register_controller(plugin_module.Controller)
