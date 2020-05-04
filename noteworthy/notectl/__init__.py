@@ -89,28 +89,11 @@ class NoteworthyController:
         Args:
             app: the application to install
         '''
-        # self.arg_parser.add_argument('application', help='The Noteworthy application you would like to install.')
-        # args = self.arg_parser.parse_args()
-        # if args.application == 'launcher':
-        #     self.arg_parser.add_argument('--domain', help='domain for your node', required=True)
-        #     self.arg_parser.add_argument('--auth-code', help='reservation key to auth with your host', required=True)
-        # self.arg_parser.add_argument('--hub', action='store_true', help='configure this host as a hub')
-        # self.arg_parser.add_argument('--hub-host', default='noteworthy.im', help='ip or hostname of noteworthy hub')
-        # self.arg_parser.add_argument('--profile', default='default', help='profile under which to launch apps and use persistent configs')
-        # args = self.arg_parser.parse_args()
+
         print(f'I will install {app}')
 
     install.clicz_aliases = ['install', 'i']
 
-    def say_hello(self, name: str, age: int):
-        '''
-        Say hello to a person and print age.
-        ---
-        Args:
-            name: Name of the person
-            age: Age of the person
-        '''
-        print(f'Hello {name}. You are {age} years old.')
 
 def clicz_entrypoint(clicz):
     clicz.register_controller(NoteworthyController)
