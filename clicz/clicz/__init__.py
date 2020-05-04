@@ -48,7 +48,6 @@ class NoteworthyCLI:
         self.base_parser = argparse.ArgumentParser()
         self.base_parser.add_argument('-d', '--debug', help='show debug output', action='store_true')
         self.base_parser._action_groups.append(self.parser._action_groups[-1])
-        #print(self.parser.format_help())
         self.sub_parser_factory = self.base_parser.add_subparsers(title='Plugin commands', dest='command', required=True, metavar='')
         self._init_clicz()
 
@@ -63,9 +62,15 @@ class NoteworthyCLI:
         then we construct an ArgParser based on the Docstring
         '''
 
-        if sys.argv[1] in self.TOP_LEVEL_COMMANDS:
-            self.parser.parse_known_args()
-            sys.argv.insert(1, 'noteworthy')
+        try:
+            if sys.argv[1] in self.proxy_commands:
+                self.parser.parse_known_args()
+                alias_key = sys.argv[1]
+                sys.argv.insert(1, self.proxy_commands[alias_key][0])
+                sys.argv.insert(2, self.proxy_commands[alias_key][1])
+                sys.argv.remove(alias_key)
+        except IndexError:
+            sys.argv.insert(1, '--help')
         if not argv:
             argv = sys.argv
         args = self.base_parser.parse_args()
@@ -89,11 +94,17 @@ class NoteworthyCLI:
         self.parsers = {}
         self.parsers[controller.command_name] = self.sub_parser_factory.add_parser(controller.command_name, help=inspect.getdoc(controller))
         controller_sub_parser_factory = self.parsers[controller.command_name].add_subparsers(title='commands', dest='subcommand', required=True, metavar='')
-        for name, method in vars(controller).items():
+        for method_name, method in vars(controller).items():
             if hasattr(method, 'cli_method'):
-                self._build_method_argparser(controller_sub_parser_factory, name, method)
+                self._build_method_argparser(controller_sub_parser_factory, controller.command_name, method_name, method)
 
-    def _build_method_argparser(self, sub_parser_factory, method_name, method):
+    def _register_proxy_commands(self, aliases, controller_name, method_name):
+        for alias in aliases:
+            if alias in self.proxy_commands:
+                raise Exception(f'{alias} already registered. Cannot top-level alias with same name.')
+            self.proxy_commands[alias] = (controller_name, method_name)
+
+    def _build_method_argparser(self, sub_parser_factory, controller_name, method_name, method):
         '''
         '''
         method_description = inspect.getdoc(method)
@@ -105,7 +116,7 @@ class NoteworthyCLI:
             pass
         alias_parser = None
         if hasattr(method, 'clicz_aliases'):
-            self.TOP_LEVEL_COMMANDS.extend(method.clicz_aliases)
+            self._register_proxy_commands(method.clicz_aliases, controller_name, method_name)
             alias_parser = self.parser_subparser_factory.add_parser(method.clicz_aliases[0], help=method_description, description=method_description, aliases=method.clicz_aliases[1:])
             method_arg_parser = sub_parser_factory.add_parser(method_name, help=method_description, description=method_description, aliases=method.clicz_aliases)
         else:

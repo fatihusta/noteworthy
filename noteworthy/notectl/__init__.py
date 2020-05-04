@@ -31,6 +31,7 @@ class NoteworthyController:
         print('-'*20)
         [ print(f'{k}') for k,v in self.plugins.items() ]
         print()
+    list_plugins.clicz_aliases = ['plugins']
 
     def version(self, **kwargs):
         '''
