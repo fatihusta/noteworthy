@@ -13,8 +13,6 @@ class CommandArgParser(argparse.ArgumentParser):
     def print_help(self, *args, **kwargs):
         super().print_help(*args, **kwargs)
         print('''
-Get command help: notectl command -h
-------------------------------------
 Available commands:
 
 network     Create and manage your networks
@@ -22,9 +20,19 @@ site        Create and manage websites
 
         ''')
 
+class Color:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
 
 class NoteworthyCLI:
 
+    TOP_LEVEL_COMMANDS = ['install', 'uninstall', 'status', 'doctor', 'list_plugins']
 
     def __init__(self):
         '''
@@ -34,10 +42,14 @@ class NoteworthyCLI:
         '''
         self.registered_controllers = {}
         self.controller_instances = {}
+        self.parser = argparse.ArgumentParser()
+        self.parser_subparser_factory = self.parser.add_subparsers(title='Management commands', dest='mgmt_command', metavar='')
         self.proxy_commands = {}
         self.base_parser = argparse.ArgumentParser()
         self.base_parser.add_argument('-d', '--debug', help='show debug output', action='store_true')
-        self.sub_parser_factory = self.base_parser.add_subparsers(title='commands', dest='command', required=True)
+        self.base_parser._action_groups.append(self.parser._action_groups[-1])
+        #print(self.parser.format_help())
+        self.sub_parser_factory = self.base_parser.add_subparsers(title='Plugin commands', dest='command', required=True, metavar='')
         self._init_clicz()
 
     def _init_clicz(self):
@@ -45,9 +57,60 @@ class NoteworthyCLI:
             clicz_module = entry_point.load()
             clicz_module.clicz_entrypoint(self)
 
-    def _build_arg_parser(self, arg_parser, method):
+    def dispatch(self, argv=None):
+        '''Dispatch a CLI invocation to a controller.
+        First, we fetch the controller class from the map of registered controllers (methods wrapped wit @cli_method)
+        then we construct an ArgParser based on the Docstring
+        '''
+
+        if sys.argv[1] in self.TOP_LEVEL_COMMANDS:
+            self.parser.parse_known_args()
+            sys.argv.insert(1, 'noteworthy')
+        if not argv:
+            argv = sys.argv
+        args = self.base_parser.parse_args()
+        controller_name = args.command
+        controller_method = args.subcommand
+        if controller_name not in self.registered_controllers:
+            raise Exception(f'Subcommand {controller_name} not found')
+        controller = self.registered_controllers[controller_name]
+        controller_instance = controller()
+        self.controller_instances[controller_name] = controller_instance
+        if not hasattr(controller_instance, controller_method):
+            raise Exception(f'Controller {controller_name} has no CLI method {controller_method}')
+        method = getattr(controller_instance, controller_method)
+        if not hasattr(method, 'cli_method'):
+            raise Exception(f'Method {method.__qualname__} not registered for CLI invocation.'
+                             ' Wrap method with @cli_method to expose via CLI.')
+        return method(*method.get_invocation_args(args))
+
+    def register_controller(self, controller):
+        self.registered_controllers[controller.command_name] = controller
+        self.parsers = {}
+        self.parsers[controller.command_name] = self.sub_parser_factory.add_parser(controller.command_name, help=inspect.getdoc(controller))
+        controller_sub_parser_factory = self.parsers[controller.command_name].add_subparsers(title='commands', dest='subcommand', required=True, metavar='')
+        for name, method in vars(controller).items():
+            if hasattr(method, 'cli_method'):
+                self._build_method_argparser(controller_sub_parser_factory, name, method)
+
+    def _build_method_argparser(self, sub_parser_factory, method_name, method):
         '''
         '''
+        method_description = inspect.getdoc(method)
+        if not method_description:
+            raise Exception(f'Missing docstring for {Color.FAIL}{method.__qualname__}{Color.ENDC}. Docstrings are required.')
+        try:
+            method_description = inspect.getdoc(method).split('---', 1)[0]
+        except KeyError:
+            pass
+        alias_parser = None
+        if hasattr(method, 'clicz_aliases'):
+            self.TOP_LEVEL_COMMANDS.extend(method.clicz_aliases)
+            alias_parser = self.parser_subparser_factory.add_parser(method.clicz_aliases[0], help=method_description, description=method_description, aliases=method.clicz_aliases[1:])
+            method_arg_parser = sub_parser_factory.add_parser(method_name, help=method_description, description=method_description, aliases=method.clicz_aliases)
+        else:
+            method_arg_parser = sub_parser_factory.add_parser(method_name, help=method_description, description=method_description)
+
         argspec = inspect.getfullargspec(method.__wrapped__)
         static_method = False
         if argspec.args[0] not in ['cls', 'self']:
@@ -73,63 +136,23 @@ class NoteworthyCLI:
                     if not isinstance(help, str):
                         raise Exception(f'Argument description for {arg} must be of type str.')
                     if arg in defaults:
-                        arg_parser.add_argument(f'--{arg}', default=defaults[arg], help=help)
+                        method_arg_parser.add_argument(f'--{arg}', default=defaults[arg], help=help)
+                        if alias_parser:
+                            alias_parser.add_argument(f'--{arg}', default=defaults[arg], help=help)
+
                     else:
-                        arg_parser.add_argument(f'{arg}', help=help)
+                        method_arg_parser.add_argument(f'{arg}', help=help)
+                        if alias_parser:
+                            alias_parser.add_argument(f'{arg}', help=help)
                 argspec.args.reverse()
-                # make sure docstring YAML specifies all arguments defined in argspec
+                # make sure docstring YAML spe  cifies all arguments defined in argspec
                 missing_args = list(set(argspec.args).difference(set([*doc_yaml['Args'].keys()])))
                 [missing_args.remove(x) for x in ['self', 'cls'] if x in missing_args]
                 if missing_args:
-                    raise Exception(f"Docstring for {method.__qualname__} missing args: {', '.join(missing_args)}")
+                    raise Exception(f"Docstring for {Color.FAIL}{method.__qualname__}{Color.ENDC} missing args: {', '.join(missing_args)}")
             def get_invocation_args(parsed_args):
                 return [ getattr(parsed_args, key) for key in argspec.args[start_arg_idx:] ]
-            return get_invocation_args
-
-    def dispatch(self, argv=None):
-        '''Dispatch a CLI invocation to a controller.
-        First, we fetch the controller class from the map of registered controllers (method wrapped wit @cli_method)
-        then we construct an ArgParser based on the Docstring 
-        '''
-
-        if not argv:
-            argv = sys.argv
-        args = self.base_parser.parse_args()
-        controller_name = args.command
-        controller_method = args.subcommand
-        if controller_name not in self.registered_controllers:
-            raise Exception(f'Subcommand {controller_name} not found')
-        controller = self.registered_controllers[controller_name]
-        controller_instance = controller()
-        self.controller_instances[controller_name] = controller_instance
-        if not hasattr(controller_instance, controller_method):
-            raise Exception(f'Controller {controller_name} has no CLI method {controller_method}')
-        method = getattr(controller_instance, controller_method)
-        if not hasattr(method, 'cli_method'):
-            raise Exception(f'Method {method.__qualname__} not registered for CLI invocation.'
-                             ' Wrap method with @cli_method to expose via CLI.')
-        return method(*method.get_invocation_args(args))
-
-    def register_controller(self, controller):
-        self.registered_controllers[controller.command_name] = controller
-        self.parsers = {}
-        self.parsers[controller.command_name] = self.sub_parser_factory.add_parser(controller.command_name, help=inspect.getdoc(controller))
-        controller_sub_parser_factory = self.parsers[controller.command_name].add_subparsers(title='commands', dest='subcommand', required=True, metavar='command')
-        controller.method_parsers = {}
-        for name, prop in vars(controller).items():
-            if hasattr(prop, 'cli_method'):
-                try:
-                    method_description = inspect.getdoc(prop).split('---', 1)[0]
-                except KeyError:
-                    method_description = inspect.getdoc(prop)
-                if not method_description:
-                    raise Exception('Docstrings are required.')
-                controller.method_parsers[name] = controller_sub_parser_factory.add_parser(name, help=method_description)
-                prop.get_invocation_args = self._build_arg_parser(controller.method_parsers[name], getattr(controller, name))
-                #sys.exit(1)
-                #import pdb; pdb.set_trace()
-            
-
+            method.get_invocation_args = get_invocation_args
 
 def cli_method(func=None, parse_docstring=True):
     if not func:

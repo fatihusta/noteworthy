@@ -6,6 +6,10 @@ cd /opt/noteworthy/grpcz
 rm -rf build/ dist/
 python setup.py develop
 
+cd /opt/noteworthy/clicz
+rm -rf build/ dist/
+python setup.py develop
+
 cd /opt/noteworthy/applications/launcher
 python setup.py develop
 

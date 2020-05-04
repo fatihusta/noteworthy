@@ -8,10 +8,10 @@ from noteworthy.notectl.ascii import NOTEWORTHY
 from clicz import cli_method
 
 class NoteworthyController:
-    '''manage your Noteworthy deployments
+    '''manage Noteworthy deployments
     '''
 
-    command_name = 'system'
+    command_name = 'noteworthy'
     version_string = '0.0.7'
 
     def __init__(self):
@@ -81,19 +81,25 @@ class NoteworthyController:
     def shell(self, **kwargs):
         os.system('ipython')
 
+    @cli_method
+    def install(self, app:str):
+        '''install a Noteworthy application
+        ---
+        Args:
+            app: the application to install
+        '''
+        # self.arg_parser.add_argument('application', help='The Noteworthy application you would like to install.')
+        # args = self.arg_parser.parse_args()
+        # if args.application == 'launcher':
+        #     self.arg_parser.add_argument('--domain', help='domain for your node', required=True)
+        #     self.arg_parser.add_argument('--auth-code', help='reservation key to auth with your host', required=True)
+        # self.arg_parser.add_argument('--hub', action='store_true', help='configure this host as a hub')
+        # self.arg_parser.add_argument('--hub-host', default='noteworthy.im', help='ip or hostname of noteworthy hub')
+        # self.arg_parser.add_argument('--profile', default='default', help='profile under which to launch apps and use persistent configs')
+        # args = self.arg_parser.parse_args()
+        print(f'I will install {app}')
 
-    def install(self, **kwargs):
-        self.arg_parser.add_argument('application', help='The Noteworthy application you would like to install.')
-        args = self.arg_parser.parse_args()
-        if args.application == 'launcher':
-            self.arg_parser.add_argument('--domain', help='domain for your node', required=True)
-            self.arg_parser.add_argument('--auth-code', help='reservation key to auth with your host', required=True)
-        self.arg_parser.add_argument('--hub', action='store_true', help='configure this host as a hub')
-        self.arg_parser.add_argument('--hub-host', default='noteworthy.im', help='ip or hostname of noteworthy hub')
-        self.arg_parser.add_argument('--profile', default='default', help='profile under which to launch apps and use persistent configs')
-        args = self.arg_parser.parse_args()
-        print(f'I will install {args.application}')
-
+    install.clicz_aliases = ['install', 'i']
 
     def say_hello(self, name: str, age: int):
         '''
