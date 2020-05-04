@@ -7,19 +7,6 @@ import yaml
 import pkg_resources
 
 
-class CommandArgParser(argparse.ArgumentParser):
-
-
-    def print_help(self, *args, **kwargs):
-        super().print_help(*args, **kwargs)
-        print('''
-Available commands:
-
-network     Create and manage your networks
-site        Create and manage websites
-
-        ''')
-
 class Color:
     HEADER = '\033[95m'
     OKBLUE = '\033[94m'
@@ -32,13 +19,9 @@ class Color:
 
 class NoteworthyCLI:
 
-    TOP_LEVEL_COMMANDS = ['install', 'uninstall', 'status', 'doctor', 'list_plugins']
-
     def __init__(self):
         '''
         Register any controller that has the property `enable_cli=True`
-        # TODO figure out if we can get default subcommands working
-        https://stackoverflow.com/questions/6365601/default-sub-command-or-handling-no-sub-command-with-argparse
         '''
         self.registered_controllers = {}
         self.controller_instances = {}
