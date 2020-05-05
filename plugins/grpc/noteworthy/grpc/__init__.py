@@ -1,5 +1,7 @@
 import argparse
 
+from clicz import cli_method
+
 from noteworthy.notectl.plugins import NoteworthyPlugin
 from noteworthy.notectl.plugins import PluginManager
 
@@ -7,7 +9,8 @@ from noteworthy.notectl.plugins import PluginManager
 from grpcz import GRPCZServer
 
 class GrpcController(NoteworthyPlugin):
-
+    '''manage grpc server
+    '''
     PLUGIN_NAME = 'grpc'
 
     def __init__(self):
@@ -20,18 +23,13 @@ class GrpcController(NoteworthyPlugin):
                 print(f'Registered GRPC controller for plugin: {plugin}')
                 self.server.register_controller(module.Controller())
 
-    def run(self, *args, **kwargs):
+    @cli_method
+    def run(self):
+        '''start grpc server, blocking
+        '''
         self.server.start()
 
     def start(self, *args, **kwargs):
         self._start(self.PLUGIN_NAME)
-
-    @classmethod
-    def _setup_argparse(cls, arg_parser):
-        super()._setup_argparse(arg_parser)
-        cls.sub_parser = argparse.ArgumentParser(conflict_handler='resolve',
-        usage='notectl grpc')
-        cls.sub_parser.add_argument('argument', nargs='*', help='hostname of hub to join')
-
 
 Controller = GrpcController

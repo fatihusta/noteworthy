@@ -2,6 +2,7 @@ import argparse
 import os
 import shutil
 from pathlib import Path
+from clicz import cli_method
 
 import docker
 import dockerpty
@@ -149,7 +150,10 @@ class LauncherController(NoteworthyPlugin):
         with open('/opt/noteworthy/release', 'r') as tag_file:
             return tag_file.read().strip()
 
-    def start(self, **kwargs):
+    @cli_method
+    def start(self):
+        '''start launcher, Noteworthy's service orchestration layer
+        '''
         self.start_dependencies()
 
         if os.environ['NOTEWORTHY_ROLE'] == 'taproot':
@@ -166,20 +170,17 @@ class LauncherController(NoteworthyPlugin):
         # TODO tail log file
         os.system('tail -f /dev/null')
 
-    def create_user(self, **kwargs):
+    @cli_method
+    def create_user(self, profile):
+        '''create a matrix user
+        ---
+        Args:
+            profile: profile to create matrix account
+        '''
         # use docker proxy for invoking shell commands
         # via the docker exec
         dashed_domain = os.environ['NOTEWORTHY_DOMAIN'].replace('.', '-')
-        profile = kwargs.get('profile') or os.environ['NOTEWORTHY_PROFILE']
         c = self.docker.containers.list(filters={'name':f'noteworthy-{dashed_domain}-messenger-{profile}'})[0]
         dockerpty.exec_command(self.docker.api, c.id, 'register_new_matrix_user -c /opt/noteworthy/.messenger/homeserver.yaml http://localhost:8008')
-
-    @classmethod
-    def _setup_argparse(cls, arg_parser):
-        super()._setup_argparse(arg_parser)
-        cls.sub_parser = argparse.ArgumentParser(conflict_handler='resolve',
-        usage='notectl launcher')
-        cls.sub_parser.add_argument(
-             '--archive', help='path of archive to install')
 
 Controller = LauncherController

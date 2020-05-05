@@ -1,16 +1,23 @@
 import argparse
 import os
+
+from clicz import cli_method
 from noteworthy.notectl.plugins import NoteworthyPlugin
 
 
 class HttpServiceController(NoteworthyPlugin):
+    '''Django powered http server
+    '''
 
     PLUGIN_NAME = 'http_service'
 
     def __init__(self):
         super().__init__(__file__)
 
-    def run(self, *args, **kwargs):
+    @cli_method
+    def run(self):
+        '''start http_service, blocking
+        '''
         os.chdir(os.path.join(self.plugin_path, 'rest_api'))
         if self.is_first_run:
             self.create_config_dir()
@@ -19,13 +26,6 @@ class HttpServiceController(NoteworthyPlugin):
 
     def start(self, **kwargs):
         self._start(self.PLUGIN_NAME)
-
-    @classmethod
-    def _setup_argparse(cls, arg_parser):
-        super()._setup_argparse(arg_parser)
-        cls.sub_parser = argparse.ArgumentParser(conflict_handler='resolve',
-        usage='notectl http_service')
-        cls.sub_parser.add_argument('argument', nargs='*', help='hostname of hub to join')
 
     def shell(self, **kwargs):
         os.chdir(os.path.join(self.plugin_path, 'rest_api'))

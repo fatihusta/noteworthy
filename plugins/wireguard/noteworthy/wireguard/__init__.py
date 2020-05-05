@@ -81,14 +81,4 @@ class WireGuardController(NoteworthyPlugin):
             link_data = yaml.safe_load(yaml_file.read())
         return link_data
 
-    @classmethod
-    def _setup_argparse(cls, arg_parser):
-        super()._setup_argparse(arg_parser)
-        cls.sub_parser = argparse.ArgumentParser(conflict_handler='resolve',
-        usage='notectl wireguard ')
-        cls.sub_parser.add_argument('argument', nargs='*', help='hostname of hub to join')
-        cls.sub_parser.add_argument('--no-cache', action="store_true", help="discard container\
- build cache when building WireGuard container.")
-
-
 Controller = WireGuardController

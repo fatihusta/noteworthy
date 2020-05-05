@@ -5,6 +5,7 @@ import time
 import yaml
 from pathlib import Path
 from jinja2 import Template
+from clicz import cli_method
 
 from noteworthy.notectl.plugins import NoteworthyPlugin
 
@@ -24,7 +25,10 @@ class NginxController(NoteworthyPlugin):
         self.letsencrypt_bk = os.path.join(self.config_dir, 'letsencrypt')
         self.letsencrypt_live = 'etc/letsencrypt/live'
 
-    def run(self, **kwargs):
+    @cli_method
+    def run(self):
+        '''start nginx, blocking
+        '''
         if os.path.exists('/run/nginx.pid'):
             return
         os.system("nginx -g 'daemon off;'")

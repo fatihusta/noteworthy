@@ -93,7 +93,13 @@ class CLICZ:
     def register_controller(self, controller):
         self.registered_controllers[controller.PLUGIN_NAME] = controller
         self.parsers = {}
-        self.parsers[controller.PLUGIN_NAME] = self.sub_parser_factory.add_parser(controller.PLUGIN_NAME, help=inspect.getdoc(controller))
+        controller_docstring = inspect.getdoc(controller)
+        # guard for whitespace only docstrings (breaks argparse)
+        if isinstance(controller_docstring, str):
+            controller_docstring = controller_docstring.strip()
+            if not controller_docstring:
+                controller_docstring = None
+        self.parsers[controller.PLUGIN_NAME] = self.sub_parser_factory.add_parser(controller.PLUGIN_NAME, help=controller_docstring)
         controller_sub_parser_factory = self.parsers[controller.PLUGIN_NAME].add_subparsers(title='commands', dest='subcommand', required=True, metavar='command')
         for method_name, method in vars(controller).items():
             if hasattr(method, 'cli_method'):
