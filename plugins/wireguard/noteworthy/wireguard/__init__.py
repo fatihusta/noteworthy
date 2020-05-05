@@ -1,4 +1,3 @@
-import argparse
 import docker
 import os
 import sys

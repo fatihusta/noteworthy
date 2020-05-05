@@ -1,5 +1,3 @@
-import argparse
-
 from clicz import cli_method
 
 from noteworthy.notectl.plugins import NoteworthyPlugin

@@ -6,7 +6,7 @@ def test_main_no_arguments_shows_help(capsys):
     with pytest.raises(SystemExit) as pytest_exception:
         main()
     assert pytest_exception.type == SystemExit
-    assert pytest_exception.value.code == 1
+    assert pytest_exception.value.code == 2
 
     captured = capsys.readouterr()
-    assert 'usage: ' in captured.out
+    assert 'usage: ' in captured.err

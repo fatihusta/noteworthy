@@ -28,7 +28,7 @@ class Color:
 class CLICZ:
 
 
-    def __init__(self):
+    def __init__(self, autodiscover=True):
         '''
         Register any controller that has the property `enable_cli=True`
         '''
@@ -43,9 +43,10 @@ class CLICZ:
         self.base_parser.add_argument('-d', '--debug', help='show debug output', action='store_true')
         self.base_parser._action_groups.append(self.parser._action_groups[-1])
         self.sub_parser_factory = self.base_parser.add_subparsers(title='plugin commands', dest='command', required=True, metavar='command')
-        description = self._init_clicz()
-        self.parser.description = description
-        self.base_parser.description = description
+        if autodiscover:
+            description = self._init_clicz()
+            self.parser.description = description
+            self.base_parser.description = description
 
     def _init_clicz(self) -> str:
         '''Initialize clicz application
@@ -62,7 +63,8 @@ class CLICZ:
         First, we fetch the controller class from the map of registered controllers (methods wrapped wit @cli_method)
         then we construct an ArgParser based on the Docstring
         '''
-
+        if argv:
+            sys.argv = argv
         try:
             if sys.argv[1] in self.proxy_commands:
                 self.parser.parse_known_args()
@@ -72,8 +74,6 @@ class CLICZ:
                 sys.argv.remove(alias_key)
         except IndexError:
             sys.argv.insert(1, '--help')
-        if not argv:
-            argv = sys.argv
         args = self.base_parser.parse_args()
         controller_name = args.command
         controller_method = args.subcommand
@@ -102,6 +102,8 @@ class CLICZ:
         self.parsers[controller.PLUGIN_NAME] = self.sub_parser_factory.add_parser(controller.PLUGIN_NAME, help=controller_docstring)
         controller_sub_parser_factory = self.parsers[controller.PLUGIN_NAME].add_subparsers(title='commands', dest='subcommand', required=True, metavar='command')
         for method_name, method in vars(controller).items():
+            # watch out for this: https://stackoverflow.com/questions/44596009/why-is-cls-dict-meth-different-than-getattrcls-meth-for-classmethods-sta
+            method = getattr(controller, method_name)
             if hasattr(method, 'cli_method'):
                 self._build_method_argparser(controller_sub_parser_factory, controller.PLUGIN_NAME, method_name, method)
 

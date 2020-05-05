@@ -1,5 +1,4 @@
 import os
-import argparse
 import pkg_resources
 from pathlib import Path
 import yaml
@@ -24,7 +23,6 @@ class NoteworthyPlugin:
     def __init__(self, file=__file__):
         self.plugins = PluginManager.load_plugins()
         self.plugin_path = self.get_plugin_path(file)
-        self.sub_parser = argparse.ArgumentParser()
         self.config_dir = os.path.join(
             self.base_config_dir, f'.{self.PLUGIN_NAME}')
         self.deploy_dir = os.path.join(self.plugin_path, 'deploy/')

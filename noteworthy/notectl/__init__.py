@@ -1,4 +1,3 @@
-import argparse
 import os
 import random
 import yaml
@@ -26,7 +25,6 @@ class NoteworthyController:
         # are started upon `notecl start`
         # Also used for building launcher installable packages
         self.docker = docker.from_env()
-        self.arg_parser = argparse.ArgumentParser()
 
     @cli_method 
     def list_plugins(self):

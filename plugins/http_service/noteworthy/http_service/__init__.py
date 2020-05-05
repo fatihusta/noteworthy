@@ -1,4 +1,3 @@
-import argparse
 import os
 
 from clicz import cli_method
