@@ -1,15 +1,20 @@
 import argparse
 import os
+import random
 import yaml
 import docker
 
 from noteworthy.notectl.plugins import PluginManager
 from noteworthy.notectl.ascii import NOTEWORTHY
-from clicz import cli_method
+from clicz import cli_method, Color
 
 class NoteworthyController:
     '''manage Noteworthy deployments
     '''
+    descriptions = ['Technology worthy writing home about.',
+                    'Next generation communication tools for the people.',
+                    'Empowering the development of a safe, free web.',
+                    'Your network, your data.']
 
     PLUGIN_NAME = 'noteworthy'
     version_string = '0.0.7'
@@ -99,3 +104,6 @@ def clicz_entrypoint(clicz):
     clicz.register_controller(NoteworthyController)
     for _, plugin_module in PluginManager.load_plugins().items():
         clicz.register_controller(plugin_module.Controller)
+    color = Color()
+    description = random.choice(NoteworthyController.descriptions)
+    return f"{color.yellow('Noteworthy')}: {color.green(description)}"

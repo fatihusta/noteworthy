@@ -7,37 +7,55 @@ import yaml
 import pkg_resources
 
 
+COLORS = {
+        'HEADER' : '\033[95m',
+        'BLUE' : '\033[94m',
+        'GREEN' : '\033[92m',
+        'YELLOW' : '\033[93m',
+        'RED' : '\033[91m',
+        'ENDC' : '\033[0m',
+        'BOLD' : '\033[1m',
+        'UNDERLINE' : '\033[4m'
+}
+
 class Color:
-    HEADER = '\033[95m'
-    OKBLUE = '\033[94m'
-    OKGREEN = '\033[92m'
-    WARNING = '\033[93m'
-    FAIL = '\033[91m'
-    ENDC = '\033[0m'
-    BOLD = '\033[1m'
-    UNDERLINE = '\033[4m'
+    def __getattr__(self, color: str):
+        color = color.upper()
+        def colorize(message: str):
+            return f"{COLORS[color]}{message}{COLORS['ENDC']}"
+        return colorize
 
 class CLICZ:
+
 
     def __init__(self):
         '''
         Register any controller that has the property `enable_cli=True`
         '''
+        self.color = Color()
         self.registered_controllers = {}
         self.controller_instances = {}
-        self.parser = argparse.ArgumentParser()
-        self.parser_subparser_factory = self.parser.add_subparsers(title='Management commands', dest='mgmt_command', metavar='')
         self.proxy_commands = {}
-        self.base_parser = argparse.ArgumentParser()
+        epilog = 'Run `notectl <command> --help` for more information.'
+        self.parser = argparse.ArgumentParser(epilog=epilog)
+        self.parser_subparser_factory = self.parser.add_subparsers(title='Management commands', dest='mgmt_command', metavar='')
+        self.base_parser = argparse.ArgumentParser(epilog=epilog)
         self.base_parser.add_argument('-d', '--debug', help='show debug output', action='store_true')
         self.base_parser._action_groups.append(self.parser._action_groups[-1])
         self.sub_parser_factory = self.base_parser.add_subparsers(title='Plugin commands', dest='command', required=True, metavar='')
-        self._init_clicz()
+        description = self._init_clicz()
+        self.parser.description = description
+        self.base_parser.description = description
 
-    def _init_clicz(self):
-        for entry_point in pkg_resources.iter_entry_points('clicz.entrypoint'):
-            clicz_module = entry_point.load()
-            clicz_module.clicz_entrypoint(self)
+    def _init_clicz(self) -> str:
+        '''Initialize clicz application
+        ---
+        Args: None
+        Returns: Argparser description
+        '''
+        entrypoint = list(pkg_resources.iter_entry_points('clicz.entrypoint'))[0]
+        clicz_module = entrypoint.load()
+        return clicz_module.clicz_entrypoint(self)
 
     def dispatch(self, argv=None):
         '''Dispatch a CLI invocation to a controller.
@@ -92,7 +110,7 @@ class CLICZ:
         '''
         method_description = inspect.getdoc(method)
         if not method_description:
-            raise Exception(f'Missing docstring for {Color.FAIL}{method.__qualname__}{Color.ENDC}. Docstrings are required.')
+            raise Exception(f'Missing docstring for {self.color.red(method.__qualname__)}. Docstrings are required.')
         try:
             method_description = inspect.getdoc(method).split('---', 1)[0]
         except KeyError:
@@ -143,7 +161,7 @@ class CLICZ:
                 missing_args = list(set(argspec.args).difference(set([*doc_yaml['Args'].keys()])))
                 [missing_args.remove(x) for x in ['self', 'cls'] if x in missing_args]
                 if missing_args:
-                    raise Exception(f"Docstring for {Color.FAIL}{method.__qualname__}{Color.ENDC} missing args: {', '.join(missing_args)}")
+                    raise Exception(f"Docstring for {self.color.red(method.__qualname__)} missing args: {', '.join(missing_args)}")
             def get_invocation_args(parsed_args):
                 return [ getattr(parsed_args, key) for key in argspec.args[start_arg_idx:] ]
             method.get_invocation_args = get_invocation_args
