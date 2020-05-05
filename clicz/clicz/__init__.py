@@ -74,7 +74,7 @@ class CLICZ:
                 sys.argv.remove(alias_key)
         except IndexError:
             sys.argv.insert(1, '--help')
-        args = self.base_parser.parse_args()
+        args, extra_args = self.base_parser.parse_known_args()
         controller_name = args.command
         controller_method = args.subcommand
         if controller_name not in self.registered_controllers:
@@ -88,7 +88,14 @@ class CLICZ:
         if not hasattr(method, 'cli_method'):
             raise Exception(f'Method {method.__qualname__} not registered for CLI invocation.'
                              ' Wrap method with @cli_method to expose via CLI.')
-        return method(*method.get_invocation_args(args))
+        if extra_args:
+            method_args = method.get_invocation_args(args)
+            # TODO this will break if default is non-empty list
+            extra_args_idx = method_args.index([])
+            method_args[extra_args_idx] = extra_args
+            return method(*method_args)
+        else:
+            return method(*method.get_invocation_args(args))
 
     def register_controller(self, controller):
         self.registered_controllers[controller.PLUGIN_NAME] = controller
@@ -106,6 +113,14 @@ class CLICZ:
             method = getattr(controller, method_name)
             if hasattr(method, 'cli_method'):
                 self._build_method_argparser(controller_sub_parser_factory, controller.PLUGIN_NAME, method_name, method)
+
+    # def _prep_extra_args(self, extra_args: list):
+    #     if not extra_args:
+    #         return {}
+    #     # TODO make sure this is safe
+    #     extra_args = [ arg.replace('--', '') for arg in extra_args ]
+    #     list_iter = iter(extra_args)
+    #     return dict(zip(list_iter, list_iter))
 
     def _register_proxy_commands(self, aliases, controller_name, method_name):
         for alias in aliases:

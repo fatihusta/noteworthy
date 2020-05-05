@@ -47,19 +47,6 @@ class NoteworthyController:
         print(f'Version: {self.version_string}')
     version.clicz_aliases = ['version']
 
-    def launch(self, **kwargs):
-        try:
-            self.docker.networks.create('noteworthy', check_duplicate=True)
-        except:
-            pass
-        if 'launcher' not in self.plugins:
-            raise Exception('Launcher must be installed to run `notectl install`.')
-        print('Please wait while Noteworthy launches...')
-        self.plugins['launcher'].Controller().launch_launcher(
-            hub=kwargs['hub'], domain=kwargs['domain'],
-            hub_host=kwargs['hub_host'], auth_code=kwargs['auth_code'],
-            profile=kwargs['profile'])
-
     def protoc(self, **kwargs):
         '''
         $ notectl protoc <service.proto>
@@ -77,21 +64,6 @@ class NoteworthyController:
         See http_service for the base Django project.
         '''
         return [ p.Controller.DJANGO_APP_MODULE for name, p in self.plugins.items() if hasattr(p.Controller, 'DJANGO_APP_MODULE')]
-
-    def shell(self, **kwargs):
-        os.system('ipython')
-
-    @cli_method
-    def install(self, app:str):
-        '''install a Noteworthy application
-        ---
-        Args:
-            app: the application to install
-        '''
-
-        print(f'I will install {app}')
-
-    install.clicz_aliases = ['install']
 
 
 def clicz_entrypoint(clicz):
