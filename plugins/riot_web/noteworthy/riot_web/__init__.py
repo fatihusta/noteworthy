@@ -15,8 +15,12 @@ class RiotWebController(NoteworthyPlugin):
         if self.is_first_run:
             tar_path = os.path.join(self.deploy_dir, 'web_app.tar.gz')
             with tarfile.open(tar_path) as tar:
+                top_lvl_dir = tar.getnames()[0]
                 self.create_config_dir()
                 tar.extractall(path=self.config_dir)
+            app_dir = os.path.join(self.deploy_dir, top_lvl_dir)
+            target_app_dir = os.path.join(self.deploy_dir, 'webapp')
+            os.system(f'mv {app_dir} {target_app_dir}')
             config_tmpl = os.path.join(self.deploy_dir, 'config.tmpl.json')
             config_target = os.path.join(self.config_dir, 'webapp/config.json')
             configs = {'domain': os.environ['NOTEWORTHY_DOMAIN']}

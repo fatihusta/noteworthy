@@ -2,6 +2,12 @@
 
 pip install -r /opt/noteworthy/requirements.dev.txt
 
+cd /opt/noteworthy/procz
+python setup.py develop
+
+cd /opt/noteworthy/matrixbz
+python setup.py develop
+
 cd /opt/noteworthy/grpcz
 rm -rf build/ dist/
 python setup.py develop
@@ -31,4 +37,3 @@ for plugin in plugins/*/; do
     fi
     cd -
 done
-
