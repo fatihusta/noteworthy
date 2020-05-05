@@ -33,11 +33,6 @@ class NoteworthyPlugin:
     def create_config_dir(self):
         Path(self.config_dir).mkdir(exist_ok=True)
 
-    @classmethod
-    def _setup_argparse(cls, arg_parser):
-        cls.arg_parser = arg_parser
-        cls.sub_parser = argparse.ArgumentParser()
-
     def help(self, **kwargs):
         print('''Help is not available for this plugin.''')
 

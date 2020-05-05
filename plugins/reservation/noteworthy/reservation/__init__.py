@@ -111,11 +111,4 @@ class ReservationController(NoteworthyPlugin):
 
     invite.clicz_aliases = ['invite']
 
-    @classmethod
-    def _setup_argparse(cls, arg_parser):
-        super()._setup_argparse(arg_parser)
-        cls.sub_parser = argparse.ArgumentParser(conflict_handler='resolve',
-        usage='notectl reservation')
-        cls.sub_parser.add_argument('email', help='invite user to join this hub')
-
 Controller = ReservationController

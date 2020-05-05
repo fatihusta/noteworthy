@@ -72,12 +72,6 @@ class NoteworthyController:
         cwd = os.getcwd()
         protoc.main([f'-I{cwd}', '--python_out=.', '--grpc_python_out=.', kwargs['action']])
 
-    def _setup_argparse(self, arg_parser):
-        self.arg_parser = arg_parser
-        command_list = 'list_plugins, '
-        plugin_list = ', '.join([plugin for plugin in self.plugins])
-
-
     def get_installed_apps(self):
         '''
         Return the list of installed Django applications wrapped as Noteworthy plugins.

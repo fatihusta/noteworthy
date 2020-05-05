@@ -97,14 +97,4 @@ class PackageController(NoteworthyPlugin):
         collected_modules.add(plugin_name)
         print('done.')
 
-    @classmethod
-    def _setup_argparse(cls, arg_parser):
-        super()._setup_argparse(arg_parser)
-        cls.sub_parser = argparse.ArgumentParser(conflict_handler='resolve',
-                                                 usage='notectl package ')
-        cls.sub_parser.add_argument('app_name', help='name of application')
-        cls.sub_parser.add_argument(
-            'version', nargs='?', help='version of application')
-
-
 Controller = PackageController
