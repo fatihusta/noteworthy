@@ -2,6 +2,8 @@ import os
 import string
 import secrets
 from jinja2 import Template
+
+from clicz import cli_method
 from noteworthy.notectl.plugins import NoteworthyPlugin
 from noteworthy.notectl.plugins import PluginManager
 
@@ -18,7 +20,10 @@ class MessengerController(NoteworthyPlugin):
         super().__init__(__file__)
         self.plugins = PluginManager.load_plugins()
 
-    def run(self, *args, **kwargs):
+    @cli_method
+    def run(self):
+        '''Start messenger, blocking.
+        '''
         if self.is_first_run:
             self._run_first_time_setup()
         hs_config = os.path.join(self.config_dir, 'homeserver.yaml')
@@ -62,7 +67,10 @@ class MessengerController(NoteworthyPlugin):
             for i
             in range(self.SECRET_LENGTH)))
 
+    @cli_method
     def start(self, *args, **kwargs):
+        '''Daemonize messenger
+        '''
         self._start(self.PLUGIN_NAME)
 
 

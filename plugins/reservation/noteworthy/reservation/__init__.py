@@ -98,11 +98,12 @@ class ReservationController(NoteworthyPlugin):
         return django
 
     @cli_method
-    def invite(self, email: str):
-        '''Invite a user to the Noteworthy beta
+    def invite(self, email: str, name: str):
+        '''Invite a user to the Noteworthy
         ---
         Args:
             email: Email of user to generate invite for
+            name: Name of user
         '''
         from noteworthy.reservation.api.models import User
         User.objects.create_user(email)
