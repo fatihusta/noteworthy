@@ -1,11 +1,17 @@
 {
     "default_server_config": {
         "m.homeserver": {
-            "base_url": "https://matrix.{{ domain }}",
-            "server_name": "{{ domain }}"
+          "base_url": "https://matrix.{{ domain }}",
+          "server_name": "{{ domain }}"
         }
     },
-    "brand": "Noteworthy",
+    "brand": "noteworthy.im",
+    "branding": {
+        "authFooterLinks": [
+            {"text": "not running in the cloud", "url": "https://noteworthy.im"}
+        ]
+    },
+    "welcomeUserId": "@welcomebot:{{ domain }}",
     "disable_custom_urls": true,
     "disable_guests": false,
     "disable_login_language_selector": false,

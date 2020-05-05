@@ -4,16 +4,19 @@ from .bot import Bot
 def matrixbz_method(func):
     func.matrixbz_method = True
     @functools.wraps(func)
-    def wrapped(*args, **kwargs):
-        return func(*args, **kwargs)
+    async def wrapped(*args, **kwargs):
+        return await func(*args, **kwargs)
+    return wrapped
+
+def matrixbz_msg_handler(func):
+    func.matrixbz_msg_handler = True
+    @functools.wraps(func)
+    async def wrapped(*args, **kwargs):
+        return await func(*args, **kwargs)
     return wrapped
 
 
-DEFAULT_GREETING = {
-    'msgtype': 'm.text',
-    'body': 'Howdy!'
-}
-def matrixbz_controller(bot_name, channel_greeting=DEFAULT_GREETING):
+def matrixbz_controller(bot_name, channel_greeting=None):
 
     def matrixbz_controller_wrapper(cls):
         cls.matrixbz_controller = True

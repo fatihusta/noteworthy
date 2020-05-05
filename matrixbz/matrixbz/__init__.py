@@ -1,1 +1,1 @@
-from .decorators import matrixbz_method, matrixbz_controller
+from .decorators import matrixbz_method, matrixbz_msg_handler, matrixbz_controller

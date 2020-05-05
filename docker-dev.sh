@@ -3,9 +3,11 @@
 pip install -r /opt/noteworthy/requirements.dev.txt
 
 cd /opt/noteworthy/procz
+rm -rf build/ dist/
 python setup.py develop
 
 cd /opt/noteworthy/matrixbz
+rm -rf build/ dist/
 python setup.py develop
 
 cd /opt/noteworthy/grpcz
