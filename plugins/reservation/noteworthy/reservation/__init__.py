@@ -99,7 +99,7 @@ class ReservationController(NoteworthyPlugin):
 
     @cli_method
     def invite(self, email: str, name: str):
-        '''Invite a user to the Noteworthy
+        '''invite a user to the Noteworthy beta
         ---
         Args:
             email: Email of user to generate invite for

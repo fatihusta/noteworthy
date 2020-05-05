@@ -38,11 +38,11 @@ class CLICZ:
         self.proxy_commands = {}
         epilog = 'Run `notectl <command> --help` for more information.'
         self.parser = argparse.ArgumentParser(epilog=epilog)
-        self.parser_subparser_factory = self.parser.add_subparsers(title='Management commands', dest='mgmt_command', metavar='')
+        self.parser_subparser_factory = self.parser.add_subparsers(title='system commands', dest='mgmt_command', metavar='command')
         self.base_parser = argparse.ArgumentParser(epilog=epilog)
         self.base_parser.add_argument('-d', '--debug', help='show debug output', action='store_true')
         self.base_parser._action_groups.append(self.parser._action_groups[-1])
-        self.sub_parser_factory = self.base_parser.add_subparsers(title='Plugin commands', dest='command', required=True, metavar='')
+        self.sub_parser_factory = self.base_parser.add_subparsers(title='plugin commands', dest='command', required=True, metavar='command')
         description = self._init_clicz()
         self.parser.description = description
         self.base_parser.description = description
@@ -94,7 +94,7 @@ class CLICZ:
         self.registered_controllers[controller.PLUGIN_NAME] = controller
         self.parsers = {}
         self.parsers[controller.PLUGIN_NAME] = self.sub_parser_factory.add_parser(controller.PLUGIN_NAME, help=inspect.getdoc(controller))
-        controller_sub_parser_factory = self.parsers[controller.PLUGIN_NAME].add_subparsers(title='commands', dest='subcommand', required=True, metavar='')
+        controller_sub_parser_factory = self.parsers[controller.PLUGIN_NAME].add_subparsers(title='commands', dest='subcommand', required=True, metavar='command')
         for method_name, method in vars(controller).items():
             if hasattr(method, 'cli_method'):
                 self._build_method_argparser(controller_sub_parser_factory, controller.PLUGIN_NAME, method_name, method)
@@ -102,7 +102,7 @@ class CLICZ:
     def _register_proxy_commands(self, aliases, controller_name, method_name):
         for alias in aliases:
             if alias in self.proxy_commands:
-                raise Exception(f'{alias} already registered. Cannot top-level alias with same name.')
+                raise Exception(f'{alias} already registered. Cannot declare top-level alias with same name.')
             self.proxy_commands[alias] = (controller_name, method_name)
 
     def _build_method_argparser(self, sub_parser_factory, controller_name, method_name, method):

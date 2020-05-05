@@ -9,14 +9,15 @@ from noteworthy.notectl.ascii import NOTEWORTHY
 from clicz import cli_method, Color
 
 class NoteworthyController:
-    '''manage Noteworthy deployments
+    '''manage your Noteworthy deployments
     '''
-    descriptions = ['Technology worthy writing home about.',
-                    'Next generation communication tools for the people.',
+    descriptions = ['Technology worth writing home about.',
+                    'Next generation communication platforms for the people.',
                     'Empowering the development of a safe, free web.',
-                    'Your network, your data.']
+                    'Your network, your data.',
+                    'Take ownership of your digital existence.']
 
-    PLUGIN_NAME = 'noteworthy'
+    PLUGIN_NAME = 'system'
     version_string = '0.0.7'
 
     def __init__(self):
@@ -30,7 +31,7 @@ class NoteworthyController:
     @cli_method 
     def list_plugins(self):
         '''
-        List installed plugins
+        list installed plugins
         '''
         print('Installed plugins')
         print('-'*20)
@@ -101,9 +102,16 @@ class NoteworthyController:
 
 
 def clicz_entrypoint(clicz):
+    notectl_env = os.environ.get('NOTECTL_ENV', 'USER')
     clicz.register_controller(NoteworthyController)
     for _, plugin_module in PluginManager.load_plugins().items():
-        clicz.register_controller(plugin_module.Controller)
+        if notectl_env == 'SYSTEM':
+            clicz.register_controller(plugin_module.Controller)
+        else:
+            if hasattr(plugin_module.Controller, 'USER_CLI') and plugin_module.Controller.USER_CLI:
+                clicz.register_controller(plugin_module.Controller)
+
+    # Return a colorful cli description
     color = Color()
     description = random.choice(NoteworthyController.descriptions)
     return f"{color.yellow('Noteworthy')}: {color.green(description)}"
