@@ -39,14 +39,15 @@ class NoteworthyController:
         print()
     list_plugins.clicz_aliases = ['plugins']
 
-    def version(self, **kwargs):
-        '''
-        $ notectl version
+    @cli_method
+    def version(self):
+        '''print Noteworthy version
         '''
         print(NOTEWORTHY)
         print('by Decentralabs - https://decentralabs.io')
         print()
         print(f'Version: {self.version_string}')
+    version.clicz_aliases = ['version']
 
     def launch(self, **kwargs):
         try:
@@ -92,7 +93,7 @@ class NoteworthyController:
 
         print(f'I will install {app}')
 
-    install.clicz_aliases = ['install', 'i']
+    install.clicz_aliases = ['install']
 
 
 def clicz_entrypoint(clicz):
