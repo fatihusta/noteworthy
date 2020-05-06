@@ -89,42 +89,49 @@ class LauncherController(NoteworthyPlugin):
                 'Installing from repository not supported yet.')
         print('Done.')
 
-    def launch_launcher_hub(self, hub_host: str, profile: str):
-            volumes = []
-            ports = {}
-            app_env = {
-                    'NOTEWORTHY_HUB': hub_host,
-                    'NOTEWORTHY_PROFILE': profile
-            }
-            volumes.append('/var/run/docker.sock:/var/run/docker.sock')
-            volumes.append('/usr/local/bin/docker:/usr/local/bin/docker')
-            app = 'launcher'
-            app_name = app + '-hub'
-            ports={
-                    '80/tcp' : 80,
-                    '443/tcp': 443,
-                    '8000/tcp': 8000,
-                    }
-            app_env['NOTEWORTHY_ROLE'] = 'hub'
+    @cli_method
+    def launch_hub(self, hub_host: str, profile: str = 'default'):
+        '''deploy a Noteworthy hub
+        ---
+        Args:
+            hub_host: fqdn or ip to return to hub clients
+            profile: profile to associate with hub
+        '''
+        volumes = []
+        ports = {}
+        app_env = {
+                'NOTEWORTHY_HUB': hub_host,
+                'NOTEWORTHY_PROFILE': profile
+        }
+        volumes.append('/var/run/docker.sock:/var/run/docker.sock')
+        volumes.append('/usr/local/bin/docker:/usr/local/bin/docker')
+        app = 'launcher'
+        app_name = app + '-hub'
+        ports={
+                '80/tcp' : 80,
+                '443/tcp': 443,
+                '8000/tcp': 8000,
+                }
+        app_env['NOTEWORTHY_ROLE'] = 'hub'
 
-            # create and add profiles volume
-            profile_volume = self._create_profile_volume(app_name, profile)
-            volumes.append(f'{profile_volume.name}:/opt/noteworthy/profiles')
+        # create and add profiles volume
+        profile_volume = self._create_profile_volume(app_name, profile)
+        volumes.append(f'{profile_volume.name}:/opt/noteworthy/profiles')
 
-            release_tag = self._load_release_tag()
-            # deploy launcher / launcher-hub
-            self.docker.containers.run(f"decentralabs/noteworthy:{app_env['NOTEWORTHY_ROLE']}-{release_tag}",
-            entrypoint='notectl launcher start',
-            tty=True,
-            cap_add=['NET_ADMIN'],
-            network='noteworthy',
-            stdin_open=True,
-            name=f"noteworthy-{app_name}-{profile}",
-            volumes=volumes,
-            ports=ports,
-            detach=True,
-            environment=app_env,
-            restart_policy={"Name": "always"})
+        release_tag = self._load_release_tag()
+        # deploy launcher / launcher-hub
+        self.docker.containers.run(f"decentralabs/noteworthy:{app_env['NOTEWORTHY_ROLE']}-{release_tag}",
+        entrypoint='notectl launcher start',
+        tty=True,
+        cap_add=['NET_ADMIN'],
+        network='noteworthy',
+        stdin_open=True,
+        name=f"noteworthy-{app_name}-{profile}",
+        volumes=volumes,
+        ports=ports,
+        detach=True,
+        environment=app_env,
+        restart_policy={"Name": "always"})
 
     def launch_launcher_taproot(self, domain: str, hub_host: str,
                                     auth_code: str, profile: str):
