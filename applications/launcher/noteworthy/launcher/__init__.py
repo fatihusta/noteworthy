@@ -236,6 +236,8 @@ class LauncherController(NoteworthyPlugin):
         print(f'Installing {app}...')
         if app == 'launcher':
             return self.install_launcher_cli(self.args)
+        else:
+            return self.launch_app(app, profile)
 
     install.clicz_aliases = ['install']
     install.clicz_defaults = {'app':'launcher'}
@@ -271,13 +273,56 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\n''')
             self.docker.networks.create('noteworthy', check_duplicate=True)
         except:
             pass
-        self.plugins['launcher'].Controller().launch_launcher_taproot(
-            args.domain, args.hub, args.invite_code, args.profile)
+
+        self.launch_launcher_taproot(args.domain, args.hub, args.invite_code,
+                                        args.profile)
 
     def _install_launcher_interactive(self, hub, profile, domain=None, invite_code=None):
         domain = input(f'Enter your domain [{domain}]: ') or domain
         # TODO make sure domain is available
         invite_code = input(f'Enter your invite code [{invite_code}]: ') or invite_code
         return argparse.Namespace(domain=domain, invite_code=invite_code, hub=hub, profile=profile)
+
+    def launch_app(self, app: str, profile: str = 'default'):
+        '''launch an application
+        '''
+        if app != 'messenger':
+            raise Exception('launch_app only supports messenger')
+        app_env = {
+            'NOTEWORTHY_DOMAIN': os.environ['NOTEWORTHY_DOMAIN'],
+            'NOTEWORTHY_PROFILE': profile}
+        dashed_domain = os.environ['NOTEWORTHY_DOMAIN'].replace('.', '-')
+        volumes = []
+        app_name = f'{dashed_domain}-{app}'
+        app_container_name = f"noteworthy-{app_name}-{profile}"
+        profile_volume = self._create_profile_volume(app_name, profile)
+        volumes.append(f'{profile_volume.name}:/opt/noteworthy/profiles')
+        release_tag = self._load_release_tag()
+        # TODO tag taproot container as messenger
+        self.docker.containers.run(f"decentralabs/noteworthy:taproot-{release_tag}",
+        tty=True,
+        network='noteworthy',
+        stdin_open=True,
+        name=app_container_name,
+        #auto_remove=True,
+        volumes=volumes,
+        detach=True,
+        environment=app_env,
+        restart_policy={"Name": "always"},
+        entrypoint=f'notectl {app} start')
+        # setup app's nginx config
+        from noteworthy.nginx import NginxController
+        nc = NginxController()
+        try:
+            # special case for messenger nginx
+            if app == 'messenger':
+                mc = self.plugins['messenger'].Controller()
+                nc.set_http_proxy_pass(app, os.environ['NOTEWORTHY_DOMAIN'], app_container_name,
+                    os.path.join(mc.deploy_dir,'nginx.conf'))
+            else:
+                # TODO use package.yaml to deploy launcher related config from app's container
+                pass
+        except:
+            print(f'No nginx config found for app {app}')
 
 Controller = LauncherController
