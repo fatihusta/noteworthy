@@ -234,8 +234,6 @@ class LauncherController(NoteworthyPlugin):
     install.clicz_defaults = {'app':'launcher'}
 
     def install_launcher_cli(self, args):
-        # TODO what happens if we set parent on parser below to controller;s parser? (usage is not correct for this parser)
-        # TODO figure out how to bypass upstream help so `notectl install launcher --help` shows this parsers help
 
         if not args.accept_tos:
             print('''\
@@ -270,9 +268,9 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\n''')
             args.domain, args.hub, args.invite_code, args.profile)
 
     def _install_launcher_interactive(self, hub, profile, domain=None, invite_code=None):
-        domain = input(f'Enter your domain [{domain}]: ')
+        domain = input(f'Enter your domain [{domain}]: ') or domain
         # TODO make sure domain is available
-        invite_code = input(f'Enter your invite code [{invite_code}]: ')
+        invite_code = input(f'Enter your invite code [{invite_code}]: ') or invite_code
         return argparse.Namespace(domain=domain, invite_code=invite_code, hub=hub, profile=profile)
 
 Controller = LauncherController
