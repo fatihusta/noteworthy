@@ -3,7 +3,7 @@ from grpcz import grpc_controller, grpc_method
 
 class VpnController(NoteworthyPlugin):
 
-    app_name = 'vpn'
+    PLUGIN_NAME = 'vpn'
     DJANGO_APP_MODULE = 'noteworthy.vpn'
 
     def __init__(self):
