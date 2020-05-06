@@ -217,7 +217,6 @@ class LauncherController(NoteworthyPlugin):
         ---
         Args:
             app: name of app to install
-            extra_args: optional args to be passed to LauncherController.install
         '''
         if 'launcher' not in self.plugins:
             raise Exception('Launcher plugin unavailable; something\'s broken.')
@@ -225,6 +224,7 @@ class LauncherController(NoteworthyPlugin):
             return self.install_launcher_cli(extra_args)
 
     install.clicz_aliases = ['install']
+    install.clicz_defaults = {'app':'launcher'}
 
     def install_launcher_cli(self, extra_args):
         # TODO what happens if we set parent on parser below to controller;s parser? (usage is not correct for this parser)
@@ -275,5 +275,20 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\n''')
         # TODO make sure domain is available
         auth_code = input(f'Enter your invite code [{auth_code}]: ')
         return argparse.Namespace(domain=domain, auth_code=auth_code, hub=hub, profile=profile)
+
+    @cli_method
+    def default(self, name: str, age: int, color: str = 'green'):
+        '''something cool
+        ---
+        Args:
+            name: string
+            age: int
+            color: str
+        '''
+        print(name)
+        print(age)
+        print(color)
+    default.clicz_aliases = ['default']
+    default.clicz_defaults = {'name':'Mo', 'age': 33}
 
 Controller = LauncherController

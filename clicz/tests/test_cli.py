@@ -80,6 +80,20 @@ class TestControllerUnregistered(TestController):
         '''
         return name
 
+class TestDefaultsController(TestController):
+    @cli_method
+    def default(self, name: str, age: int, color: str = 'green'):
+        '''something cool
+        ---
+        Args:
+            name: string
+            age: int
+            color: str
+        '''
+        self.args = [name, age, color]
+
+    default.clicz_aliases = ['default']
+    default.clicz_defaults = {'name':'mo', 'age': 99}
 
 def test_cli():
     '''
@@ -147,3 +161,10 @@ def test_cli_missing_arg_key():
     with pytest.raises(Exception) as execinfo:
         cli.register_controller(TestControllerMissingArgs)
     assert 'Docstring YAML missing Args key.' in str(execinfo)
+
+def test_cli_defaults():
+    cli = CLICZ(autodiscover=False)
+    cli.register_controller(TestDefaultsController)
+    argv = ['notectl', 'default']
+    cli.dispatch(argv)
+    assert cli.controller_instances['test'].args == ['mo', 99, 'green']

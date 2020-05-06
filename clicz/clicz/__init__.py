@@ -176,17 +176,24 @@ class CLICZ:
                             alias_parser.add_argument(f'--{arg}', default=defaults[arg], help=help)
 
                     else:
-                        method_arg_parser.add_argument(f'{arg}', help=help)
-                        if alias_parser:
-                            alias_parser.add_argument(f'{arg}', help=help)
+                        if hasattr(method, 'clicz_defaults'):
+                            if arg in method.clicz_defaults:
+                                default = method.clicz_defaults[arg]
+                                method_arg_parser.add_argument(f'{arg}', nargs='?', help=help, default=default)
+                                if alias_parser:
+                                    alias_parser.add_argument(f'{arg}', nargs='?', help=help, default=default)
+                        else:
+                            method_arg_parser.add_argument(f'{arg}', help=help)
+                            if alias_parser:
+                                alias_parser.add_argument(f'{arg}', help=help)
                 argspec.args.reverse()
                 # make sure docstring YAML spe  cifies all arguments defined in argspec
                 missing_args = list(set(argspec.args).difference(set([*doc_yaml['Args'].keys()])))
-                [missing_args.remove(x) for x in ['self', 'cls'] if x in missing_args]
+                [missing_args.remove(x) for x in ['self', 'cls', 'extra_args'] if x in missing_args]
                 if missing_args:
                     raise Exception(f"Docstring for {self.color.red(method.__qualname__)} missing args: {', '.join(missing_args)}")
             def get_invocation_args(parsed_args):
-                return [ getattr(parsed_args, key) for key in argspec.args[start_arg_idx:] ]
+                return [ getattr(parsed_args, key) for key in argspec.args[start_arg_idx:] if key != 'extra_args' ]
             method.get_invocation_args = get_invocation_args
 
 def cli_method(func=None, parse_docstring=True):
