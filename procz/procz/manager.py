@@ -3,6 +3,7 @@ import re
 import time
 import daemon
 import traceback
+from .utils import TimedLoop
 from lockfile.pidlockfile import PIDLockFile
 
 class ProcManager():
@@ -17,12 +18,14 @@ class ProcManager():
         if not proc_name.isalnum():
             raise Exception('Invalid name: Only Alpha-Numeric Characters Allowed.')
         procs = self._get_procs()
+        pidfilename = os.path.join(
+            self.lock_dir, f'procz_{proc_name}.pid')
         if proc_name in procs:
             if not kill_old:
                 raise Exception('Process is already running!')
             self.kill_proc(proc_name)
-        pidfilename = os.path.join(
-            self.lock_dir, f'procz_{proc_name}.pid')
+            with TimedLoop(5) as l:
+                l.run_til(lambda: os.path.isfile(pidfilename), lambda x: not x)
         pid = os.fork()
         if pid:
             return 'starting proc'
@@ -47,7 +50,6 @@ class ProcManager():
             raise Exception('proc Does Not Exist!')
         pid = proc['pid']
         os.system(f'kill {pid}')
-        time.sleep(1)
 
 
     def _get_procs(self):

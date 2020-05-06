@@ -1,11 +1,14 @@
 import os
 import yaml
 from jinja2 import Template
+from clicz import cli_method
 from procz import ProcManager
 from noteworthy.notectl.plugins import NoteworthyPlugin, PluginManager
 
 
 class MatrixChatBotController(NoteworthyPlugin):
+    '''Automagic Matrix ChatBot Registrar and Manager
+    '''
 
     PLUGIN_NAME = 'matrix-chat-bot'
 
@@ -26,7 +29,10 @@ class MatrixChatBotController(NoteworthyPlugin):
          for controller in bot_controllers]
         [self._launch_bot(controller) for controller in bot_controllers]
 
+    @cli_method
     def restart_bots(self):
+        '''Restart and Launch all registered matrix bots
+        '''
         bot_controllers = self._get_bot_controllers()
         [self._launch_bot(controller) for controller in bot_controllers]
 
@@ -49,7 +55,7 @@ class MatrixChatBotController(NoteworthyPlugin):
         bot_name = bot_controller.MATRIXBZ_BOT_NAME
         creds = self._read_yaml_config(f'{bot_name}.creds')
         create_bot = lambda: bot_controller.create_matrix_bot(creds)
-        self.bot_manager.start_proc(bot_name, create_bot)
+        self.bot_manager.start_proc(bot_name, create_bot, kill_old=True)
 
     def _get_bot_controllers(self):
         controllers = []

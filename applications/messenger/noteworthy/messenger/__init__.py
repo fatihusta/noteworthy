@@ -1,9 +1,11 @@
 import os
+import time
 import string
 import secrets
 from jinja2 import Template
 
 from clicz import cli_method
+from procz import TimedLoop
 from noteworthy.notectl.plugins import NoteworthyPlugin
 from noteworthy.notectl.plugins import PluginManager
 
@@ -19,16 +21,6 @@ class MessengerController(NoteworthyPlugin):
     def __init__(self):
         super().__init__(__file__)
         self.plugins = PluginManager.load_plugins()
-
-    @cli_method
-    def run(self):
-        '''Start messenger, blocking.
-        '''
-        if self.is_first_run:
-            self._run_first_time_setup()
-        hs_config = os.path.join(self.config_dir, 'homeserver.yaml')
-        os.chdir(self.config_dir)
-        os.system(f'synctl start {hs_config}')
 
     def _run_first_time_setup(self):
         self.create_config_dir()
@@ -71,7 +63,21 @@ class MessengerController(NoteworthyPlugin):
     def start(self, *args, **kwargs):
         '''Daemonize messenger
         '''
-        self._start(self.PLUGIN_NAME)
+        if self.is_first_run:
+            self._run_first_time_setup()
+        if not self._is_synctl_running():
+            hs_config = os.path.join(self.config_dir, 'homeserver.yaml')
+            os.chdir(self.config_dir)
+            os.system(f'synctl start --daemonize -c {hs_config}')
+        self._poll_for_synctl_start()
+        self.start_dependencies()
 
+    def _is_synctl_running(self):
+        pid_file = os.path.join(self.config_dir, 'homeserver.pid')
+        return os.path.isfile(pid_file)
+
+    def _poll_for_synctl_start(self):
+        with TimedLoop(20) as l:
+            l.run_til(self._is_synctl_running)
 
 Controller = MessengerController

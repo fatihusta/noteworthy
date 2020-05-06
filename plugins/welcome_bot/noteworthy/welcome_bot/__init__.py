@@ -23,4 +23,7 @@ class WelcomeBotController(NoteworthyPlugin):
     def __init__(self):
         pass
 
+    def start(self):
+        pass
+
 Controller = WelcomeBotController

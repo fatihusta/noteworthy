@@ -3,7 +3,7 @@ import os
 import sys
 import time
 from pathlib import Path
-from procz import ProcManager
+from procz import ProcManager, TimedLoop
 
 CURR_PATH = os.path.dirname(os.path.realpath(__file__))
 TEST_DIR = os.path.join(CURR_PATH, 'tmptest')
@@ -19,7 +19,6 @@ class RunWhileFileProc:
     def _file_exists(self):
         return os.path.isfile(self.file_path)
 
-
 def _get_manager():
     return ProcManager(lock_dir=TEST_DIR)
 
@@ -27,7 +26,10 @@ def setup():
     Path(TEST_DIR).mkdir(exist_ok=True, parents=True)
 
 def tear_down():
+    m = _get_manager()
     os.system(f'rm -rf {TEST_DIR}')
+    with TimedLoop(2) as l:
+        procs = l.run_til(lambda: os.path.exists(TEST_DIR), lambda x: not x)
 
 def start_proc():
     m = _get_manager()
@@ -47,14 +49,15 @@ def kill_proc():
 
 def assert_proc_exists():
     m = _get_manager()
-    procs = m.list_procs()
-    assert len(procs) == 1
+    with TimedLoop(5) as l:
+        procs = l.run_til(m.list_procs)
     assert 'test' == procs[0].get('name')
 
 def assert_proc_not_exists():
     m = _get_manager()
     procs = m.list_procs()
-    assert len(procs) == 0
+    with TimedLoop(5) as l:
+        l.run_til(m.list_procs, lambda x: not x)
 
 MANAGER = ProcManager(lock_dir='')
 

@@ -54,7 +54,7 @@ class NoteworthyPlugin:
 
     def get_plugin(self, plugin_name):
         return self.plugins[plugin_name]
-    
+
     def start_dependencies(self):
         try:
             with open(self.service_manifest, 'r') as manifest_file:
@@ -74,4 +74,6 @@ class NoteworthyPlugin:
                     pass
 
         _start_dependencies('shared')
-        _start_dependencies(os.environ['NOTEWORTHY_ROLE'])
+        role = os.environ.get('NOTEWORTHY_ROLE')
+        if role:
+            _start_dependencies(os.environ['NOTEWORTHY_ROLE'])
