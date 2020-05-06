@@ -212,31 +212,30 @@ class LauncherController(NoteworthyPlugin):
         dockerpty.exec_command(self.docker.api, c.id, 'register_new_matrix_user -c /opt/noteworthy/.messenger/homeserver.yaml http://localhost:8008')
 
     @cli_method
-    def install(self, app: str, extra_args: list = []):
+    def install(self, app: str, domain: str = None, invite_code: str = None, hub: str = 'noteworthy.im',
+                    profile: str = 'default', accept_tos: bool = False):
         '''install a Noteworthy application
         ---
         Args:
             app: name of app to install
+            domain: fqdn to deploy app to
+            invite_code: beta invitation code
+            hub: fqdn of a Noteworthy hub
+            profile: profile to deploy app to
+            accept_tos: accept terms of service, useful for non-interactive installation
         '''
         if 'launcher' not in self.plugins:
             raise Exception('Launcher plugin unavailable; something\'s broken.')
+        print(f'Installing {app}...')
         if app == 'launcher':
-            return self.install_launcher_cli(extra_args)
+            return self.install_launcher_cli(self.args)
 
     install.clicz_aliases = ['install']
     install.clicz_defaults = {'app':'launcher'}
 
-    def install_launcher_cli(self, extra_args):
+    def install_launcher_cli(self, args):
         # TODO what happens if we set parent on parser below to controller;s parser? (usage is not correct for this parser)
         # TODO figure out how to bypass upstream help so `notectl install launcher --help` shows this parsers help
-        parser = argparse.ArgumentParser(description='Noteworthy Launcher installation')
-        parser.add_argument('--domain', help='domain you would like to register')
-        parser.add_argument('--auth-code', help='your beta invite code')
-        parser.add_argument('--hub', help='fqdn or ip of a Noteworthy hub', default='noteworthy.im')
-        parser.add_argument('--profile', help='profile uniquely identifes an installation ie (personal/work)', default='default')
-        parser.add_argument('--accept-tos', help='accept terms of service without prompting', action='store_true')
-
-        args = parser.parse_known_args(extra_args)[0]
 
         if not args.accept_tos:
             print('''\
@@ -252,11 +251,11 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\n''')
                 sys.exit(2)
 
 
-        if not args.domain or not args.auth_code:
-            args = self._install_launcher_interactive(args.hub, args.profile, domain=args.domain, auth_code=args.auth_code)
+        if not args.domain or not args.invite_code:
+            args = self._install_launcher_interactive(args.hub, args.profile, domain=args.domain, invite_code=args.invite_code)
 
-        if not args.auth_code:
-            print('auth-code is required to provision Noteworthy Launcher.')
+        if not args.invite_code:
+            print('invite-code is required to provision Noteworthy Launcher.')
             sys.exit(2)
         elif not args.domain:
             print('domain is required to provision Noteworthy Launcher')
@@ -268,27 +267,12 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\n''')
         except:
             pass
         self.plugins['launcher'].Controller().launch_launcher_taproot(
-            args.domain, args.hub, args.auth_code, args.profile)
+            args.domain, args.hub, args.invite_code, args.profile)
 
-    def _install_launcher_interactive(self, hub, profile, domain=None, auth_code=None):
+    def _install_launcher_interactive(self, hub, profile, domain=None, invite_code=None):
         domain = input(f'Enter your domain [{domain}]: ')
         # TODO make sure domain is available
-        auth_code = input(f'Enter your invite code [{auth_code}]: ')
-        return argparse.Namespace(domain=domain, auth_code=auth_code, hub=hub, profile=profile)
-
-    @cli_method
-    def default(self, name: str, age: int, color: str = 'green'):
-        '''something cool
-        ---
-        Args:
-            name: string
-            age: int
-            color: str
-        '''
-        print(name)
-        print(age)
-        print(color)
-    default.clicz_aliases = ['default']
-    default.clicz_defaults = {'name':'Mo', 'age': 33}
+        invite_code = input(f'Enter your invite code [{invite_code}]: ')
+        return argparse.Namespace(domain=domain, invite_code=invite_code, hub=hub, profile=profile)
 
 Controller = LauncherController

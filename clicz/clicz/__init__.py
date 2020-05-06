@@ -74,13 +74,14 @@ class CLICZ:
                 sys.argv.remove(alias_key)
         except IndexError:
             sys.argv.insert(1, '--help')
-        args, extra_args = self.base_parser.parse_known_args()
+        args = self.base_parser.parse_args()
         controller_name = args.command
         controller_method = args.subcommand
         if controller_name not in self.registered_controllers:
             raise Exception(f'Subcommand {controller_name} not found')
         controller = self.registered_controllers[controller_name]
         controller_instance = controller()
+        controller_instance.args = args
         self.controller_instances[controller_name] = controller_instance
         if not hasattr(controller_instance, controller_method):
             raise Exception(f'Controller {controller_name} has no CLI method {controller_method}')
@@ -88,14 +89,7 @@ class CLICZ:
         if not hasattr(method, 'cli_method'):
             raise Exception(f'Method {method.__qualname__} not registered for CLI invocation.'
                              ' Wrap method with @cli_method to expose via CLI.')
-        if extra_args:
-            method_args = method.get_invocation_args(args)
-            # TODO this will break if default is non-empty list
-            extra_args_idx = method_args.index([])
-            method_args[extra_args_idx] = extra_args
-            return method(*method_args)
-        else:
-            return method(*method.get_invocation_args(args))
+        return method(*method.get_invocation_args(args))
 
     def register_controller(self, controller):
         self.registered_controllers[controller.PLUGIN_NAME] = controller
@@ -112,7 +106,7 @@ class CLICZ:
             # watch out for this: https://stackoverflow.com/questions/44596009/why-is-cls-dict-meth-different-than-getattrcls-meth-for-classmethods-sta
             method = getattr(controller, method_name)
             if hasattr(method, 'cli_method'):
-                self._build_method_argparser(controller_sub_parser_factory, controller.PLUGIN_NAME, method_name, method)
+                self._build_method_argparser(controller_sub_parser_factory, controller, method_name, method)
 
     # def _prep_extra_args(self, extra_args: list):
     #     if not extra_args:
@@ -128,7 +122,7 @@ class CLICZ:
                 raise Exception(f'{alias} already registered. Cannot declare top-level alias with same name.')
             self.proxy_commands[alias] = (controller_name, method_name)
 
-    def _build_method_argparser(self, sub_parser_factory, controller_name, method_name, method):
+    def _build_method_argparser(self, sub_parser_factory, controller, method_name, method):
         '''
         '''
         method_description = inspect.getdoc(method)
@@ -140,12 +134,12 @@ class CLICZ:
             pass
         alias_parser = None
         if hasattr(method, 'clicz_aliases'):
-            self._register_proxy_commands(method.clicz_aliases, controller_name, method_name)
+            self._register_proxy_commands(method.clicz_aliases, controller.PLUGIN_NAME, method_name)
             alias_parser = self.parser_subparser_factory.add_parser(method.clicz_aliases[0], help=method_description, description=method_description, aliases=method.clicz_aliases[1:])
             method_arg_parser = sub_parser_factory.add_parser(method_name, help=method_description, description=method_description, aliases=method.clicz_aliases)
         else:
             method_arg_parser = sub_parser_factory.add_parser(method_name, help=method_description, description=method_description)
-
+        method.parser = method_arg_parser
         argspec = inspect.getfullargspec(method.__wrapped__)
         static_method = False
         if argspec.args[0] not in ['cls', 'self']:
@@ -159,8 +153,9 @@ class CLICZ:
             # if method is static and has arguments or not a static_method with more than 1 args
             if (static_method and len(argspec.args)) or (not static_method and len(argspec.args) > 1):
                 docstring = docstring.split('---', 1)[1]
-                argspec.args.reverse()
-                defaults = dict(zip(argspec.args, argspec.defaults)) if argspec.defaults else []
+                if argspec.defaults:
+                    num_defaults = len(argspec.defaults)
+                defaults = dict(zip(argspec.args[-num_defaults:], argspec.defaults)) if argspec.defaults else []
                 try:
                     doc_yaml = yaml.safe_load(docstring)
                 except:
@@ -171,9 +166,10 @@ class CLICZ:
                     if not isinstance(help, str):
                         raise Exception(f'Argument description for {arg} must be of type str.')
                     if arg in defaults:
-                        method_arg_parser.add_argument(f'--{arg}', default=defaults[arg], help=help)
+                        dashed_arg = arg.replace('_', '-')
+                        method_arg_parser.add_argument(f'--{dashed_arg}', default=defaults[arg], help=help)
                         if alias_parser:
-                            alias_parser.add_argument(f'--{arg}', default=defaults[arg], help=help)
+                            alias_parser.add_argument(f'--{dashed_arg}', default=defaults[arg], help=help)
 
                     else:
                         if hasattr(method, 'clicz_defaults'):
@@ -186,14 +182,13 @@ class CLICZ:
                             method_arg_parser.add_argument(f'{arg}', help=help)
                             if alias_parser:
                                 alias_parser.add_argument(f'{arg}', help=help)
-                argspec.args.reverse()
                 # make sure docstring YAML spe  cifies all arguments defined in argspec
                 missing_args = list(set(argspec.args).difference(set([*doc_yaml['Args'].keys()])))
-                [missing_args.remove(x) for x in ['self', 'cls', 'extra_args'] if x in missing_args]
+                [missing_args.remove(x) for x in ['self', 'cls'] if x in missing_args]
                 if missing_args:
                     raise Exception(f"Docstring for {self.color.red(method.__qualname__)} missing args: {', '.join(missing_args)}")
             def get_invocation_args(parsed_args):
-                return [ getattr(parsed_args, key) for key in argspec.args[start_arg_idx:] if key != 'extra_args' ]
+                return [ getattr(parsed_args, key) for key in argspec.args[start_arg_idx:] ]
             method.get_invocation_args = get_invocation_args
 
 def cli_method(func=None, parse_docstring=True):
