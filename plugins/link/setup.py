@@ -8,5 +8,5 @@ setup(name='noteworthy-link',
       entry_points={'notectl.plugins':  'link = noteworthy.link'},
       # namespace packages wont work without zip_safe=False
       zip_safe=False,
-      install_requires=[]
+      include_package_data=True
       )
