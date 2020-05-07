@@ -1,3 +1,4 @@
+import getpass
 import os
 import time
 import string
@@ -11,9 +12,11 @@ from noteworthy.notectl.plugins import PluginManager
 
 
 class MessengerController(NoteworthyPlugin):
+    '''manage Noteworthy messenger (create user, etc)
+    '''
 
     PLUGIN_NAME = 'messenger'
-    PACKAGE_CACHE = '/var/noteworthy/cache/packages'
+    USER_CLI = True
 
     SECRET_ALPHABET = string.digits + string.ascii_letters + ".,;^&*-_+=#~@"
     SECRET_LENGTH = 50
@@ -69,15 +72,20 @@ class MessengerController(NoteworthyPlugin):
 
     @cli_method
     def start(self, *args, **kwargs):
-        '''Daemonize messenger
+        '''daemonize messenger
         '''
+        was_first_run = False
         if self.is_first_run:
             self._run_first_time_setup()
+            was_first_run = True
         if not self._is_synctl_running():
             hs_config = os.path.join(self.config_dir, 'homeserver.yaml')
             os.chdir(self.config_dir)
             os.system(f'synctl start {hs_config}')
         self._poll_for_synctl_start()
+        if was_first_run:
+            # TODO password should be passed a more secure way
+            self.create_user(os.environ['MATRIX_USER'], os.environ['MATRIX_PASSWORD'], True)
         self.start_dependencies()
         os.chdir(self.config_dir)
         self._poll_for_homeserver_log()
@@ -97,5 +105,24 @@ class MessengerController(NoteworthyPlugin):
     def _poll_for_homeserver_log(self):
         with TimedLoop(20) as l:
             l.run_til(self._does_log_file_exist)
+
+    @cli_method
+    def create_user(self, username=None, password=None, admin=False):
+        '''create a matrix user
+        ---
+        Args:
+            username: username of user to create
+            password: of user to create
+            admin: grant user admin privileges
+        '''
+        if not username:
+            username = input('Username: ')
+        if not password:
+            password = getpass.getpass()
+        os.chdir(self.config_dir)
+        if admin:
+            os.system(f'register_new_matrix_user -u {username} -p {password} -a -c homeserver.yaml http://localhost:8008')
+        else:
+            os.system(f'register_new_matrix_user -u {username} -p {password} -c homeserver.yaml http://localhost:8008')
 
 Controller = MessengerController

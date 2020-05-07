@@ -1,4 +1,5 @@
 import argparse
+import getpass
 import os
 import shutil
 import sys
@@ -34,60 +35,6 @@ class LauncherController(NoteworthyPlugin):
         rendered = tmpl.render(configs)
         with open(target, 'w') as f:
             f.write(rendered)
-
-    def old_install(self, archive_path: str = None, **kwargs):
-        # we use env here to figure out which Dockerfile we should use
-        # when building an apps' container; in PROD we want to use the base
-        # decentralabs/noteworthy:latest container that the user has already downloaded
-        # in dev we want to use decentralabs/noteworthy:DEV that we build locally
-        # with make .docker
-        # TODO figure out if version pinning is needed here
-        profile = kwargs.get('profile') or os.environ['NOTEWORTHY_PROFILE']
-        app_env = {
-            'NOTEWORTHY_DOMAIN': os.environ['NOTEWORTHY_DOMAIN'],
-            'NOTEWORTHY_PROFILE': profile}
-        dashed_domain = os.environ['NOTEWORTHY_DOMAIN'].replace('.', '-')
-        volumes = []
-        if archive_path or self.args.archive:
-            if not archive_path:
-                archive_path = self.args.archive
-            app, version = os.path.basename(archive_path).split('-')
-            version = version.replace('.tar.gz', '')
-            app_dir = os.path.join(self.PACKAGE_CACHE, f'{app}/{version}')
-            Path(self.PACKAGE_CACHE).mkdir(parents=True, exist_ok=True)
-            shutil.unpack_archive(archive_path, self.PACKAGE_CACHE)
-            shutil.copyfile(os.path.join(self.deploy_dir, 'install.sh'), os.path.join(app_dir, 'install.sh'))
-            shutil.copyfile(os.path.join(self.deploy_dir, f'Dockerfile'), os.path.join(app_dir, 'Dockerfile'))
-            self._build_container(app_dir, app, version)
-            app_name = f'{dashed_domain}-{app}'
-            app_container_name = f"noteworthy-{app_name}-{profile}"
-            profile_volume = self._create_profile_volume(app_name, profile)
-            volumes.append(f'{profile_volume.name}:/opt/noteworthy/profiles')
-            self.docker.containers.run(f'noteworthy-{app}:{version}',
-            tty=True,
-            cap_add=['NET_ADMIN'],
-            network='noteworthy',
-            stdin_open=True,
-            name=app_container_name,
-            #auto_remove=True,
-            volumes=volumes,
-            detach=True,
-            environment=app_env,
-            restart_policy={"Name": "always"})
-            # setup app's nginx config
-            from noteworthy.nginx import NginxController
-            nc = NginxController()
-            try:
-                nc.set_http_proxy_pass(app, os.environ['NOTEWORTHY_DOMAIN'], app_container_name,
-                    os.path.join(self.PACKAGE_CACHE,
-                        f'{app}/{version}/{app}/noteworthy/{app}/deploy/nginx.conf'))
-            except:
-                print(f'No nginx config found for app {app}')
-
-        else:
-            raise NotImplementedError(
-                'Installing from repository not supported yet.')
-        print('Done.')
 
     @cli_method
     def launch_hub(self, hub_host: str, profile: str = 'default'):
@@ -201,7 +148,7 @@ class LauncherController(NoteworthyPlugin):
                     os.path.join(well_know_target, 'server'),
                     {'domain': os.environ['NOTEWORTHY_DOMAIN']})
 
-        print('noteworthy finished booting!')
+        print('Noteworthy Launcher Launched!')
         # TODO tail log file
         os.system('tail -f /dev/null')
 
@@ -220,7 +167,7 @@ class LauncherController(NoteworthyPlugin):
 
     @cli_method
     def install(self, app: str, domain: str = None, invite_code: str = None, hub: str = 'noteworthy.im',
-                    profile: str = 'default', accept_tos: bool = False):
+                    profile: str = 'default', accept_tos: bool = False, messenger: bool = True):
         '''install a Noteworthy application
         ---
         Args:
@@ -230,14 +177,31 @@ class LauncherController(NoteworthyPlugin):
             hub: fqdn of a Noteworthy hub
             profile: profile to deploy app to
             accept_tos: accept terms of service, useful for non-interactive installation
+            messenger: if provided, messenger will not be installed automatically
         '''
         if 'launcher' not in self.plugins:
             raise Exception('Launcher plugin unavailable; something\'s broken.')
-        print(f'Installing {app}...')
         if app == 'launcher':
             return self.install_launcher_cli(self.args)
+        elif app == 'messenger':
+            print('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
+            print('Welcome to Noteworthy Messenger! Powered by Matrix.')
+            print('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
+            print("Let's create your Noteworthy Messenger account.\nUse these credentials to login"
+                  " to Noteworthy Messenger's Web and Mobile App. \nThis user will have administrator" 
+                  " privileges so please (ALWAYS) chooose a strong password.")
+            username = input('Username: ')
+            if not username:
+                print('Username cannot be empty.')
+                sys.exit(2)
+            password1 = getpass.getpass()
+            password2 = getpass.getpass('Confirm password:')
+            if not password1 or (password1 != password2):
+                print('Passwords did not match.')
+                sys.exit(2)
+            return self.launch_messenger(profile, username, password1)
         else:
-            return self.launch_app(app, profile)
+            print('More apps coming soon!')
 
     install.clicz_aliases = ['install']
     install.clicz_defaults = {'app':'launcher'}
@@ -276,6 +240,8 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\n''')
 
         self.launch_launcher_taproot(args.domain, args.hub, args.invite_code,
                                         args.profile)
+        if self.args.messenger: 
+            self.install('messenger')
 
     def _install_launcher_interactive(self, hub, profile, domain=None, invite_code=None):
         domain = input(f'Enter your domain [{domain}]: ') or domain
@@ -283,14 +249,15 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\n''')
         invite_code = input(f'Enter your invite code [{invite_code}]: ') or invite_code
         return argparse.Namespace(domain=domain, invite_code=invite_code, hub=hub, profile=profile)
 
-    def launch_app(self, app: str, profile: str = 'default'):
-        '''launch an application
+    def launch_messenger(self, username: str, password: str, profile: str = 'default'):
+        '''launch an messenger
         '''
-        if app != 'messenger':
-            raise Exception('launch_app only supports messenger')
+        app = 'messenger'
         app_env = {
             'NOTEWORTHY_DOMAIN': os.environ['NOTEWORTHY_DOMAIN'],
-            'NOTEWORTHY_PROFILE': profile}
+            'NOTEWORTHY_PROFILE': profile,
+            'MATRIX_USER': username,
+            'MATRIX_PASSWORD': password}
         dashed_domain = os.environ['NOTEWORTHY_DOMAIN'].replace('.', '-')
         volumes = []
         app_name = f'{dashed_domain}-{app}'
@@ -309,20 +276,13 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\n''')
         detach=True,
         environment=app_env,
         restart_policy={"Name": "always"},
-        entrypoint=f'notectl {app} start')
+        entrypoint=f'notectl messenger start')
         # setup app's nginx config
         from noteworthy.nginx import NginxController
         nc = NginxController()
-        try:
-            # special case for messenger nginx
-            if app == 'messenger':
-                mc = self.plugins['messenger'].Controller()
-                nc.set_http_proxy_pass(app, os.environ['NOTEWORTHY_DOMAIN'], app_container_name,
-                    os.path.join(mc.deploy_dir,'nginx.conf'))
-            else:
-                # TODO use package.yaml to deploy launcher related config from app's container
-                pass
-        except:
-            print(f'No nginx config found for app {app}')
+        # special case for messenger nginx
+        mc = self.plugins['messenger'].Controller()
+        nc.set_http_proxy_pass(app, os.environ['NOTEWORTHY_DOMAIN'], app_container_name,
+            os.path.join(mc.deploy_dir,'nginx.conf'))
 
 Controller = LauncherController
