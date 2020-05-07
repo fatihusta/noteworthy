@@ -2,6 +2,7 @@ import re
 import shlex
 import inspect
 import asyncio
+from .auth import BlockAll
 from nio import (AsyncClient, ClientConfig, RoomMessageText, InviteMemberEvent)
 
 class Bot():
@@ -26,8 +27,14 @@ class Bot():
                 self.msg_handler = member[1]
         command_prefixes = '|'.join(list(self.commands.keys()))
         self.command_regex = re.compile(f'^({command_prefixes})( .+)?$')
+        if hasattr(controller, 'AUTH'):
+            self.AUTH = controller.AUTH(controller)
+        else:
+            self.AUTH = auth.BlockAll(controller)
 
     async def message_cb(self, room, event):
+        if not self.AUTH.authenticate_message(room, event):
+            return
         txt = event.body.strip()
         context = {'room': room, 'event': event, 'client': self.client}
         match = self.command_regex.match(txt)
@@ -59,8 +66,8 @@ class Bot():
                     'body': str(res)})
 
     async def invite_cb(self, room, event):
-        # TODO : Authenticated invites? / user-specific invites?
-        # currently auto-joins all
+        if not self.AUTH.authenticate_invite(room, event):
+            return
         if event.membership == 'invite' and event.state_key == self.user:
             await self.client.join(room.room_id)
             greeting = self._get_greeting()
