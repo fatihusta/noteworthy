@@ -25,12 +25,15 @@ class WireGuardController(NoteworthyPlugin):
         import time
         key_path = os.path.join(self.config_dir, 'wg.key')
         count = 0
-        while not os.path.exists(key_path):
+        while True:
             if count > 30:
                 break
-            time.sleep(.5)
+            time.sleep(1)
             count = count + 1
-        print(wg.pubkey(key_path))
+            pubkey = wg.pubkey(key_path).strip()
+            if len(pubkey) == 44:
+                print(pubkey)
+                break
 
     def start(self, **kwargs):
         wg_key_path = os.path.join(self.config_dir, 'wg.key')

@@ -26,6 +26,8 @@ class HubController(NoteworthyPlugin):
         domain_regex = self._validate_domain_regex(domains)
         link_node = self._get_or_create_link(link_name, domain_regex, pub_key)
         link_wg_pubkey = link_node.exec_run('notectl wireguard pubkey').output.decode().strip()
+        if len(link_wg_pubkey) != 44:
+            raise Exception('Failed to get link pubkey.')
         link_wg_port = link_node.attrs['NetworkSettings']['Ports']['18521/udp'][0]['HostPort']
         link_udp_proxy_port = link_node.attrs['NetworkSettings']['Ports']['18522/udp'][0]['HostPort']
         link_ip = link_node.attrs['NetworkSettings']['Networks']['noteworthy']['IPAddress']
