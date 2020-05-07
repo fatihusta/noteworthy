@@ -46,7 +46,7 @@ class MatrixChatBotController(NoteworthyPlugin):
         domain = os.environ['NOTEWORTHY_DOMAIN']
         creds = {
             'homeserver': f'https://matrix.{domain}',
-            'user': '@{bot_name}:{domain}',
+            'user': f'@{bot_name}:{domain}',
             'password': password
         }
         self._write_yaml_config(f'{bot_name}.creds', creds)
