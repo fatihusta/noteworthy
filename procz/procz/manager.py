@@ -49,8 +49,13 @@ class ProcManager():
         proc = procs.get(proc_name)
         if not proc and not safe:
             raise Exception('proc Does Not Exist!')
-        pid = proc['pid']
-        os.system(f'kill {pid}')
+        pid = proc.get('pid')
+        if pid:
+            # kill the process if specified
+            os.system(f'kill {pid}')
+        # clean up file
+        pid_path = proc['pid_path']
+        os.system(f'rm -f {pid_path}')
 
 
     def _get_procs(self):
@@ -62,9 +67,12 @@ class ProcManager():
                 name = match.group(1)
                 file_name = match.group(0)
                 file_path = os.path.join(self.lock_dir, file_name)
-                with TimedLoop(1) as l:
-                    pid = int(l.run_til(lambda: self._read_pid(file_path)))
-                procs[name] = {'pid': pid, 'name': name}
+                try:
+                    with TimedLoop(1) as l:
+                        pid = int(l.run_til(lambda: self._read_pid(file_path)))
+                except:
+                    pid = None
+                procs[name] = {'pid': pid, 'name': name, 'pid_path': file_path}
         return procs
 
     def _read_pid(self, file_path):
