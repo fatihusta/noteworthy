@@ -21,6 +21,8 @@ class MessengerController(NoteworthyPlugin):
     def __init__(self):
         super().__init__(__file__)
         self.plugins = PluginManager.load_plugins()
+        self.log_config_file = os.path.join(self.config_dir, 'homeserver.log.config')
+        self.log_file = os.path.join(self.config_dir, 'homeserver.log')
 
     def _run_first_time_setup(self):
         self.create_config_dir()
@@ -35,13 +37,19 @@ class MessengerController(NoteworthyPlugin):
             'macaroon_secret_key': self._get_new_secret(),
             'form_secret': self._get_new_secret(),
             'web_client_location': web_client_location,
-            'config_dir': self.config_dir}
+            'config_dir': self.config_dir,
+            'homeserver_log_config': self.log_config_file,
+            'homeserver_log_target': self.log_file}
         homeserver_tmpl = os.path.join(
             self.deploy_dir, 'homeserver.tmpl.yaml')
         homeserver_target = os.path.join(
             self.config_dir, 'homeserver.yaml')
         self._generate_file_from_template(
             homeserver_tmpl, homeserver_target, configs)
+        logconfig_tmpl = os.path.join(
+            self.deploy_dir, 'log.config.tmpl.yaml')
+        self._generate_file_from_template(
+            logconfig_tmpl, self.log_config_file, configs)
         from synapse.config.homeserver import HomeServerConfig
         HomeServerConfig.load_or_generate_config('Noteworthy Messenger',
         ['-c', homeserver_target, '--generate-missing-configs'])
@@ -68,9 +76,12 @@ class MessengerController(NoteworthyPlugin):
         if not self._is_synctl_running():
             hs_config = os.path.join(self.config_dir, 'homeserver.yaml')
             os.chdir(self.config_dir)
-            os.system(f'synctl start --daemonize -c {hs_config}')
+            os.system(f'synctl start {hs_config}')
         self._poll_for_synctl_start()
         self.start_dependencies()
+        os.chdir(self.config_dir)
+        self._poll_for_homeserver_log()
+        os.system(f'tail -f {self.log_file}')
 
     def _is_synctl_running(self):
         pid_file = os.path.join(self.config_dir, 'homeserver.pid')
@@ -79,5 +90,12 @@ class MessengerController(NoteworthyPlugin):
     def _poll_for_synctl_start(self):
         with TimedLoop(20) as l:
             l.run_til(self._is_synctl_running)
+
+    def _does_log_file_exist(self):
+        return os.path.isfile(self.log_file)
+
+    def _poll_for_homeserver_log(self):
+        with TimedLoop(20) as l:
+            l.run_til(self._does_log_file_exist)
 
 Controller = MessengerController

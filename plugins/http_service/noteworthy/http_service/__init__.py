@@ -26,7 +26,10 @@ class HttpServiceController(NoteworthyPlugin):
     def start(self, **kwargs):
         self._start(self.PLUGIN_NAME)
 
+    @cli_method
     def shell(self, **kwargs):
+        '''start python shell with django already setup
+        '''
         os.chdir(os.path.join(self.plugin_path, 'rest_api'))
         os.system('python manage.py shell')
 

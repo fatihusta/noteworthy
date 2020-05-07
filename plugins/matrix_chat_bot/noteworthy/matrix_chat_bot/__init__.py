@@ -1,5 +1,6 @@
 import os
 import yaml
+import secrets
 from jinja2 import Template
 from clicz import cli_method
 from procz import ProcManager
@@ -18,7 +19,6 @@ class MatrixChatBotController(NoteworthyPlugin):
     def start(self, *args, **kwargs):
         if self.is_first_run:
             self.create_config_dir()
-            self.bot_manager = ProcManager(lock_dir=self.config_dir)
             self._create_bots()
         else:
             self.restart_bots()
@@ -55,7 +55,8 @@ class MatrixChatBotController(NoteworthyPlugin):
         bot_name = bot_controller.MATRIXBZ_BOT_NAME
         creds = self._read_yaml_config(f'{bot_name}.creds')
         create_bot = lambda: bot_controller.create_matrix_bot(creds)
-        self.bot_manager.start_proc(bot_name, create_bot, kill_old=True)
+        bot_manager = self._get_bot_manager()
+        bot_manager.start_proc(bot_name, create_bot, kill_old=True)
 
     def _get_bot_controllers(self):
         controllers = []
@@ -63,6 +64,9 @@ class MatrixChatBotController(NoteworthyPlugin):
             if hasattr(module.Controller, 'matrixbz_controller'):
                 controllers.append(module.Controller)
         return controllers
+
+    def _get_bot_manager(self):
+        return ProcManager(lock_dir=self.config_dir)
 
     def _read_yaml_config(self, filename):
         file_path = os.path.join(self.config_dir, f'{filename}.yaml')

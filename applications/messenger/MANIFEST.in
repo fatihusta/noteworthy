@@ -1,1 +1,2 @@
 recursive-include noteworthy/messenger/deploy *
+include noteworthy/messenger/service.yaml

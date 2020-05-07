@@ -1,6 +1,7 @@
-app:      messenger
+app:       messenger
 plugins:
   shared:
     - riot_web
     - welcome_bot
     - matrix_chat_bot
+  taproot: []

@@ -586,7 +586,7 @@ database:
 # A yaml python logging config file as described by
 # https://docs.python.org/3.7/library/logging.config.html#configuration-dictionary-schema
 #
-log_config:                                       "{{ config_dir }}/matrix.{{ domain }}.log.config"
+log_config:                                       "{{homeserver_log_config}}"
 
 
 ## Ratelimiting ##
