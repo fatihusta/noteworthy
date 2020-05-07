@@ -24,7 +24,7 @@ class ProcManager():
             if not kill_old:
                 raise Exception('Process is already running!')
             self.kill_proc(proc_name)
-            with TimedLoop(5) as l:
+            with TimedLoop(1) as l:
                 l.run_til(lambda: os.path.isfile(pidfilename), lambda x: not x)
         pid = os.fork()
         if pid:
@@ -49,13 +49,9 @@ class ProcManager():
         proc = procs.get(proc_name)
         if not proc and not safe:
             raise Exception('proc Does Not Exist!')
-        pid = proc.get('pid')
-        if pid:
-            # kill the process if specified
-            os.system(f'kill {pid}')
         # clean up file
         pid_path = proc['pid_path']
-        os.system(f'rm -f {pid_path}')
+        os.system(f'rm {pid_path}')
 
 
     def _get_procs(self):

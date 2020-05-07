@@ -28,7 +28,7 @@ def setup():
 def tear_down():
     m = _get_manager()
     os.system(f'rm -rf {TEST_DIR}')
-    with TimedLoop(2) as l:
+    with TimedLoop(1) as l:
         procs = l.run_til(lambda: os.path.exists(TEST_DIR), lambda x: not x)
 
 def start_proc():
@@ -63,9 +63,6 @@ def assert_proc_not_exists():
     procs = m.list_procs()
     with TimedLoop(5) as l:
         l.run_til(m.list_procs, lambda x: not x)
-
-MANAGER = ProcManager(lock_dir='')
-
 
 FUNC_DICT = {
  'setup': setup,
