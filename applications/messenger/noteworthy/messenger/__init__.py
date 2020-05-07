@@ -123,6 +123,6 @@ class MessengerController(NoteworthyPlugin):
         if admin:
             os.system(f'register_new_matrix_user -u {username} -p {password} -a -c homeserver.yaml http://localhost:8008')
         else:
-            os.system(f'register_new_matrix_user -u {username} -p {password} -c homeserver.yaml http://localhost:8008')
+            os.system(f'register_new_matrix_user -u {username} -p {password} --no-admin -c homeserver.yaml http://localhost:8008')
 
 Controller = MessengerController

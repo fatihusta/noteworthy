@@ -36,7 +36,8 @@ class ProcManager():
                     procd = proc_factory()
                     procd.run()
             except Exception as e:
-                with open(f'{proc_name}.error.log', 'w') as f:
+                e_log = os.path.join(self.lock_dir, f'{proc_name}.error.log')
+                with open(e_log, 'w') as f:
                     f.write(traceback.format_exc()+'\n')
                 raise e
 

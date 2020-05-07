@@ -41,8 +41,9 @@ class MatrixChatBotController(NoteworthyPlugin):
         from noteworthy.messenger import MessengerController
         mc = MessengerController()
         hscfg = os.path.join(mc.config_dir, 'homeserver.yaml')
-        reg_cmd = f'register_new_matrix_user -u {bot_name} -p {password} -a -c {hscfg} http://localhost:8008'
-        os.system(reg_cmd)
+        from noteworthy.messenger import MessengerController
+        mc = MessengerController()
+        mc.create_user(bot_name, password)
         domain = os.environ['NOTEWORTHY_DOMAIN']
         creds = {
             'homeserver': f'https://matrix.{domain}',
