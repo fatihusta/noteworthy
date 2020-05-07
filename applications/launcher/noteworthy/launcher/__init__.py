@@ -167,7 +167,7 @@ class LauncherController(NoteworthyPlugin):
 
     @cli_method
     def install(self, app: str, domain: str = None, invite_code: str = None, hub: str = 'noteworthy.im',
-                    profile: str = 'default', accept_tos: bool = False, messenger: bool = True):
+                    profile: str = 'default', accept_tos: bool = False, no_install_messenger: bool = False):
         '''install a Noteworthy application
         ---
         Args:
@@ -240,7 +240,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\n''')
 
         self.launch_launcher_taproot(args.domain, args.hub, args.invite_code,
                                         args.profile)
-        if self.args.messenger: 
+        if not self.args.no_install_messenger:
             self.install('messenger')
 
     def _install_launcher_interactive(self, hub, profile, domain=None, invite_code=None):
