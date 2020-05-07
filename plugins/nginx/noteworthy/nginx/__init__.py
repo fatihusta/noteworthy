@@ -24,7 +24,7 @@ class NginxController(NoteworthyPlugin):
         self.sites_dir = os.path.join(self.config_dir, 'sites')
         self.tls_backend_dir = os.path.join(self.config_dir, 'backends')
         self.letsencrypt_bk = os.path.join(self.config_dir, 'letsencrypt')
-        self.letsencrypt_live = 'etc/letsencrypt/live'
+        self.letsencrypt_dir = '/etc/letsencrypt'
 
     @cli_method
     def run(self):
@@ -70,11 +70,11 @@ class NginxController(NoteworthyPlugin):
             self.create_config_dir()
             Path(self.sites_dir).mkdir(exist_ok=True)
             Path(self.tls_backend_dir).mkdir(exist_ok=True)
-            Path(self.letsencrypt_bk).mkdir(exist_ok=True)
             if os.environ['NOTEWORTHY_ROLE'] == 'link':
                 self.add_tls_stream_backend('launcher', os.environ['NOTEWORTHY_DOMAIN_REGEX'], '10.0.0.2')
                 self.set_http_proxy_pass('launcher', os.environ['NOTEWORTHY_DOMAIN_REGEX'], '10.0.0.2')
             elif os.environ['NOTEWORTHY_ROLE'] == 'taproot':
+                Path(self.letsencrypt_bk).mkdir(exist_ok=True)
                 # TODO emit events for these type of interdependent interactions
                 self.poll_for_good_status(os.environ['NOTEWORTHY_DOMAIN'])
                 # Request Let's Encrypt certs with certbot
@@ -88,14 +88,17 @@ class NginxController(NoteworthyPlugin):
         os.system('nginx -s reload')
 
     def _reconfigure_nginx(self):
-        backends = self.get_link_set()
-        self.write_config(backends)
-        os.system(f'cp -r {self.sites_dir}/* {self.nginx_sites_enabled}')
-        Path(self.letsencrypt_live).mkdir(parents=True, exist_ok=True)
-        os.system(f'cp -r {self.letsencrypt_bk}/* {self.letsencrypt_live}')
-        domains = os.listdir(self.letsencrypt_live)
-        for domain in domains:
-            os.system(f'certbot install --cert-path /etc/letsencrypt/live/{domain}/cert.pem --key-path /etc/letsencrypt/live/{domain}/privkey.pem --fullchain-path /etc/letsencrypt/live/{ domain }/fullchain.pem -d { domains } --redirect')
+        # TODO this will change need to change when taproots can act as hubs too
+        if os.environ['NOTEWORTHY_ROLE'] == 'hub':
+            backends = self.get_link_set()
+            self.write_config(backends)
+        if os.environ['NOTEWORTHY_ROLE'] in ['taproot', 'hub']:
+            os.system(f'cp -r {self.sites_dir}/* {self.nginx_sites_enabled}')
+        if os.environ['NOTEWORTHY_ROLE'] == 'taproot':
+            Path(self.letsencrypt_dir).mkdir(parents=True, exist_ok=True)
+            os.system(f'cp -r {self.letsencrypt_bk}/* {self.letsencrypt_dir}')
+            nginx_conf_bak = os.path.join(self.config_dir, 'nginx.conf')
+            os.system(f'cp {nginx_conf_bak} {self.nginx_config_path}')
 
 
     def _render_template(self, template_path, config):
@@ -144,8 +147,9 @@ class NginxController(NoteworthyPlugin):
         '''
         domain_param = ' -d '.join(domains)
         os.system(f'certbot certonly --non-interactive --agree-tos --webroot -m hi@decentralabs.io -w /var/www/html -d {domain_param}')
-        os.system(f'cp -r {self.letsencrypt_live}/* {self.letsencrypt_bk}')
+        os.system(f'cp -r {self.letsencrypt_dir}/* {self.letsencrypt_bk}')
         os.system(f'certbot install --cert-path /etc/letsencrypt/live/{domains[0]}/cert.pem --key-path /etc/letsencrypt/live/{domains[0]}/privkey.pem --fullchain-path /etc/letsencrypt/live/{ domains[0] }/fullchain.pem -d { domains[0] } --redirect')
+        os.system(f'cp {self.nginx_config_path} {self.config_dir}')
         os.system(f'touch {self.CERTBOT_SUCCESS_FILE}')
 
     def poll_cerbot_success(self):

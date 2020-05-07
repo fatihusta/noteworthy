@@ -6,6 +6,8 @@ def is_configured(interface):
     return interface.encode() in subprocess.check_output(['cat', '/proc/net/dev'])
 
 def add_peer(interface, pubkey, allowed_ips, endpoint=None, keepalive='30'):
+    if len(pubkey) != 44:
+        raise Exception('wg.add_peer got invalid pubkey. len(pubkey) != 44')
     cmd = f'wg set {interface} peer {pubkey}\
  allowed-ips {allowed_ips} persistent-keepalive {keepalive}'
     if endpoint:
