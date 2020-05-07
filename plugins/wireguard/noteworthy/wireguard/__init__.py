@@ -8,6 +8,8 @@ import yaml
 from noteworthy.notectl.plugins import NoteworthyPlugin
 from noteworthy.wireguard import wg
 
+from clicz import cli_method
+
 
 class WireGuardController(NoteworthyPlugin):
 
@@ -17,10 +19,10 @@ class WireGuardController(NoteworthyPlugin):
         super().__init__(__file__)
         self.docker = docker.from_env()
 
-    def pubkey(self, **kwargs):
+    @cli_method
+    def pubkey(self):
         '''
         Loop forever until wg.key shows up
-        Used in provisioning.. probably a bad idea
         '''
         import time
         key_path = os.path.join(self.config_dir, 'wg.key')
