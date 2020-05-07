@@ -175,16 +175,18 @@ class LauncherController(NoteworthyPlugin):
             print("Let's create your Noteworthy Messenger account.\nUse these credentials to login"
                   " to Noteworthy Messenger's Web and Mobile App. \nThis user will have administrator" 
                   " privileges so please (ALWAYS) chooose a strong password.")
-            username = input('Username: ')
-            if not username:
-                print('Username cannot be empty.')
-                sys.exit(2)
-            password1 = getpass.getpass()
-            password2 = getpass.getpass('Confirm password:')
-            if not password1 or (password1 != password2):
-                print('Passwords did not match.')
-                sys.exit(2)
-            return self.launch_messenger(profile, username, password1)
+            while True:
+                username = input('Username: ')
+                if not username:
+                    print('Username cannot be empty.')
+                    continue
+                password1 = getpass.getpass()
+                password2 = getpass.getpass('Confirm password:')
+                if not password1 or (password1 != password2):
+                    print('Passwords did not match.')
+                    continue
+                break
+            return self.launch_messenger(username, password1, profile)
         else:
             print('More apps coming soon!')
 
