@@ -61,7 +61,11 @@ class ProcManager():
                 name = match.group(1)
                 file_name = match.group(0)
                 file_path = os.path.join(self.lock_dir, file_name)
-                with open(file_path, 'r') as f:
-                    pid = int(f.read())
+                with TimedLoop(1) as l:
+                    pid = int(l.run_til(lambda: self._read_pid(file_path)))
                 procs[name] = {'pid': pid, 'name': name}
         return procs
+
+    def _read_pid(self, file_path):
+        with open(file_path, 'r') as f:
+            return f.read()
