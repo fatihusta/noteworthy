@@ -76,4 +76,4 @@ class NoteworthyPlugin:
         _start_dependencies('shared')
         role = os.environ.get('NOTEWORTHY_ROLE')
         if role:
-            _start_dependencies(os.environ['NOTEWORTHY_ROLE'])
+            _start_dependencies(role)

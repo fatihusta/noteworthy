@@ -1,4 +1,4 @@
-app:       messenger
+app: messenger
 plugins:
   shared:
     - riot_web

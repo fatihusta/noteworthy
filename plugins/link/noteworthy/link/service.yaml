@@ -1,0 +1,6 @@
+plugin: link
+plugins:
+  shared: []
+  link:
+    - nginx
+    - wireguard
