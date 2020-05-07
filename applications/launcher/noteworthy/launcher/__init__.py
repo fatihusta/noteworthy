@@ -20,8 +20,6 @@ class LauncherController(NoteworthyPlugin):
     PLUGIN_NAME = 'launcher'
     USER_CLI = True
 
-    PACKAGE_CACHE = '/var/noteworthy/cache/packages'
-
     def __init__(self):
         super().__init__(__file__)
         self.args = None
@@ -103,7 +101,7 @@ class LauncherController(NoteworthyPlugin):
 
         release_tag = self._load_release_tag()
         # deploy launcher / launcher-hub
-        self.docker.containers.run(f"decentralabs/noteworthy:{app_env['NOTEWORTHY_ROLE']}-{release_tag}",
+        return self.docker.containers.run(f"decentralabs/noteworthy:{app_env['NOTEWORTHY_ROLE']}-{release_tag}",
         entrypoint='notectl launcher start',
         tty=True,
         cap_add=['NET_ADMIN'],
@@ -148,22 +146,9 @@ class LauncherController(NoteworthyPlugin):
                     os.path.join(well_know_target, 'server'),
                     {'domain': os.environ['NOTEWORTHY_DOMAIN']})
 
-        print('Noteworthy Launcher Launched!')
+        print('Noteworthy Launcher started!')
         # TODO tail log file
         os.system('tail -f /dev/null')
-
-    @cli_method
-    def create_user(self, profile):
-        '''create a matrix user
-        ---
-        Args:
-            profile: profile to create matrix account
-        '''
-        # use docker proxy for invoking shell commands
-        # via the docker exec
-        dashed_domain = os.environ['NOTEWORTHY_DOMAIN'].replace('.', '-')
-        c = self.docker.containers.list(filters={'name':f'noteworthy-{dashed_domain}-messenger-{profile}'})[0]
-        dockerpty.exec_command(self.docker.api, c.id, 'register_new_matrix_user -c /opt/noteworthy/.messenger/homeserver.yaml http://localhost:8008')
 
     @cli_method
     def install(self, app: str, domain: str = None, invite_code: str = None, hub: str = 'noteworthy.im',
@@ -177,7 +162,7 @@ class LauncherController(NoteworthyPlugin):
             hub: fqdn of a Noteworthy hub
             profile: profile to deploy app to
             accept_tos: accept terms of service, useful for non-interactive installation
-            messenger: if provided, messenger will not be installed automatically
+            no_install_messenger: if provided, messenger will not be installed automatically
         '''
         if 'launcher' not in self.plugins:
             raise Exception('Launcher plugin unavailable; something\'s broken.')
@@ -238,10 +223,10 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\n''')
         except:
             pass
 
-        self.launch_launcher_taproot(args.domain, args.hub, args.invite_code,
+        c = self.launch_launcher_taproot(args.domain, args.hub, args.invite_code,
                                         args.profile)
         if not self.args.no_install_messenger:
-            self.install('messenger')
+            dockerpty.exec_command(self.docker.api, c.id, 'notectl install messenger')
 
     def _install_launcher_interactive(self, hub, profile, domain=None, invite_code=None):
         domain = input(f'Enter your domain [{domain}]: ') or domain
