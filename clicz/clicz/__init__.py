@@ -167,9 +167,17 @@ class CLICZ:
                         raise Exception(f'Argument description for {arg} must be of type str.')
                     if arg in defaults:
                         dashed_arg = arg.replace('_', '-')
-                        method_arg_parser.add_argument(f'--{dashed_arg}', default=defaults[arg], help=help)
-                        if alias_parser:
-                            alias_parser.add_argument(f'--{dashed_arg}', default=defaults[arg], help=help)
+                        if isinstance(defaults[arg], bool):
+                            action = 'store_true'
+                            if defaults[arg]:
+                                action = 'store_false'
+                            method_arg_parser.add_argument(f'--{dashed_arg}', default=defaults[arg], help=help, action=action)
+                            if alias_parser:
+                                alias_parser.add_argument(f'--{dashed_arg}', default=defaults[arg], help=help, action=action)
+                        else:
+                            method_arg_parser.add_argument(f'--{dashed_arg}', default=defaults[arg], help=help)
+                            if alias_parser:
+                                alias_parser.add_argument(f'--{dashed_arg}', default=defaults[arg], help=help)
 
                     else:
                         if hasattr(method, 'clicz_defaults'):
