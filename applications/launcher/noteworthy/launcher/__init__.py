@@ -268,8 +268,10 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\n''')
         from noteworthy.nginx import NginxController
         nc = NginxController()
         # special case for messenger nginx
-        mc = self.plugins['messenger'].Controller()
+        # poll for cerbot certs:
+        nc.poll_cerbot_success()
+        messenger_controller = self.plugins['messenger'].Controller()
         nc.set_http_proxy_pass(app, os.environ['NOTEWORTHY_DOMAIN'], app_container_name,
-            os.path.join(mc.deploy_dir,'nginx.conf'))
+            os.path.join(messenger_controller.deploy_dir,'nginx.conf'))
 
 Controller = LauncherController

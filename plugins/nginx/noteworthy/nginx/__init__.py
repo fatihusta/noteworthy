@@ -13,6 +13,7 @@ from noteworthy.notectl.plugins import NoteworthyPlugin
 class NginxController(NoteworthyPlugin):
 
     PLUGIN_NAME = 'nginx'
+    CERTBOT_SUCCESS_FILE = '/etc/letsencrypt/success'
 
     def __init__(self):
         super().__init__(__file__)
@@ -145,6 +146,17 @@ class NginxController(NoteworthyPlugin):
         os.system(f'certbot certonly --non-interactive --agree-tos --webroot -m hi@decentralabs.io -w /var/www/html -d {domain_param}')
         os.system(f'cp -r {self.letsencrypt_live}/* {self.letsencrypt_bk}')
         os.system(f'certbot install --cert-path /etc/letsencrypt/live/{domains[0]}/cert.pem --key-path /etc/letsencrypt/live/{domains[0]}/privkey.pem --fullchain-path /etc/letsencrypt/live/{ domains[0] }/fullchain.pem -d { domains[0] } --redirect')
+        os.system(f'touch {self.CERTBOT_SUCCESS_FILE}')
+
+    def poll_cerbot_success(self):
+        count = 0
+        while count < 15:
+            if os.path.exists(self.CERTBOT_SUCCESS_FILE):
+                return True
+            count = count + 1
+            time.sleep(1)
+        raise Exception('Giving up waiting for certbot success.')
+
 
     def read_yaml_file(self, filename):
         with open(filename, 'r') as peer_file:
