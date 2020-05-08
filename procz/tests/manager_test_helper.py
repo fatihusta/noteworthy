@@ -43,11 +43,6 @@ def start_proc_kill_old():
     expected_pid_path = os.path.join(TEST_DIR, expected_pid_file)
     m.start_proc('test', lambda: RunWhileFileProc(expected_pid_path), kill_old=True)
 
-def create_imporperly_cleaned_pidfile():
-    pid_file = 'procz_test.pid'
-    pid_path = os.path.join(TEST_DIR, pid_file)
-    os.system(f'touch {pid_path}')
-
 def kill_proc():
     m = _get_manager()
     m.kill_proc('test')
@@ -71,8 +66,7 @@ FUNC_DICT = {
  'start_proc_kill_old': start_proc_kill_old,
  'kill_proc': kill_proc,
  'assert_proc_exists': assert_proc_exists,
- 'assert_proc_not_exists': assert_proc_not_exists,
- 'create_imporperly_cleaned_pidfile': create_imporperly_cleaned_pidfile
+ 'assert_proc_not_exists': assert_proc_not_exists
 }
 
 if __name__ == "__main__":

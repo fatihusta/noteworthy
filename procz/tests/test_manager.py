@@ -39,13 +39,3 @@ class TestProcManager:
         self._call_helper('assert_proc_exists')
         self._call_helper('start_proc_kill_old')
         self._call_helper('assert_proc_exists')
-
-    def test_manager_kill_imporperly_cleaned_pidfile(self):
-        self._call_helper('create_imporperly_cleaned_pidfile')
-        self._call_helper('kill_proc')
-        self._call_helper('assert_proc_not_exists')
-
-    def test_manager_restarts_improperly_cleaned_pidfile(self):
-        self._call_helper('create_imporperly_cleaned_pidfile')
-        self._call_helper('start_proc_kill_old')
-        self._call_helper('assert_proc_exists')

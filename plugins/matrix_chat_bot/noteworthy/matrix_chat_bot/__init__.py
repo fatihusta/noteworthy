@@ -67,7 +67,7 @@ class MatrixChatBotController(NoteworthyPlugin):
         return controllers
 
     def _get_bot_manager(self):
-        return ProcManager(lock_dir=self.config_dir)
+        return ProcManager()
 
     def _read_yaml_config(self, filename):
         file_path = os.path.join(self.config_dir, f'{filename}.yaml')
