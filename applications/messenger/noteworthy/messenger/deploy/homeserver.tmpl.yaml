@@ -17,7 +17,7 @@ server_name:                                      "{{ domain }}"
 
 # When running as a daemon, the file to store the pid in
 #
-pid_file:                                         {{ config_dir }}/homeserver.pid
+pid_file:                                         "/var/run/homeserver.pid"
 
 # The path to the web client which will be served at /_matrix/client/
 # if 'webclient' is configured under the 'listeners' configuration.

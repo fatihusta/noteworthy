@@ -97,8 +97,7 @@ class MessengerController(NoteworthyPlugin):
         os.system(f'tail -f {self.log_file}')
 
     def _is_synctl_running(self):
-        pid_file = os.path.join(self.config_dir, 'homeserver.pid')
-        return os.path.isfile(pid_file)
+        return os.path.isfile('/var/run/homeserver.pid')
 
     def _poll_for_synctl_start(self):
         with TimedLoop(20) as l:
