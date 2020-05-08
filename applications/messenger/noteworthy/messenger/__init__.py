@@ -1,10 +1,7 @@
 import getpass
 import os
-import nio
 import time
-from procz import ProcManager
 import string
-import asyncio
 import secrets
 from jinja2 import Template
 
@@ -88,9 +85,6 @@ class MessengerController(NoteworthyPlugin):
         if was_first_run:
             # TODO password should be passed a more secure way
             self.create_user(os.environ['MATRIX_USER'], os.environ['MATRIX_PASSWORD'], True)
-            invite_factory = lambda: Inviter()
-            pm = ProcManager()
-            pm.start_proc('invite', invite_factory)
         self.start_dependencies()
         os.chdir(self.config_dir)
         self._poll_for_homeserver_log()
@@ -130,21 +124,3 @@ class MessengerController(NoteworthyPlugin):
             os.system(f'register_new_matrix_user -u {username} -p {password} --no-admin -c homeserver.yaml http://localhost:8008')
 
 Controller = MessengerController
-
-async def invite():
-    domain = os.environ.get('NOTEWORTHY_DOMAIN')
-    user_name = os.environ.get('MATRIX_USER')
-    user_address = f'@{user_name}:{domain}'
-    client = nio.AsyncClient(f'https://matrix.{domain}', user_address)
-    user_password = os.environ.get('MATRIX_PASSWORD')
-    await client.login(user_password)
-    await client.room_create(is_direct=True, invite=[f'@welcomebot:{domain}'])
-    await client.logout()
-
-class Inviter():
-
-    def __init__(self):
-        pass
-
-    def run(self):
-        asyncio.get_event_loop().run_until_complete(invite()).close()

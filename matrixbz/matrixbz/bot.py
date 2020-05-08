@@ -17,6 +17,7 @@ class Bot():
         self.client.add_event_callback(self.message_cb, RoomMessageText)
         self.commands = {}
         self.msg_handler = None
+        self.startup_method = None
         members = inspect.getmembers(controller, predicate=inspect.ismethod)
         for member in members:
             if hasattr(member[1], 'matrixbz_method'):
@@ -24,13 +25,20 @@ class Bot():
                 command_str = f'!{self.name} {member[0]}'
                 self.commands[command_str] = member[1]
             elif hasattr(member[1], 'matrixbz_msg_handler'):
+                if self.msg_handler:
+                    raise Exception('Can only mark one matrixbz_msg_handler!')
                 self.msg_handler = member[1]
+            elif hasattr(member[1], 'matrixbz_startup_method'):
+                if self.startup_method:
+                    raise Exception('Can only mark one matrixbz_startup_method!')
+                self.startup_method = member[1]
         command_prefixes = '|'.join(list(self.commands.keys()))
         self.command_regex = re.compile(f'^({command_prefixes})( .+)?$')
         if hasattr(controller, 'AUTH'):
             self.AUTH = controller.AUTH(controller)
         else:
             self.AUTH = auth.BlockAll(controller)
+
 
     async def message_cb(self, room, event):
         if not self.AUTH.authenticate_message(room, event):
@@ -91,6 +99,8 @@ class Bot():
 
     async def loginandsync(self):
         await self.client.login(self.password)
+        if self.startup_method:
+            await self.startup_method(self.client)
         await self.client.sync_forever(timeout=30000)
 
     def run(self):
