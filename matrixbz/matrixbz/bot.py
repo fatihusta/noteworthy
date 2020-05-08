@@ -37,7 +37,7 @@ class Bot():
         if hasattr(controller, 'AUTH'):
             self.AUTH = controller.AUTH(controller)
         else:
-            self.AUTH = auth.BlockAll(controller)
+            self.AUTH = BlockAll(controller)
 
 
     async def message_cb(self, room, event):
