@@ -17,6 +17,9 @@ class MatrixChatBotController(NoteworthyPlugin):
         super().__init__(__file__)
 
     def start(self, *args, **kwargs):
+        self.pid_folder = '/var/run'
+        procz_files = os.path.join(self.pid_folder, 'procz*')
+        os.system(f'rm -rf {procz_files}')
         if self.is_first_run:
             self.create_config_dir()
             self._create_bots()
@@ -67,7 +70,7 @@ class MatrixChatBotController(NoteworthyPlugin):
         return controllers
 
     def _get_bot_manager(self):
-        return ProcManager()
+        return ProcManager(self.pid_folder)
 
     def _read_yaml_config(self, filename):
         file_path = os.path.join(self.config_dir, f'{filename}.yaml')
