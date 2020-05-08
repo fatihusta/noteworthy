@@ -11,13 +11,13 @@ class MatrixChatBotController(NoteworthyPlugin):
     '''Automagic Matrix ChatBot Registrar and Manager
     '''
 
-    PLUGIN_NAME = 'matrix-chat-bot'
+    PLUGIN_NAME = 'bots'
 
     def __init__(self):
         super().__init__(__file__)
+        self.pid_folder = '/var/run'
 
     def start(self, *args, **kwargs):
-        self.pid_folder = '/var/run'
         procz_files = os.path.join(self.pid_folder, 'procz*')
         os.system(f'rm -rf {procz_files}')
         if self.is_first_run:

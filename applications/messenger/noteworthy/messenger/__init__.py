@@ -81,10 +81,9 @@ class MessengerController(NoteworthyPlugin):
         if self.is_first_run:
             self._run_first_time_setup()
             was_first_run = True
-        if not self._is_synctl_running():
-            hs_config = os.path.join(self.config_dir, 'homeserver.yaml')
-            os.chdir(self.config_dir)
-            os.system(f'synctl start {hs_config}')
+        hs_config = os.path.join(self.config_dir, 'homeserver.yaml')
+        os.chdir(self.config_dir)
+        os.system(f'synctl start {hs_config}')
         self._poll_for_synctl_start()
         if was_first_run:
             # TODO password should be passed a more secure way
@@ -149,4 +148,4 @@ class Inviter():
         pass
 
     def run(self):
-        asyncio.get_event_loop().run_until_complete(invite())
+        asyncio.get_event_loop().run_until_complete(invite()).close()
