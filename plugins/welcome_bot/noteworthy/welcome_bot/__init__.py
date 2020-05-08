@@ -1,3 +1,5 @@
+import os
+import yaml
 import matrixbz
 from noteworthy.notectl.plugins import NoteworthyPlugin
 
@@ -28,7 +30,7 @@ class WelcomeBotController(NoteworthyPlugin):
             self.create_config_dir()
             main_user = os.environ['MATRIX_USER']
             domain = os.environ['NOTEWORTHY_DOMAIN']
-            address = f'@{main_user}:{NOTEWORTHY_DOMAIN}'
+            address = f'@{main_user}:{domain}'
             auth_config = {
                 'whitelist': [address]
             }
