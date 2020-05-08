@@ -15,16 +15,18 @@ class NginxController(NoteworthyPlugin):
     PLUGIN_NAME = 'nginx'
     CERTBOT_SUCCESS_FILE = '/etc/letsencrypt/success'
 
-    def __init__(self):
+    def __init__(self, config_dir=None):
         super().__init__(__file__)
+        if config_dir:
+            self.config_dir = config_dir
         self.nginx_gateway_template = os.path.join(self.deploy_dir, 'nginx.gateway.tmpl.conf')
         self.nginx_app_template = os.path.join(self.deploy_dir, 'app.link.nginx.tmpl.conf')
         self.nginx_config_path = '/etc/nginx/nginx.conf'
         self.nginx_sites_enabled = '/etc/nginx/sites-enabled'
+        self.letsencrypt_dir = '/etc/letsencrypt'
         self.sites_dir = os.path.join(self.config_dir, 'sites')
         self.tls_backend_dir = os.path.join(self.config_dir, 'backends')
         self.letsencrypt_bk = os.path.join(self.config_dir, 'letsencrypt')
-        self.letsencrypt_dir = '/etc/letsencrypt'
 
     @cli_method
     def run(self):
