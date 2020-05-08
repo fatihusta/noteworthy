@@ -13,17 +13,17 @@ from noteworthy.notectl.plugins import NoteworthyPlugin
 class NginxController(NoteworthyPlugin):
 
     PLUGIN_NAME = 'nginx'
-    CERTBOT_SUCCESS_FILE = '/etc/letsencrypt/success'
 
-    def __init__(self, config_dir=None):
+    def __init__(self):
         super().__init__(__file__)
-        if config_dir:
-            self.config_dir = config_dir
         self.nginx_gateway_template = os.path.join(self.deploy_dir, 'nginx.gateway.tmpl.conf')
         self.nginx_app_template = os.path.join(self.deploy_dir, 'app.link.nginx.tmpl.conf')
         self.nginx_config_path = '/etc/nginx/nginx.conf'
         self.nginx_sites_enabled = '/etc/nginx/sites-enabled'
         self.letsencrypt_dir = '/etc/letsencrypt'
+        self.nginx_pid_file = '/run/nginx.pid'
+        self.nginx_start_poll_count = 5
+        self.tls_success_file = os.path.join(self.config_dir, 'tls_success')
         self.sites_dir = os.path.join(self.config_dir, 'sites')
         self.tls_backend_dir = os.path.join(self.config_dir, 'backends')
         self.letsencrypt_bk = os.path.join(self.config_dir, 'letsencrypt')
@@ -32,8 +32,6 @@ class NginxController(NoteworthyPlugin):
     def run(self):
         '''start nginx, blocking
         '''
-        if os.path.exists('/run/nginx.pid'):
-            return
         os.system("nginx -g 'daemon off;'")
 
     def poll_for_good_status(self, endpoint, max_tries=30):
@@ -59,12 +57,12 @@ class NginxController(NoteworthyPlugin):
         self._start(self.PLUGIN_NAME)
         # wait for nginx to start
         count = 0
-        while not os.path.exists('/run/nginx.pid') and count <= 5:
+        while not os.path.exists(self.nginx_pid_file) and count <= self.nginx_start_poll_count:
             time.sleep(1)
-            running = os.path.exists('/run/nginx.pid')
+            running = os.path.exists(self.nginx_pid_file)
             if running:
                 break
-            if count == 5:
+            if count == self.nginx_start_poll_count:
                 raise Exception('Giving up waiting for nginx to start. Check nginx config.')
             count = count + 1
 
@@ -80,7 +78,7 @@ class NginxController(NoteworthyPlugin):
                 # TODO emit events for these type of interdependent interactions
                 self.poll_for_good_status(os.environ['NOTEWORTHY_DOMAIN'])
                 # Request Let's Encrypt certs with certbot
-                self.certbot([os.environ['NOTEWORTHY_DOMAIN'], f"matrix.{os.environ['NOTEWORTHY_DOMAIN']}"])
+                self.get_tls_certs([os.environ['NOTEWORTHY_DOMAIN'], f"matrix.{os.environ['NOTEWORTHY_DOMAIN']}"])
         else:
             self._reconfigure_nginx()
             self._reload()
@@ -143,21 +141,28 @@ class NginxController(NoteworthyPlugin):
         backends = self.get_link_set()
         self.write_config(backends)
 
-    def certbot(self, domains: list):
+    def _get_letsencrypt_cert(self, domains_str: str):
         '''
         Get Let's Encrypt certs wit Certbot
         '''
-        domain_param = ' -d '.join(domains)
-        os.system(f'certbot certonly --non-interactive --agree-tos --webroot -m hi@decentralabs.io -w /var/www/html -d {domain_param}')
+        os.system(f'certbot certonly --non-interactive --agree-tos --webroot -m hi@decentralabs.io -w /var/www/html -d {domains_str}')
+
+    def _install_letsencrypt_cert(self, domain: str):
+        os.system(f'certbot install --cert-path /etc/letsencrypt/live/{domain}/cert.pem --key-path /etc/letsencrypt/live/{domain}/privkey.pem --fullchain-path /etc/letsencrypt/live/{domain}/fullchain.pem -d {domain} --redirect')
+
+    def get_tls_certs(self, domains: list):
+        domains_str = ' -d '.join(domains)
+        self._get_letsencrypt_cert(domains_str)
         os.system(f'cp -r {self.letsencrypt_dir}/* {self.letsencrypt_bk}')
-        os.system(f'certbot install --cert-path /etc/letsencrypt/live/{domains[0]}/cert.pem --key-path /etc/letsencrypt/live/{domains[0]}/privkey.pem --fullchain-path /etc/letsencrypt/live/{ domains[0] }/fullchain.pem -d { domains[0] } --redirect')
+        self._install_letsencrypt_cert(domains[0])
         os.system(f'cp {self.nginx_config_path} {self.config_dir}')
-        os.system(f'touch {self.CERTBOT_SUCCESS_FILE}')
+        os.system(f'touch {self.tls_success_file}')
+
 
     def poll_cerbot_success(self):
         count = 0
         while count < 15:
-            if os.path.exists(self.CERTBOT_SUCCESS_FILE):
+            if os.path.exists(self.tls_success_file):
                 return True
             count = count + 1
             time.sleep(1)
