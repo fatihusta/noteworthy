@@ -89,8 +89,7 @@ class MessengerController(NoteworthyPlugin):
             # TODO password should be passed a more secure way
             self.create_user(os.environ['MATRIX_USER'], os.environ['MATRIX_PASSWORD'], True)
             try:
-                #asyncio.get_event_loop().run_until_complete(self._invite_welcomebot())
-                pass
+                asyncio.get_event_loop().run_until_complete(self._invite_welcomebot())
             except:
                 pass
         self.start_dependencies()
