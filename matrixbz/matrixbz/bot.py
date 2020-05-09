@@ -7,7 +7,7 @@ from nio import (AsyncClient, ClientConfig, RoomMessageText, InviteMemberEvent)
 
 class Bot():
 
-    def __init__(self, controller, creds, config_dir='/opt/matrix'):
+    def __init__(self, controller, creds):
         self.name = controller.MATRIXBZ_BOT_NAME
         self.CHANNEL_GREETING = controller.CHANNEL_GREETING
         self.user = creds['user']
@@ -37,7 +37,7 @@ class Bot():
         if hasattr(controller, 'AUTH'):
             self.AUTH = controller.AUTH(controller)
         else:
-            self.AUTH = auth.BlockAll(controller)
+            self.AUTH = BlockAll(controller)
 
 
     async def message_cb(self, room, event):
