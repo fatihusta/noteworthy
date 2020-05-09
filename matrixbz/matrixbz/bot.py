@@ -67,11 +67,10 @@ class Bot():
         except:
             return
         if res:
+            content = await res.get_content()
             await self.client.room_send(
                 room_id=room.room_id, message_type='m.room.message',
-                content={
-                    'msgtype': 'm.notice',
-                    'body': str(res)})
+                content=content)
 
     async def invite_cb(self, room, event):
         if not self.AUTH.authenticate_invite(room, event):
