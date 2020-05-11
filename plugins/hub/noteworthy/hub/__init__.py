@@ -101,12 +101,6 @@ class HubController(NoteworthyPlugin):
                 'TAPROOT_PUBKEY': pub_key
             },
             restart_policy={"Name": "always"})
-        self._write_yaml_config(link_name, {
-            'domain_regex': domain_regex,
-            'pub_key': pub_key,
-            'wg_port': wg_port,
-            'udp_proxy_port': udp_proxy_port
-        })
 
         # wait for container to enter running state before continuing
         count = 0
@@ -114,6 +108,14 @@ class HubController(NoteworthyPlugin):
             time.sleep(1)
             link_node = self.docker.containers.get(link_name)
             if link_node.status == 'running':
+                wg_port = link_node.attrs['NetworkSettings']['Ports']['18521/udp'][0]['HostPort']
+                udp_proxy_port = link_node.attrs['NetworkSettings']['Ports']['18522/udp'][0]['HostPort']
+                self._write_yaml_config(link_name, {
+                    'domain_regex': domain_regex,
+                    'pub_key': pub_key,
+                    'wg_port': wg_port,
+                    'udp_proxy_port': udp_proxy_port
+                })
                 return self.docker.containers.get(link_name)
             count = count + 1
         raise Exception('Timeout exceeding waiting for link to enter running state.')
