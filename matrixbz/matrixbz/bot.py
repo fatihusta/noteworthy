@@ -3,6 +3,7 @@ import shlex
 import inspect
 import asyncio
 from .auth import BlockAll
+from .cache import NoCache
 from nio import (AsyncClient, ClientConfig, RoomMessageText, InviteMemberEvent)
 
 class Bot():
@@ -15,6 +16,17 @@ class Bot():
         self.client = AsyncClient(creds['homeserver'], creds['user'])
         self.client.add_event_callback(self.invite_cb, InviteMemberEvent)
         self.client.add_event_callback(self.message_cb, RoomMessageText)
+        self._setup_handlers(controller)
+        if hasattr(controller, 'AUTH'):
+            self.AUTH = controller.AUTH(controller)
+        else:
+            self.AUTH = BlockAll(controller)
+        if hasattr(controller, 'CACHE'):
+            self.CACHE = controller.CACHE
+        else:
+            self.CACHE = NoCache()
+
+    def _setup_handlers(self, controller):
         self.commands = {}
         self.msg_handler = None
         self.startup_method = None
@@ -34,10 +46,6 @@ class Bot():
                 self.startup_method = member[1]
         command_prefixes = '|'.join(list(self.commands.keys()))
         self.command_regex = re.compile(f'^({command_prefixes})( .+)?$')
-        if hasattr(controller, 'AUTH'):
-            self.AUTH = controller.AUTH(controller)
-        else:
-            self.AUTH = BlockAll(controller)
 
 
     async def message_cb(self, room, event):
@@ -47,30 +55,44 @@ class Bot():
         context = {'room': room, 'event': event, 'client': self.client}
         match = self.command_regex.match(txt)
         if match:
-            await self._execute_command(context, match)
+            await self._handle_command(match, context)
         elif self.msg_handler:
             try:
                 await self.msg_handler(context)
             except:
                 return
 
-    async def _execute_command(self, context, match):
+    async def _handle_command(self, match, context):
         room = context.get('room')
+        event = context.get('event')
+        full_request = match.group(0)
         command_str = match.group(1)
         command = self.commands[command_str]
-        args = []
-        args_str = match.group(2)
-        if args_str:
-            args = shlex.split(args_str)
-        try:
-            res = await command(*args, context = context)
-        except:
-            return
-        if res:
-            content = await res.get_content()
+        use_cache = hasattr(command, 'cache_result')
+        content = None
+        if use_cache:
+            content = self.CACHE.get_result(room, event)
+        if not content:
+            args = []
+            args_str = match.group(2)
+            if args_str:
+                args = shlex.split(args_str)
+            content = await self._execute_command(command, args, context)
+        if content:
+            if use_cache:
+                self.CACHE.set_result(content, room, event)
             await self.client.room_send(
                 room_id=room.room_id, message_type='m.room.message',
                 content=content)
+
+    async def _execute_command(self, command, args, context):
+        try:
+            res = await command(*args, context = context)
+            if res:
+                content = await res.get_content(client = self.client)
+                return content
+        except:
+            return None
 
     async def invite_cb(self, room, event):
         if not self.AUTH.authenticate_invite(room, event):

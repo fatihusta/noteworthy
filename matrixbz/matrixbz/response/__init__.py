@@ -3,7 +3,7 @@ import io
 from PIL import Image as Img
 
 class Response:
-    async def get_content(self):
+    async def get_content(self, **kwargs):
         return {'msgtype': self.mtype, 'body': self.msg}
 
 class Text(Response):
@@ -20,7 +20,7 @@ class HTML(Response):
     def __init__(self, html):
         self.html = html
 
-    async def get_content(self):
+    async def get_content(self, **kwargs):
         return {
             'msgtype': 'm.text',
             'format': 'org.matrix.custom.html',
@@ -29,12 +29,10 @@ class HTML(Response):
         }
 
 class Image(Response):
-    def __init__(self, url, client):
+    def __init__(self, url):
         self.url = url
-        self.client = client
 
-
-    async def get_content(self):
+    async def get_content(self, client):
         filename = self.url.split("/")[-1]
         res = requests.get(self.url)
         if res.status_code == 200:
@@ -44,8 +42,7 @@ class Image(Response):
             stream = io.BytesIO(res.content)
             img = Img.open(stream)
             w,h = img.size
-            r = await self.client.upload(lambda x, y: res.content, mimetype, filename = filename)
-            print(repr(r))
+            r = await client.upload(lambda x, y: res.content, mimetype, filename = filename)
 
         return {
             'msgtype': 'm.image',
