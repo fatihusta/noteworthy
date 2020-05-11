@@ -57,29 +57,29 @@ class HubController(NoteworthyPlugin):
         allowed = re.compile('(?!-)[A-Z\d-]{1,63}(?<!-)$', re.IGNORECASE)
         return all(allowed.match(x) for x in hostname.split('.'))
 
-    def _get_or_create_link(self, link_name, domain_regex, pub_key):
+    def _get_or_create_link(self, link_name, domain_regex, pub_key, wg_port=None, udp_proxy_port=None):
         try:
             link_node = self.docker.containers.get(link_name)
         except docker.errors.NotFound:
-            return self._create_link_from_config(link_name, domain_regex, pub_key)
+            return self._create_link_from_config(link_name, domain_regex, pub_key, wg_port, udp_proxy_port)
 
         try:
             current_config = self._read_yaml_config(link_name)
         except IOError:
             link_node.remove(force=True)
-            return self._create_link_from_config(link_name, domain_regex, pub_key)
+            return self._create_link_from_config(link_name, domain_regex, pub_key, wg_port, udp_proxy_port)
 
         does_match = self._does_match_config(current_config, domain_regex, pub_key)
         if not does_match:
             link_node.remove(force=True)
-            link_node = self._create_link_from_config(link_name, domain_regex, pub_key)
+            link_node = self._create_link_from_config(link_name, domain_regex, pub_key, wg_port, udp_proxy_port)
 
         return link_node
 
     def _does_match_config(self, current_config, domain_regex, pub_key):
         return (current_config.get('pub_key') == pub_key) and (current_config.get('domain_regex') == domain_regex)
 
-    def _create_link_from_config(self, link_name, domain_regex, pub_key):
+    def _create_link_from_config(self, link_name, domain_regex, pub_key, wg_port=None, udp_proxy_port=None):
         release_tag = self._load_release_tag()
         link_node = self.docker.containers.run(
             f'decentralabs/noteworthy:hub-{release_tag}',
@@ -91,8 +91,8 @@ class HubController(NoteworthyPlugin):
             #auto_remove=True,
             entrypoint='notectl link start',
             ports={
-                '18521/udp': None, # random wireguard port
-                '18522/udp': None # random udp proxy port
+                '18521/udp': wg_port,
+                '18522/udp': udp_proxy_port
             },
             detach=True,
             environment={
@@ -103,7 +103,9 @@ class HubController(NoteworthyPlugin):
             restart_policy={"Name": "always"})
         self._write_yaml_config(link_name, {
             'domain_regex': domain_regex,
-            'pub_key': pub_key
+            'pub_key': pub_key,
+            'wg_port': wg_port,
+            'udp_proxy_port': udp_proxy_port
         })
 
         # wait for container to enter running state before continuing
@@ -124,7 +126,7 @@ class HubController(NoteworthyPlugin):
                  for link_name in link_names]
         for link in links:
             self._get_or_create_link(link['name'], link['domain_regex'],
-                                     link['pub_key'])
+                                     link['pub_key'], link['wg_port'], link['udp_proxy_port'])
 
     def _read_yaml_config(self, filename):
         file_path = os.path.join(self.config_dir, f'{filename}.yaml')
