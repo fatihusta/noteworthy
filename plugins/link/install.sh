@@ -1,5 +1,5 @@
 #!/bin/bash
 
 apt update
-apt install nginx -y
+apt install socat -y
 rm -rf /var/lib/apt/lists/*
