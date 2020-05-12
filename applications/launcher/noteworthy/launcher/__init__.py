@@ -24,7 +24,6 @@ class LauncherController(NoteworthyPlugin):
         super().__init__(__file__)
         self.args = None
         self.docker = docker.from_env()
-        self.hub_hostname = os.environ.get('NOTEWORTHY_HUB', 'noteworthy.im:8000')
 
     # TODO move this code to a lib; its duplicated here and in riot-web plugin
     def _generate_file_from_template(self, tmpl_path, target, configs):
@@ -151,7 +150,7 @@ class LauncherController(NoteworthyPlugin):
         os.system('tail -f /dev/null')
 
     @cli_method
-    def install(self, app: str, domain: str = None, invite_code: str = None, hub: str = 'noteworthy.im',
+    def install(self, app: str, domain: str = None, invite_code: str = None, hub: str = 'hub.noteworthy.im',
                     profile: str = 'default', accept_tos: bool = False, no_install_messenger: bool = False):
         '''install a Noteworthy application
         ---
