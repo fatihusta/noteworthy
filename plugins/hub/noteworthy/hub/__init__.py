@@ -1,10 +1,12 @@
 import os
 import re
-from noteworthy.notectl.plugins import NoteworthyPlugin
-import docker
-from noteworthy.wireguard import wg
-import yaml
+import subprocess
 import time
+
+import docker
+import yaml
+
+from noteworthy.notectl.plugins import NoteworthyPlugin
 
 
 class HubController(NoteworthyPlugin):
@@ -25,9 +27,6 @@ class HubController(NoteworthyPlugin):
     def provision_link(self, link_name: str, domains: list, pub_key: str):
         domain_regex = self._validate_domain_regex(domains)
         link_node = self._get_or_create_link(link_name, domain_regex, pub_key)
-        link_wg_pubkey = link_node.exec_run('notectl wireguard pubkey').output.decode().strip()
-        if len(link_wg_pubkey) != 44:
-            raise Exception('Failed to get link pubkey.')
         link_wg_port = link_node.attrs['NetworkSettings']['Ports']['18521/udp'][0]['HostPort']
         link_udp_proxy_port = link_node.attrs['NetworkSettings']['Ports']['18522/udp'][0]['HostPort']
         link_ip = link_node.attrs['NetworkSettings']['Networks']['noteworthy']['IPAddress']
@@ -54,32 +53,49 @@ class HubController(NoteworthyPlugin):
             return False
         if hostname[-1] == ".":
             hostname = hostname[:-1] # strip exactly one dot from the right, if present
-        allowed = re.compile('(?!-)[A-Z\d-]{1,63}(?<!-)$', re.IGNORECASE)
+        allowed = re.compile(r'(?!-)[A-Z\d-]{1,63}(?<!-)$', re.IGNORECASE)
         return all(allowed.match(x) for x in hostname.split('.'))
 
     def _get_or_create_link(self, link_name, domain_regex, pub_key, wg_port=None, udp_proxy_port=None):
         try:
-            link_node = self.docker.containers.get(link_name)
-        except docker.errors.NotFound:
-            return self._create_link_from_config(link_name, domain_regex, pub_key, wg_port, udp_proxy_port)
-
-        try:
             current_config = self._read_yaml_config(link_name)
+            does_match = self._does_match_config(current_config, domain_regex, pub_key)
+            if not does_match:
+                try:
+                    link_node = self.docker.containers.get(link_name)
+                    link_node.remove(force=True)
+                except docker.errors.NotFound:
+                    link_wg_key, link_wg_pubkey = self._gen_link_wg_keys()
+                    return self._create_link_from_config(link_name, domain_regex, pub_key, link_wg_key,
+                                                            link_wg_pubkey, wg_port, udp_proxy_port)
+            else:
+                try:
+                    link_node = self.docker.containers.get(link_name)
+                    return link_node
+                except docker.errors.NotFound:
+                    link_wg_key, link_wg_pubkey = self._gen_link_wg_keys()
+                    return self._create_link_from_config(link_name, domain_regex, pub_key, link_wg_key,
+                                                            link_wg_pubkey, wg_port, udp_proxy_port)
         except IOError:
-            link_node.remove(force=True)
-            return self._create_link_from_config(link_name, domain_regex, pub_key, wg_port, udp_proxy_port)
+            try:
+                link_node = self.docker.containers.get(link_name)
+                link_node.remove(force=True)
+            except docker.errors.NotFound:
+                link_wg_key, link_wg_pubkey = self._gen_link_wg_keys()
+                return self._create_link_from_config(link_name, domain_regex, pub_key, link_wg_key,
+                                                                    link_wg_pubkey, wg_port, udp_proxy_port)
+            return link_node
 
-        does_match = self._does_match_config(current_config, domain_regex, pub_key)
-        if not does_match:
-            link_node.remove(force=True)
-            link_node = self._create_link_from_config(link_name, domain_regex, pub_key, wg_port, udp_proxy_port)
-
-        return link_node
+    def _gen_link_wg_keys(self):
+        link_wg_key = subprocess.check_output(['wg', 'genkey']).strip()
+        wg_pubkey_proc = subprocess.Popen(['wg', 'genkey'], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+        link_wg_pubkey = wg_pubkey_proc.communicate(link_wg_key)[0].strip().decode()
+        return link_wg_key, link_wg_pubkey
 
     def _does_match_config(self, current_config, domain_regex, pub_key):
         return (current_config.get('pub_key') == pub_key) and (current_config.get('domain_regex') == domain_regex)
 
-    def _create_link_from_config(self, link_name, domain_regex, pub_key, wg_port=None, udp_proxy_port=None):
+    def _create_link_from_config(self, link_name, domain_regex, pub_key, link_wg_key, link_wg_pubkey, wg_port=None, udp_proxy_port=None):
         release_tag = self._load_release_tag()
         link_node = self.docker.containers.run(
             f'decentralabs/noteworthy:hub-{release_tag}',
@@ -98,7 +114,8 @@ class HubController(NoteworthyPlugin):
             environment={
                 'NOTEWORTHY_ROLE': 'link',
                 'NOTEWORTHY_DOMAIN_REGEX': domain_regex,
-                'TAPROOT_PUBKEY': pub_key
+                'TAPROOT_PUBKEY': pub_key,
+                'LINK_WG_KEY': link_wg_key
             },
             restart_policy={"Name": "always"})
 
@@ -114,7 +131,9 @@ class HubController(NoteworthyPlugin):
                     'domain_regex': domain_regex,
                     'pub_key': pub_key,
                     'wg_port': wg_port,
-                    'udp_proxy_port': udp_proxy_port
+                    'udp_proxy_port': udp_proxy_port,
+                    'link_wg_key': link_wg_key,
+                    'link_wg_pubkey': link_wg_pubkey
                 })
                 return self.docker.containers.get(link_name)
             count = count + 1
@@ -128,7 +147,8 @@ class HubController(NoteworthyPlugin):
                  for link_name in link_names]
         for link in links:
             self._get_or_create_link(link['name'], link['domain_regex'],
-                                     link['pub_key'], link['wg_port'], link['udp_proxy_port'])
+                                     link['pub_key'], link['link_wg_key'],
+                                     link['wg_port'], link['udp_proxy_port'])
 
     def _read_yaml_config(self, filename):
         file_path = os.path.join(self.config_dir, f'{filename}.yaml')
