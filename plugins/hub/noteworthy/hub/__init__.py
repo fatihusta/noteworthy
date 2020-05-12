@@ -37,7 +37,7 @@ class HubController(NoteworthyPlugin):
         return {
             "link_wg_endpoint": f"{os.environ['NOTEWORTHY_HUB']}:{link_wg_port}",
             "link_udp_proxy_endpoint": f"{os.environ['NOTEWORTHY_HUB']}:{link_udp_proxy_port}",
-            "link_wg_pubkey": link_node.attrs['Config']['Env']['LINK_WG_PUBKEY'] }
+            "link_wg_pubkey": [ env_var for env_var in link_node.attrs['Config']['Env'] if env_var == 'LINK_WG_PUBKEY' ][0] }
 
     def _validate_domain_regex(self, domains):
         for domain in domains:
