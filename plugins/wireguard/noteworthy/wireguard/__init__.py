@@ -53,6 +53,8 @@ class WireGuardController(NoteworthyPlugin):
             peer_ip = '10.0.0.2/32'
             peer_pubkey = os.environ['TAPROOT_PUBKEY']
             endpoint = None
+            # user key from env var
+            os.system(f"echo {os.environ['LINK_WG_KEY']} > {wg_key_path}")
         elif role == 'taproot':
             my_ip = '10.0.0.2/24'
             peer_ip = '10.0.0.1/32'

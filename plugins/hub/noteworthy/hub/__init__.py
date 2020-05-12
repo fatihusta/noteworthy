@@ -61,7 +61,7 @@ class HubController(NoteworthyPlugin):
             link_node = self.docker.containers.get(link_name)
         except docker.errors.NotFound:
             link_wg_key, link_wg_pubkey = self._gen_link_wg_keys()
-            return self._create_link_from_config(link_name, domain_regex, pub_key, link_wg_key, link_wg_pubkey, wg_port)
+            return self._create_link_from_config(link_name, domain_regex, pub_key, link_wg_key, link_wg_pubkey, wg_port, udp_proxy_port)
 
         try:
             current_config = self._read_yaml_config(link_name)
