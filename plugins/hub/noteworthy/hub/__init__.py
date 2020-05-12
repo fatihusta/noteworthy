@@ -80,7 +80,7 @@ class HubController(NoteworthyPlugin):
 
     def _gen_link_wg_keys(self):
         link_wg_key = subprocess.check_output(['wg', 'genkey']).strip()
-        wg_pubkey_proc = subprocess.Popen(['wg', 'genkey'], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+        wg_pubkey_proc = subprocess.Popen(['wg', 'pubkey'], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
         link_wg_pubkey = wg_pubkey_proc.communicate(link_wg_key)[0].strip()
         return link_wg_key.decode(), link_wg_pubkey.decode()
 
@@ -140,8 +140,8 @@ class HubController(NoteworthyPlugin):
                  for link_name in link_names]
         for link in links:
             self._get_or_create_link(link['name'], link['domain_regex'],
-                                     link['pub_key'], link['link_wg_key'],
-                                     link['wg_port'], link['udp_proxy_port'])
+                                     link['pub_key'], link['wg_port'],
+                                     link['udp_proxy_port'])
 
     def _read_yaml_config(self, filename):
         file_path = os.path.join(self.config_dir, f'{filename}.yaml')
