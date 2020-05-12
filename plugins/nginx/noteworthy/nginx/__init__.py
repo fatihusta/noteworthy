@@ -34,14 +34,14 @@ class NginxController(NoteworthyPlugin):
         '''
         os.system("nginx -g 'daemon off;'")
 
-    def poll_for_good_status(self, endpoint, max_tries=30):
+    def poll_for_good_status(self, endpoint, max_tries=15):
         '''
         Poll http endpoint until we get a good http response (< 400)
         '''
         import time
         from http import client
         def do_request(endpoint, count=0):
-            c = client.HTTPConnection(endpoint, timeout=1)
+            c = client.HTTPConnection(endpoint, timeout=5)
             c.request('GET', '/')
             resp = c.getresponse()
             if resp.status < 400:
