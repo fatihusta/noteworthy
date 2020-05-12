@@ -56,11 +56,12 @@ class HubController(NoteworthyPlugin):
         allowed = re.compile(r'(?!-)[A-Z\d-]{1,63}(?<!-)$', re.IGNORECASE)
         return all(allowed.match(x) for x in hostname.split('.'))
 
-    def _get_or_create_link(self, link_name, domain_regex, pub_key, wg_port=None, udp_proxy_port=None):
+    def _get_or_create_link(self, link_name, domain_regex, pub_key, link_wg_key=None, link_wg_pubkey=None, wg_port=None, udp_proxy_port=None):
         try:
             link_node = self.docker.containers.get(link_name)
         except docker.errors.NotFound:
-            link_wg_key, link_wg_pubkey = self._gen_link_wg_keys()
+            if not (link_wg_key and link_wg_pubkey):
+                link_wg_key, link_wg_pubkey = self._gen_link_wg_keys()
             return self._create_link_from_config(link_name, domain_regex, pub_key, link_wg_key, link_wg_pubkey, wg_port, udp_proxy_port)
 
         try:
@@ -140,7 +141,8 @@ class HubController(NoteworthyPlugin):
                  for link_name in link_names]
         for link in links:
             self._get_or_create_link(link['name'], link['domain_regex'],
-                                     link['pub_key'], link['wg_port'],
+                                     link['pub_key'], link['link_wg_key'],
+                                     link['link_wg_pubkey'], link['wg_port'],
                                      link['udp_proxy_port'])
 
     def _read_yaml_config(self, filename):
