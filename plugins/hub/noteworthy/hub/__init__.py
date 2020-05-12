@@ -37,7 +37,7 @@ class HubController(NoteworthyPlugin):
         return {
             "link_wg_endpoint": f"{os.environ['NOTEWORTHY_HUB']}:{link_wg_port}",
             "link_udp_proxy_endpoint": f"{os.environ['NOTEWORTHY_HUB']}:{link_udp_proxy_port}",
-            "link_wg_pubkey": link_wg_pubkey}
+            "link_wg_pubkey": link_node['Config']['Env']['LINK_WG_PUBKEY'] }
 
     def _validate_domain_regex(self, domains):
         for domain in domains:
@@ -107,7 +107,8 @@ class HubController(NoteworthyPlugin):
                 'NOTEWORTHY_ROLE': 'link',
                 'NOTEWORTHY_DOMAIN_REGEX': domain_regex,
                 'TAPROOT_PUBKEY': pub_key,
-                'LINK_WG_KEY': link_wg_key
+                'LINK_WG_KEY': link_wg_key,
+                'LINK_WG_PUBKEY': link_wg_pubkey
             },
             restart_policy={"Name": "always"})
 
