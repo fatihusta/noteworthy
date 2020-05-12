@@ -81,8 +81,8 @@ class HubController(NoteworthyPlugin):
     def _gen_link_wg_keys(self):
         link_wg_key = subprocess.check_output(['wg', 'genkey']).strip()
         wg_pubkey_proc = subprocess.Popen(['wg', 'genkey'], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
-        link_wg_pubkey = wg_pubkey_proc.communicate(link_wg_key)[0].strip().decode()
-        return link_wg_key, link_wg_pubkey
+        link_wg_pubkey = wg_pubkey_proc.communicate(link_wg_key)[0].strip()
+        return link_wg_key.decode(), link_wg_pubkey.decode()
 
     def _does_match_config(self, current_config, domain_regex, pub_key):
         return (current_config.get('pub_key') == pub_key) and (current_config.get('domain_regex') == domain_regex)
