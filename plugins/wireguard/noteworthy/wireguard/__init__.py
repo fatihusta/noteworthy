@@ -63,7 +63,7 @@ class WireGuardController(NoteworthyPlugin):
                 from noteworthy.reservation_client import ReservationController
                 rc = ReservationController.get_grpc_stub(f"{os.environ['NOTEWORTHY_HUB']}:8000")
                 res = rc.reserve_domain(os.environ['NOTEWORTHY_DOMAIN'], pubkey, os.environ['NOTEWORTHY_AUTH_CODE'])
-                self.store_link(res.link_wg_endpoint, res.link_wg_pubkey, res.link_udp_proxy_endpoint)
+                self.store_link(res.link_wg_endpoint, res.link_wg_pubkey, res.link_udp_proxy_endpoint, res.link_udp_proxy_endpoint_2)
                 peer_pubkey = res.link_wg_pubkey
                 endpoint = res.link_wg_endpoint
             else:
@@ -77,8 +77,8 @@ class WireGuardController(NoteworthyPlugin):
         wg.init('wg0', my_ip, wg_key_path)
         wg.add_peer('wg0', peer_pubkey, peer_ip, endpoint)
 
-    def store_link(self, endpoint, pubkey, link_udp_proxy_endpoint):
-        link_data = {'endpoint': endpoint, 'pubkey': pubkey, 'udp_proxy_endpoint': link_udp_proxy_endpoint}
+    def store_link(self, endpoint, pubkey, link_udp_proxy_endpoint, link_udp_proxy_endpoint_2):
+        link_data = {'endpoint': endpoint, 'pubkey': pubkey, 'udp_proxy_endpoint': link_udp_proxy_endpoint, 'udp_proxy_endpoint_2': link_udp_proxy_endpoint_2}
         with open(os.path.join(self.config_dir, 'link.yaml'), 'w') as yaml_file:
             yaml_file.write(yaml.dump(link_data))
 
