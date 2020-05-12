@@ -148,7 +148,7 @@ class HubController(NoteworthyPlugin):
             self._get_or_create_link(link['name'], link['domain_regex'],
                                      link['pub_key'], link['link_wg_key'],
                                      link['link_wg_pubkey'], link['wg_port'],
-                                     link['udp_proxy_port'], link['udp_proxy_port_2'])
+                                     link['udp_proxy_port'], link.get('udp_proxy_port_2'))
 
     def _read_yaml_config(self, filename):
         file_path = os.path.join(self.config_dir, f'{filename}.yaml')
