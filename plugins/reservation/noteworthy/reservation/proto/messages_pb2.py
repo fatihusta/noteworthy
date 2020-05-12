@@ -18,7 +18,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   package='noteworthy_reservation',
   syntax='proto3',
   serialized_options=None,
-  serialized_pb=b'\n\x0emessages.proto\x12\x16noteworthy_reservation\"H\n\x12ReservationRequest\x12\x0e\n\x06\x64omain\x18\x01 \x01(\t\x12\x0f\n\x07pub_key\x18\x02 \x01(\t\x12\x11\n\tauth_code\x18\x03 \x01(\t\"h\n\x13ReservationResponse\x12\x18\n\x10link_wg_endpoint\x18\x01 \x01(\t\x12\x16\n\x0elink_wg_pubkey\x18\x02 \x01(\t\x12\x1f\n\x17link_udp_proxy_endpoint\x18\x03 \x01(\tb\x06proto3'
+  serialized_pb=b'\n\x0emessages.proto\x12\x16noteworthy_reservation\"H\n\x12ReservationRequest\x12\x0e\n\x06\x64omain\x18\x01 \x01(\t\x12\x0f\n\x07pub_key\x18\x02 \x01(\t\x12\x11\n\tauth_code\x18\x03 \x01(\t\"\x8b\x01\n\x13ReservationResponse\x12\x18\n\x10link_wg_endpoint\x18\x01 \x01(\t\x12\x16\n\x0elink_wg_pubkey\x18\x02 \x01(\t\x12\x1f\n\x17link_udp_proxy_endpoint\x18\x03 \x01(\t\x12!\n\x19link_udp_proxy_endpoint_2\x18\x04 \x01(\tb\x06proto3'
 )
 
 
@@ -97,6 +97,13 @@ _RESERVATIONRESPONSE = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='link_udp_proxy_endpoint_2', full_name='noteworthy_reservation.ReservationResponse.link_udp_proxy_endpoint_2', index=3,
+      number=4, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -109,8 +116,8 @@ _RESERVATIONRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=116,
-  serialized_end=220,
+  serialized_start=117,
+  serialized_end=256,
 )
 
 DESCRIPTOR.message_types_by_name['ReservationRequest'] = _RESERVATIONREQUEST

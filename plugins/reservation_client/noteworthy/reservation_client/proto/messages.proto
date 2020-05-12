@@ -18,4 +18,5 @@ message ReservationResponse {
     string link_wg_endpoint = 1;
     string link_wg_pubkey = 2;
     string link_udp_proxy_endpoint = 3;
+    string link_udp_proxy_endpoint_2 = 4;
 }

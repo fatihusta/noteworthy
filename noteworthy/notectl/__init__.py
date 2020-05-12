@@ -47,16 +47,17 @@ class NoteworthyController:
         print(f'Version: {self.version_string}')
     version.clicz_aliases = ['version']
 
-    def protoc(self, **kwargs):
+    @cli_method
+    def protoc(self, file_name):
         '''
-        $ notectl protoc <service.proto>
-        '''
-        '''Generate protobuf Python gRPC
-           TODO move to dev-tools plugin
+        Generate protobuf python message types
+        ---
+        Args:
+            file_name: Name of file to gen protobuf python messages for
         '''
         from grpc_tools import protoc
         cwd = os.getcwd()
-        protoc.main([f'-I{cwd}', '--python_out=.', '--grpc_python_out=.', kwargs['action']])
+        protoc.main([f'-I{cwd}', '--python_out=.', '--grpc_python_out=.', file_name])
 
     def get_installed_apps(self):
         '''

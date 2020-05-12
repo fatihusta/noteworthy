@@ -29,6 +29,7 @@ class HubController(NoteworthyPlugin):
         link_node = self._get_or_create_link(link_name, domain_regex, pub_key)
         link_wg_port = link_node.attrs['NetworkSettings']['Ports']['18521/udp'][0]['HostPort']
         link_udp_proxy_port = link_node.attrs['NetworkSettings']['Ports']['18522/udp'][0]['HostPort']
+        link_udp_proxy_port_2 = link_node.attrs['NetworkSettings']['Ports']['18523/udp'][0]['HostPort']
         link_ip = link_node.attrs['NetworkSettings']['Networks']['noteworthy']['IPAddress']
         from noteworthy.nginx import NginxController
         nc = NginxController()
@@ -37,6 +38,7 @@ class HubController(NoteworthyPlugin):
         return {
             "link_wg_endpoint": f"{os.environ['NOTEWORTHY_HUB']}:{link_wg_port}",
             "link_udp_proxy_endpoint": f"{os.environ['NOTEWORTHY_HUB']}:{link_udp_proxy_port}",
+            "link_udp_proxy_endpoint_2": f"{os.environ['NOTEWORTHY_HUB']}:{link_udp_proxy_port_2}",
             "link_wg_pubkey": [ env_var for env_var in link_node.attrs['Config']['Env'] if 'LINK_WG_PUBKEY' in env_var ][0].split('=', 1)[1] }
 
     def _validate_domain_regex(self, domains):
@@ -56,26 +58,26 @@ class HubController(NoteworthyPlugin):
         allowed = re.compile(r'(?!-)[A-Z\d-]{1,63}(?<!-)$', re.IGNORECASE)
         return all(allowed.match(x) for x in hostname.split('.'))
 
-    def _get_or_create_link(self, link_name, domain_regex, pub_key, link_wg_key=None, link_wg_pubkey=None, wg_port=None, udp_proxy_port=None):
+    def _get_or_create_link(self, link_name, domain_regex, pub_key, link_wg_key=None, link_wg_pubkey=None, wg_port=None, udp_proxy_port=None, udp_proxy_port_2=None):
         try:
             link_node = self.docker.containers.get(link_name)
         except docker.errors.NotFound:
             if not (link_wg_key and link_wg_pubkey):
                 link_wg_key, link_wg_pubkey = self._gen_link_wg_keys()
-            return self._create_link_from_config(link_name, domain_regex, pub_key, link_wg_key, link_wg_pubkey, wg_port, udp_proxy_port)
+            return self._create_link_from_config(link_name, domain_regex, pub_key, link_wg_key, link_wg_pubkey, wg_port, udp_proxy_port, udp_proxy_port_2)
 
         try:
             current_config = self._read_yaml_config(link_name)
         except IOError:
             link_node.remove(force=True)
             link_wg_key, link_wg_pubkey = self._gen_link_wg_keys()
-            return self._create_link_from_config(link_name, domain_regex, pub_key, link_wg_key, link_wg_pubkey, wg_port, udp_proxy_port)
+            return self._create_link_from_config(link_name, domain_regex, pub_key, link_wg_key, link_wg_pubkey, wg_port, udp_proxy_port, udp_proxy_port_2)
 
         does_match = self._does_match_config(current_config, domain_regex, pub_key)
         if not does_match:
             link_node.remove(force=True)
             link_wg_key, link_wg_pubkey = self._gen_link_wg_keys()
-            link_node = self._create_link_from_config(link_name, domain_regex, pub_key, link_wg_key, link_wg_pubkey, wg_port, udp_proxy_port)
+            link_node = self._create_link_from_config(link_name, domain_regex, pub_key, link_wg_key, link_wg_pubkey, wg_port, udp_proxy_port, udp_proxy_port_2)
 
         return link_node
 
@@ -88,7 +90,7 @@ class HubController(NoteworthyPlugin):
     def _does_match_config(self, current_config, domain_regex, pub_key):
         return (current_config.get('pub_key') == pub_key) and (current_config.get('domain_regex') == domain_regex)
 
-    def _create_link_from_config(self, link_name, domain_regex, pub_key, link_wg_key, link_wg_pubkey, wg_port=None, udp_proxy_port=None):
+    def _create_link_from_config(self, link_name, domain_regex, pub_key, link_wg_key, link_wg_pubkey, wg_port=None, udp_proxy_port=None, udp_proxy_port_2=None):
         release_tag = self._load_release_tag()
         link_node = self.docker.containers.run(
             f'decentralabs/noteworthy:hub-{release_tag}',
@@ -101,7 +103,8 @@ class HubController(NoteworthyPlugin):
             entrypoint='notectl link start',
             ports={
                 '18521/udp': wg_port,
-                '18522/udp': udp_proxy_port
+                '18522/udp': udp_proxy_port,
+                '18523/udp': udp_proxy_port_2
             },
             detach=True,
             environment={
@@ -121,11 +124,13 @@ class HubController(NoteworthyPlugin):
             if link_node.status == 'running':
                 wg_port = link_node.attrs['NetworkSettings']['Ports']['18521/udp'][0]['HostPort']
                 udp_proxy_port = link_node.attrs['NetworkSettings']['Ports']['18522/udp'][0]['HostPort']
+                udp_proxy_port_2 = link_node.attrs['NetworkSettings']['Ports']['18523/udp'][0]['HostPort']
                 self._write_yaml_config(link_name, {
                     'domain_regex': domain_regex,
                     'pub_key': pub_key,
                     'wg_port': wg_port,
                     'udp_proxy_port': udp_proxy_port,
+                    'udp_proxy_port_2': udp_proxy_port_2,
                     'link_wg_key': link_wg_key,
                     'link_wg_pubkey': link_wg_pubkey
                 })
@@ -143,7 +148,7 @@ class HubController(NoteworthyPlugin):
             self._get_or_create_link(link['name'], link['domain_regex'],
                                      link['pub_key'], link['link_wg_key'],
                                      link['link_wg_pubkey'], link['wg_port'],
-                                     link['udp_proxy_port'])
+                                     link['udp_proxy_port'], link['udp_proxy_port_2'])
 
     def _read_yaml_config(self, filename):
         file_path = os.path.join(self.config_dir, f'{filename}.yaml')
