@@ -17,6 +17,7 @@ class LinkController(NoteworthyPlugin):
         '''start link, blocking
         '''
         self.start_dependencies()
-        os.system('socat UDP4-RECVFROM:18522,fork UDP4-SENDTO:10.0.0.2:18522,sp=18523,reuseaddr')
+        os.system('socat UDP4-RECVFROM:18522,fork UDP4-SENDTO:10.0.0.2:18522,sp=18524,reuseaddr &')
+        os.system('socat UDP4-RECVFROM:18523,fork UDP4-SENDTO:10.0.0.2:18522,sp=18525,reuseaddr')
     
 Controller = LinkController
