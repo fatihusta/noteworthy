@@ -58,33 +58,25 @@ class HubController(NoteworthyPlugin):
 
     def _get_or_create_link(self, link_name, domain_regex, pub_key, wg_port=None, udp_proxy_port=None):
         try:
+            link_node = self.docker.containers.get(link_name)
+        except docker.errors.NotFound:
+            link_wg_key, link_wg_pubkey = self._gen_link_wg_keys()
+            return self._create_link_from_config(link_name, domain_regex, pub_key, link_wg_key, link_wg_pubkey, wg_port)
+
+        try:
             current_config = self._read_yaml_config(link_name)
-            does_match = self._does_match_config(current_config, domain_regex, pub_key)
-            if not does_match:
-                try:
-                    link_node = self.docker.containers.get(link_name)
-                    link_node.remove(force=True)
-                except docker.errors.NotFound:
-                    link_wg_key, link_wg_pubkey = self._gen_link_wg_keys()
-                    return self._create_link_from_config(link_name, domain_regex, pub_key, link_wg_key,
-                                                            link_wg_pubkey, wg_port, udp_proxy_port)
-            else:
-                try:
-                    link_node = self.docker.containers.get(link_name)
-                    return link_node
-                except docker.errors.NotFound:
-                    link_wg_key, link_wg_pubkey = self._gen_link_wg_keys()
-                    return self._create_link_from_config(link_name, domain_regex, pub_key, link_wg_key,
-                                                            link_wg_pubkey, wg_port, udp_proxy_port)
         except IOError:
-            try:
-                link_node = self.docker.containers.get(link_name)
-                link_node.remove(force=True)
-            except docker.errors.NotFound:
-                link_wg_key, link_wg_pubkey = self._gen_link_wg_keys()
-                return self._create_link_from_config(link_name, domain_regex, pub_key, link_wg_key,
-                                                                    link_wg_pubkey, wg_port, udp_proxy_port)
-            return link_node
+            link_node.remove(force=True)
+            link_wg_key, link_wg_pubkey = self._gen_link_wg_keys()
+            return self._create_link_from_config(link_name, domain_regex, pub_key, link_wg_key, link_wg_pubkey, wg_port, udp_proxy_port)
+
+        does_match = self._does_match_config(current_config, domain_regex, pub_key)
+        if not does_match:
+            link_node.remove(force=True)
+            link_wg_key, link_wg_pubkey = self._gen_link_wg_keys()
+            link_node = self._create_link_from_config(link_name, domain_regex, pub_key, link_wg_key, link_wg_pubkey, wg_port, udp_proxy_port)
+
+        return link_node
 
     def _gen_link_wg_keys(self):
         link_wg_key = subprocess.check_output(['wg', 'genkey']).strip()
