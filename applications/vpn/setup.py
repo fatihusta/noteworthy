@@ -18,5 +18,6 @@ setup(name='noteworthy-vpn',
       install_requires=[],
       cmdclass={
             'install': CustomInstallCommand,
-      }
+      },
+      include_package_data=True
       )
