@@ -7,6 +7,8 @@ setup(name='matrixbz',
       packages=find_packages(),
       zip_safe=False,
       install_requires=[
-        'matrix-nio==0.10.0'
+        'matrix-nio==0.10.0',
+        'requests==2.23.0',
+        'Pillow==7.1.2'
       ]
      )
