@@ -1,7 +1,14 @@
 from setuptools import setup, find_namespace_packages
 from setuptools.command.install import install
+from setuptools.command.develop import develop
 
 class CustomInstallCommand(install):
+    """Customized setuptools install command - prints a friendly greeting."""
+    def run(self):
+          super().run()
+          self.spawn(['./install.sh'])
+
+class CustomDevelopCommand(develop):
     """Customized setuptools install command - prints a friendly greeting."""
     def run(self):
           super().run()
@@ -18,6 +25,7 @@ setup(name='noteworthy-vpn',
       install_requires=[],
       cmdclass={
             'install': CustomInstallCommand,
+            'develop': CustomDevelopCommand
       },
       include_package_data=True
       )
