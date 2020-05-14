@@ -93,14 +93,13 @@ class HubController(NoteworthyPlugin):
     def _create_link_from_config(self, link_name, domain_regex, pub_key, link_wg_key, link_wg_pubkey, wg_port=None, udp_proxy_port=None, udp_proxy_port_2=None):
         release_tag = self._load_release_tag()
         link_node = self.docker.containers.run(
-            f'decentralabs/noteworthy:hub-{release_tag}',
+            f'decentralabs/noteworthy:link-{release_tag}',
             tty=True,
             cap_add=['NET_ADMIN'],
             network='noteworthy',
             stdin_open=True,
             name=link_name,
             #auto_remove=True,
-            entrypoint='notectl link start',
             ports={
                 '18521/udp': wg_port,
                 '18522/udp': udp_proxy_port,
