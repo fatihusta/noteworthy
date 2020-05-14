@@ -15,7 +15,12 @@ def add_peer(interface, pubkey, allowed_ips, endpoint=None, keepalive='30'):
     os.system(cmd)
 
 def add_interface(interface):
-    os.system(f'ip link add {interface} type wireguard')
+    if os.path.exists('/usr/bin/wireguard-go'):
+        os.system('mkdir -p /dev/net')
+        os.system('mknod /dev/net/tun c 10 200')
+        os.system(f'wireguard-go {interface}')
+    else:
+        os.system(f'ip link add {interface} type wireguard')
 
 def remove_interface(interface):
     os.system(f'ip link del dev {interface}')
