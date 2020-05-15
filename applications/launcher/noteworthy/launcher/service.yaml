@@ -2,11 +2,11 @@ app: launcher
 plugins:
   shared:
     - wireguard
-    - http_service
     - nginx
   hub:
     - grpc
     - hub
     - reservation
+    - http_service
   taproot:
     - reservation_client

@@ -55,11 +55,6 @@ def mock_poll_for_good_status(monkeypatch):
     return do_mock
 
 @mock.patch('os.system')
-def test_nginx_run(os_system, nc):
-    nc.run()
-    os_system.assert_called_once_with("nginx -g 'daemon off;'")
-
-@mock.patch('os.system')
 def test_nginx_reload(os_system, nc):
     nc._reload()
     os_system.assert_called_once_with("nginx -s reload")
@@ -74,13 +69,13 @@ def test_poll_for_good_status(mock_poll_for_good_status, nc):
         nc.poll_for_good_status('testaddress.dev', 1)
     assert 'testaddress.dev failed' in str(excepinfo)
 
-def test_start_nginx_fail(nc):
-    nc.nginx_pid_file = 'no_exist.pid'
-    # test poll for nginx start
-    with pytest.raises(Exception) as exception:
-        nc.nginx_start_poll_count = 1
-        nc.start()
-    assert 'Giving up waiting for nginx to start.' in str(exception)
+# def test_start_nginx_fail(nc):
+#     nc.nginx_pid_file = 'no_exist.pid'
+#     # test poll for nginx start
+#     with pytest.raises(Exception) as exception:
+#         nc.nginx_start_poll_count = 1
+#         nc.start()
+#     assert 'Giving up waiting for nginx to start.' in str(exception)
 
 def test_start_nginx_link(nc, monkeypatch):
     monkeypatch.setenv('NOTEWORTHY_ROLE', 'link')

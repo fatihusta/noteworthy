@@ -28,12 +28,6 @@ class NginxController(NoteworthyPlugin):
         self.tls_backend_dir = os.path.join(self.config_dir, 'backends')
         self.letsencrypt_bk = os.path.join(self.config_dir, 'letsencrypt')
 
-    @cli_method
-    def run(self):
-        '''start nginx, blocking
-        '''
-        os.system("nginx -g 'daemon off;'")
-
     def poll_for_good_status(self, endpoint, max_tries=15):
         '''
         Poll http endpoint until we get a good http response (< 400)
@@ -54,18 +48,8 @@ class NginxController(NoteworthyPlugin):
 
 
     def start(self, **kwargs):
-        self._start(self.PLUGIN_NAME)
-        # wait for nginx to start
-        count = 0
-        while not os.path.exists(self.nginx_pid_file) and count <= self.nginx_start_poll_count:
-            time.sleep(1)
-            running = os.path.exists(self.nginx_pid_file)
-            if running:
-                break
-            if count == self.nginx_start_poll_count:
-                raise Exception('Giving up waiting for nginx to start. Check nginx config.')
-            count = count + 1
-
+        os.system('nginx')
+        time.sleep(1)
         if self.is_first_run:
             self.create_config_dir()
             Path(self.sites_dir).mkdir(exist_ok=True)
@@ -145,7 +129,10 @@ class NginxController(NoteworthyPlugin):
         '''
         Get Let's Encrypt certs wit Certbot
         '''
-        os.system(f'certbot certonly --non-interactive --agree-tos --webroot -m hi@decentralabs.io -w /var/www/html -d {domains_str}')
+        if os.environ['NOTEWORTHY_ENV'] in ['beta']:
+            os.system(f'certbot certonly --non-interactive --agree-tos --webroot -m hi@decentralabs.io -w /var/www/html -d {domains_str}')
+        else:
+            os.system(f'certbot certonly --non-interactive --agree-tos --webroot -m hi@decentralabs.io -w /var/www/html -d {domains_str} --test-cert')
 
     def _install_letsencrypt_cert(self, domain: str):
         os.system(f'certbot install --cert-path /etc/letsencrypt/live/{domain}/cert.pem --key-path /etc/letsencrypt/live/{domain}/privkey.pem --fullchain-path /etc/letsencrypt/live/{domain}/fullchain.pem -d {domain} --redirect')

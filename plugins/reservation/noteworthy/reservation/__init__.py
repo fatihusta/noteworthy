@@ -72,8 +72,8 @@ class ReservationController(NoteworthyPlugin):
         labels = domain.split('.')
         base_domain = '.'.join(labels[-2:])
         subdomain = '.'.join(labels[:-2])
-        if '.' in subdomain:
-            raise Exception('Reserved domains must be of syntax: "sub.domain.tld"')
+        #if '.' in subdomain:
+        #    raise Exception('Reserved domains must be of syntax: "sub.domain.tld"')
         if (not subdomain) and (base_domain == 'noteworthy.im'):
             raise Exception('Cannot reserve noteworthy.im')
         return base_domain, subdomain
@@ -97,14 +97,15 @@ class ReservationController(NoteworthyPlugin):
         return django
 
     @cli_method
-    def invite(self, email: str):
+    def invite(self, email: str, max_reservations: int = 1):
         '''invite a user to the Noteworthy beta
         ---
         Args:
             email: Email of user to generate invite for
+            max_reservations: Maximum number of allowed reservations (set to 0 for unlimited)
         '''
         from noteworthy.reservation.api.models import User
-        User.objects.create_user(email)
+        User.objects.create_user(email, num_reservations_allowed=int(max_reservations))
         print(f"{email}: {User.objects.provision_auth_codes(1)[0].auth_code}")
 
     invite.clicz_aliases = ['invite']
