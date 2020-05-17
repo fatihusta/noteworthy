@@ -46,3 +46,5 @@ for plugin in $NOTEWORTHY_DIR/plugins/*/; do
     fi
     cd -
 done
+
+pytest
