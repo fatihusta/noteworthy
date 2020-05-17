@@ -4,6 +4,10 @@ NOTEWORTHY_DIR=$WORKSPACE/notectl
 
 pip install -r $NOTEWORTHY_DIR/requirements.dev.txt
 
+cd $NOTEWORTHY_DIR
+rm -rf build/ dist/
+python setup.py install
+
 cd $NOTEWORTHY_DIR/matrixbz
 rm -rf build/ dist/
 python setup.py install
@@ -29,10 +33,6 @@ rm -rf build/ dist/
 python setup.py install
 
 cd $NOTEWORTHY_DIR/applications/vpn
-rm -rf build/ dist/
-python setup.py install
-
-cd $NOTEWORTHY_DIR/noteworthy
 rm -rf build/ dist/
 python setup.py install
 
