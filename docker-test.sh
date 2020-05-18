@@ -47,4 +47,5 @@ for plugin in $NOTEWORTHY_DIR/plugins/*/; do
     cd -
 done
 
+cd $NOTEWORTHY_DIR
 pytest
