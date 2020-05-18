@@ -23,6 +23,7 @@ class MatrixChatBotController(NoteworthyPlugin):
         if self.is_first_run:
             self.create_config_dir()
             self._create_bots()
+            self.commit_successful_config()
         else:
             self.restart_bots()
 

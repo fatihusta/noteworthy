@@ -37,6 +37,7 @@ class WelcomeBotController(NoteworthyPlugin):
                 'whitelist': [address]
             }
             self._write_yaml_config('auth', auth_config)
+            self.commit_successful_config()
         auth = self._read_yaml_config('auth')
         self.USER_WHITELIST = auth.get('whitelist')
         self.first_run_file = os.path.join(self.config_dir, 'first_run')

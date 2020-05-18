@@ -63,6 +63,7 @@ class NginxController(NoteworthyPlugin):
                 self.poll_for_good_status(os.environ['NOTEWORTHY_DOMAIN'])
                 # Request Let's Encrypt certs with certbot
                 self.get_tls_certs([os.environ['NOTEWORTHY_DOMAIN'], f"matrix.{os.environ['NOTEWORTHY_DOMAIN']}"])
+            self.commit_successful_config()
         else:
             self._reconfigure_nginx()
             self._reload()

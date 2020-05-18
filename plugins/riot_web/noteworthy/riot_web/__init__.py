@@ -26,6 +26,7 @@ class RiotWebController(NoteworthyPlugin):
             configs = {'domain': os.environ['NOTEWORTHY_DOMAIN']}
             self._generate_file_from_template(
                 config_tmpl, config_target, configs)
+            self.commit_successful_config()
 
     def _generate_file_from_template(self, tmpl_path, target, configs):
         with open(tmpl_path, 'r') as f:

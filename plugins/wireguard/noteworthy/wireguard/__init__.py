@@ -76,6 +76,8 @@ class WireGuardController(NoteworthyPlugin):
 
         wg.init('wg0', my_ip, wg_key_path)
         wg.add_peer('wg0', peer_pubkey, peer_ip, endpoint)
+        if self.is_first_run:
+            self.commit_successful_config()
 
     def store_link(self, endpoint, pubkey, link_udp_proxy_endpoint, link_udp_proxy_endpoint_2):
         link_data = {'endpoint': endpoint, 'pubkey': pubkey, 'udp_proxy_endpoint': link_udp_proxy_endpoint, 'udp_proxy_endpoint_2': link_udp_proxy_endpoint_2}

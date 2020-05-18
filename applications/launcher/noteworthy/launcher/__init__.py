@@ -144,6 +144,7 @@ class LauncherController(NoteworthyPlugin):
                 self._generate_file_from_template(os.path.join(self.deploy_dir, 'server'),
                     os.path.join(well_know_target, 'server'),
                     {'domain': os.environ['NOTEWORTHY_DOMAIN']})
+                self.commit_successful_config()
 
         print('Noteworthy Launcher started!')
         # TODO tail log file
@@ -172,7 +173,7 @@ class LauncherController(NoteworthyPlugin):
             print('Welcome to Noteworthy Messenger! Powered by Matrix.')
             print('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
             print("Let's create your Noteworthy Messenger account.\nUse these credentials to login"
-                  " to Noteworthy Messenger's Web and Mobile App. \nThis user will have administrator" 
+                  " to Noteworthy Messenger's Web and Mobile App. \nThis user will have administrator"
                   " privileges so please (ALWAYS) chooose a strong password.")
             while True:
                 username = input('Username: ')

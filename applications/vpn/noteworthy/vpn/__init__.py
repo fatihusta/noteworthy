@@ -47,6 +47,8 @@ class VpnController(NoteworthyPlugin):
             wg.genkey(device_wg_key_path)
             shutil.copy(self.wg_config_template_path, os.path.join(self.config_dir, f'{device_name}.conf'))
             self._gen_device_config(device_name)
+        if self.is_first_run:
+            self.commit_successful_config()
 
     def _gen_device_config(self, device_name: str, device_type: str = 'mobile'):
         conf_file = os.path.join(self.config_dir, f'{device_name}.conf')

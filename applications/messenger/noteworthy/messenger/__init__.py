@@ -85,6 +85,7 @@ class MessengerController(NoteworthyPlugin):
         if was_first_run:
             # TODO password should be passed a more secure way
             self.create_user(os.environ['MATRIX_USER'], os.environ['MATRIX_PASSWORD'], True)
+            self.commit_successful_config()
         self.start_dependencies()
         os.chdir(self.config_dir)
         self._poll_for_homeserver_log()

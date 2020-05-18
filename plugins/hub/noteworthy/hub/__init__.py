@@ -21,6 +21,7 @@ class HubController(NoteworthyPlugin):
     def start(self):
         if self.is_first_run:
             self.create_config_dir()
+            self.commit_successful_config()
         else:
             self._restart_links()
 

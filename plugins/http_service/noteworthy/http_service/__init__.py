@@ -21,7 +21,8 @@ class HttpServiceController(NoteworthyPlugin):
         if self.is_first_run:
             self.create_config_dir()
         os.system('python manage.py migrate')
-        #os.system('python manage.py runserver 0.0.0.0:8001')
+        if self.is_first_run:
+            self.commit_successful_config()
 
     def start(self, **kwargs):
         self._start(self.PLUGIN_NAME)
