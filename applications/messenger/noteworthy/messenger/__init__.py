@@ -74,6 +74,9 @@ class MessengerController(NoteworthyPlugin):
     def start(self, *args, **kwargs):
         '''daemonize messenger
         '''
+        if 'migration' in self.plugins:
+            migration_controller = self.plugins['migration'].Controller()
+            migration_controller.start() # run migrations before anything else
         was_first_run = False
         if self.is_first_run:
             self._run_first_time_setup()
