@@ -48,4 +48,4 @@ for plugin in $NOTEWORTHY_DIR/plugins/*/; do
 done
 
 cd $NOTEWORTHY_DIR
-pytest
+pytest -m "not integration"
