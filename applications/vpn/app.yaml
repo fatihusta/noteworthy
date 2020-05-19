@@ -1,3 +1,4 @@
 app:     vpn
 plugins:
+  - migration
   - grpc

@@ -1,6 +1,7 @@
 app:       messenger
 plugins:
   shared:
+    - migration
     - riot_web
     - welcome_bot
     - matrix_chat_bot

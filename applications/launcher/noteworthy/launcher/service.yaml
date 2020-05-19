@@ -1,6 +1,7 @@
-app: launcher
+app:       launcher
 plugins:
   shared:
+    - migration
     - wireguard
     - nginx
   hub:
