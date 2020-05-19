@@ -19,7 +19,8 @@ def launch_hub(hub):
     os.system('docker volume rm noteworthy-launcher-hub-integration-vol')
     os.system('docker rm -f noteworthy-launcher-hub-integration')
     os.system(f'notectl launcher launch_hub {hub} --profile integration')
-    time.sleep(5)
+    # TODO poll for ready state via healthcheck
+    time.sleep(10)
     yield
     os.system('docker rm -f noteworthy-launcher-hub-integration')
     os.system('docker volume rm noteworthy-launcher-hub-integration-vol')
