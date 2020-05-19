@@ -34,7 +34,7 @@ class NoteworthyPlugin:
 
     def create_config_dir(self, clean=True):
         if clean:
-            shutil.rmtree(self.config_dir)
+            shutil.rmtree(self.config_dir, ignore_errors=True)
         Path(self.config_dir).mkdir(exist_ok=True)
 
     def commit_successful_config(self):
