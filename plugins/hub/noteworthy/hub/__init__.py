@@ -17,6 +17,7 @@ class HubController(NoteworthyPlugin):
     def __init__(self):
         super().__init__(__file__)
         self.docker = docker.from_env()
+        self.link_dir = os.path.join(self.config_dir, 'links')
 
     def start(self):
         if self.is_first_run:
@@ -139,9 +140,8 @@ class HubController(NoteworthyPlugin):
         raise Exception('Timeout exceeding waiting for link to enter running state.')
 
     def _restart_links(self):
-        # TODO this works because only link.yaml files are in the config atm
         link_names = [link_file.replace('.yaml', '')
-                      for link_file in os.listdir(self.config_dir)]
+                      for link_file in os.listdir(self.link_dir)]
         links = [dict(self._read_yaml_config(link_name), name=link_name)
                  for link_name in link_names]
         for link in links:
@@ -151,13 +151,13 @@ class HubController(NoteworthyPlugin):
                                      link['udp_proxy_port'], link.get('udp_proxy_port_2'))
 
     def _read_yaml_config(self, filename):
-        file_path = os.path.join(self.config_dir, f'{filename}.yaml')
+        file_path = os.path.join(self.link_dir, f'{filename}.yaml')
         with open(file_path, 'r') as f:
             res = yaml.safe_load(f.read())
         return res
 
     def _write_yaml_config(self, filename, data):
-        file_path = os.path.join(self.config_dir, f'{filename}.yaml')
+        file_path = os.path.join(self.link_dir, f'{filename}.yaml')
         with open(file_path, 'w') as f:
             f.write(yaml.dump(data))
         return file_path
