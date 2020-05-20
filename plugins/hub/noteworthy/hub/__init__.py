@@ -2,6 +2,7 @@ import os
 import re
 import subprocess
 import time
+from pathlib import Path
 
 import docker
 import yaml
@@ -22,6 +23,7 @@ class HubController(NoteworthyPlugin):
     def start(self):
         if self.is_first_run:
             self.create_config_dir()
+            Path(self.link_dir).mkdir(exist_ok=True, parents=True)
             self.commit_successful_config()
         else:
             self._restart_links()
