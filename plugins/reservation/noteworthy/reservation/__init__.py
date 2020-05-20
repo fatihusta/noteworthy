@@ -19,7 +19,7 @@ class ReservationController(NoteworthyPlugin):
     DJANGO_APP_MODULE = 'noteworthy.reservation.api'
     DOMAIN_BLACKLIST = {
         'noteworthy.im': set([
-            None, 'hub', 'get', 'git', 'www', 'support', 'docs', 'mail'])
+            None, '', 'hub', 'get', 'git', 'www', 'support', 'docs', 'mail'])
     }
 
     def __init__(self):
@@ -60,6 +60,7 @@ class ReservationController(NoteworthyPlugin):
             hc = HubController()
             link_info = hc.provision_link(
                 link_name=link_name, domains=link_domains, pub_key=pub_key)
+            from noteworthy.reservation.api.models import Link
             Link.objects.create(
                 name = link_name, user=user, reservation=reservation,
                 wg_endpoint = link_info['link_wg_endpoint'],
@@ -68,8 +69,9 @@ class ReservationController(NoteworthyPlugin):
             link_info['error'] = None
         except Exception as e:
             link_info = {
-                'user': None, 'reservation': None, 'wg_endpoint': None,
-                'udp_proxy_endpoint': None, 'wg_pubkey': None, 'error': str(e)
+                'link_wg_endpoint': None, 'link_wg_pubkey': None,
+                'link_udp_proxy_endpoint': None,
+                'link_udp_proxy_endpoint_2': None, 'error': str(e)
             }
         return link_info
 

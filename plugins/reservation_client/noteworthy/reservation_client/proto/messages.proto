@@ -5,6 +5,18 @@ package noteworthy_reservation;
 
 
 message ReservationRequest {
+  // mydomain.noteworthy.im
+  string domain = 1;
+  // auth_key / invitation code
+  string auth_code = 2;
+}
+
+message ReservationResponse {
+  string success = 1;
+  string error = 2;
+}
+
+message LinkRequest {
     // mydomain.noteworthy.im
     string domain = 1;
     // wireguard pub key
@@ -13,10 +25,10 @@ message ReservationRequest {
     string auth_code = 3;
 }
 
-message ReservationResponse {
-    // wireguard endpoint ip
+message LinkResponse {
     string link_wg_endpoint = 1;
     string link_wg_pubkey = 2;
     string link_udp_proxy_endpoint = 3;
     string link_udp_proxy_endpoint_2 = 4;
+    string error = 5;
 }

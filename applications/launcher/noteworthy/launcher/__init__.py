@@ -239,9 +239,9 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\n''')
             if not invite_code:
                 invite_code = input(f'Enter your invite code [{invite_code}]: ')
             reservationresponse = rc.reserve_domain(domain, invite_code)
-            success = reservation.get('success')
+            success = reservationresponse.success
             if not success:
-                error = reservation.get('error')
+                error = reservationresponse.error
                 print(f'Failed to reserve {domain}. Server Response:\n\t{error}\n')
                 # TODO: intelligently invalidate either domain or invite_code
                 domain = None
