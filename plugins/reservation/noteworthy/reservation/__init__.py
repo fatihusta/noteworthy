@@ -78,13 +78,19 @@ class ReservationController(NoteworthyPlugin):
     def _get_user_by_auth(self, auth_code):
         from noteworthy.reservation.api.models import User
         if not isinstance(auth_code, uuid.UUID):
-            auth_code = uuid.UUID(auth_code) # determine is valid uuid
-        user = User.objects.get(auth_code=auth_code)
+            try:
+                auth_code = uuid.UUID(auth_code) # determine is valid uuid
+            except:
+                raise Exception('[AUTH ERROR] Invite codes must be valid UUIDs.')
+        try:
+            user = User.objects.get(auth_code=auth_code)
+        except:
+            raise Exception('[AUTH ERROR] No record found for invite code.')
         return user
 
     def _validate_reservation(self, user, base_domain, subdomain):
         if subdomain in self.DOMAIN_BLACKLIST.get(base_domain, set()):
-            raise Exception(f'Cannot reserve {subdomain}.{base_domain}')
+            raise Exception(f'[DOMAIN ERROR] Cannot reserve {subdomain}.{base_domain}')
         from noteworthy.reservation.api.models import Reservation
         user_reservations = Reservation.objects.filter(user=user)
         matching_reservation = user_reservations.filter(base_domain=base_domain,
@@ -102,26 +108,26 @@ class ReservationController(NoteworthyPlugin):
 
     def _check_reservation(self, user, base_domain, subdomain):
         if subdomain in self.DOMAIN_BLACKLIST.get(base_domain, set()):
-            raise Exception(f'Cannot use {subdomain}.{base_domain}')
+            raise Exception(f'[DOMAIN ERROR] Cannot use {subdomain}.{base_domain}')
         from noteworthy.reservation.api.models import Reservation
         user_reservations = Reservation.objects.filter(user=user)
         matching_reservation = user_reservations.filter(base_domain=base_domain,
                                                         subdomain=subdomain)
         if not matching_reservation.exists():
             raise Exception(
-                f'{user} does not have {subdomain}.{base_domain} reserved!')
+                f'[DOMAIN ERROR] {user} does not have {subdomain}.{base_domain} reserved!')
         return matching_reservation[0]
 
     def _validate_domain(self, domain, is_reservation=False):
         if not self._is_valid_hostname(domain):
-            raise Exception('Domain must be a valid hostname')
+            raise Exception('[DOMAIN ERROR] Domain must be a valid hostname')
         if profanity.contains_profanity(domain):
-            raise Exception('Profanity Detected in domain.')
+            raise Exception('[DOMAIN ERROR] Profanity Detected in domain.')
         labels = domain.split('.')
         base_domain = '.'.join(labels[-2:])
         subdomain = '.'.join(labels[:-2])
         if is_reservation and '.' in subdomain:
-            raise Exception('Reserved domains must be of syntax: "sub.domain.tld"')
+            raise Exception('[DOMAIN ERROR] Reserved domains must be of syntax: <sub.domain.tld>')
         return base_domain, subdomain
 
     def _is_valid_hostname(self, hostname):

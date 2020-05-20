@@ -243,9 +243,13 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\n''')
             if not success:
                 error = reservationresponse.error
                 print(f'Failed to reserve {domain}. Server Response:\n\t{error}\n')
-                # TODO: intelligently invalidate either domain or invite_code
-                domain = None
-                invite_code = None
+                if error.startswith('[DOMAIN ERROR]'):
+                    domain = None
+                elif error.startswith('[AUTH ERROR]'):
+                    invite_code = None
+                else:
+                    domain = None
+                    invite_code = None
         return argparse.Namespace(domain=domain, invite_code=invite_code,
                                   hub=hub, profile=profile)
 
