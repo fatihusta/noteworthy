@@ -62,7 +62,7 @@ class WireGuardController(NoteworthyPlugin):
                 # provision link node
                 from noteworthy.reservation_client import ReservationController
                 rc = ReservationController.get_grpc_stub(f"{os.environ['NOTEWORTHY_HUB']}:8000")
-                res = rc.reserve_domain(os.environ['NOTEWORTHY_DOMAIN'], pubkey, os.environ['NOTEWORTHY_AUTH_CODE'])
+                res = rc.create_link(os.environ['NOTEWORTHY_DOMAIN'], pubkey, os.environ['NOTEWORTHY_AUTH_CODE'])
                 self.store_link(res.link_wg_endpoint, res.link_wg_pubkey, res.link_udp_proxy_endpoint, res.link_udp_proxy_endpoint_2)
                 peer_pubkey = res.link_wg_pubkey
                 endpoint = res.link_wg_endpoint

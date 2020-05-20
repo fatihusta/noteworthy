@@ -11,6 +11,7 @@ class User(AbstractBaseUser):
     date_joined = models.DateTimeField(default=timezone.now)
     auth_code = models.UUIDField(blank=True, null=True)
     num_reservations_allowed = models.PositiveSmallIntegerField(default=1)
+    num_links_allowed = models.PositiveSmallIntegerField(default=1)
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
 
@@ -28,6 +29,7 @@ class Reservation(models.Model):
         unique_together = [['base_domain', 'subdomain']]
 
 class Link(models.Model):
+    name = models.CharField(max_length=255, blank=True, null=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     reservation = models.ForeignKey(Reservation, on_delete=models.CASCADE)
     wg_endpoint = models.CharField(max_length=255)

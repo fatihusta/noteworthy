@@ -208,9 +208,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\n''')
                 print('You must accept the terms of service to continue.')
                 sys.exit(2)
 
-
-        if not args.domain or not args.invite_code:
-            args = self._install_launcher_interactive(args.hub, args.profile, domain=args.domain, invite_code=args.invite_code)
+        args = self._install_launcher_interactive(args.hub, args.profile, domain=args.domain, invite_code=args.invite_code)
 
         if not args.invite_code:
             print('invite-code is required to provision Noteworthy Launcher.')
@@ -225,16 +223,31 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\n''')
         except:
             pass
 
-        c = self.launch_launcher_taproot(args.domain, args.hub, args.invite_code,
-                                        args.profile)
+        c = self.launch_launcher_taproot(args.domain, args.hub,
+                                         args.invite_code, args.profile)
         if not self.args.no_install_messenger:
             dockerpty.exec_command(self.docker.api, c.id, 'notectl install messenger')
 
-    def _install_launcher_interactive(self, hub, profile, domain=None, invite_code=None):
-        domain = input(f'Enter your domain [{domain}]: ') or domain
-        # TODO make sure domain is available
-        invite_code = input(f'Enter your invite code [{invite_code}]: ') or invite_code
-        return argparse.Namespace(domain=domain, invite_code=invite_code, hub=hub, profile=profile)
+    def _install_launcher_interactive(self, hub, profile, domain=None,
+                                      invite_code=None):
+        from noteworthy.reservation_client import ReservationController
+        rc = ReservationController.get_grpc_stub(f"{hub}:8000")
+        success = False
+        while not success:
+            if not domain:
+                domain = input(f'Enter your domain [{domain}]: ')
+            if not invite_code:
+                invite_code = input(f'Enter your invite code [{invite_code}]: ')
+            reservationresponse = rc.reserve_domain(domain, invite_code)
+            success = reservation.get('success')
+            if not success:
+                error = reservation.get('error')
+                print(f'Failed to reserve {domain}. Server Response:\n\t{error}\n')
+                # TODO: intelligently invalidate either domain or invite_code
+                domain = None
+                invite_code = None
+        return argparse.Namespace(domain=domain, invite_code=invite_code,
+                                  hub=hub, profile=profile)
 
     def launch_messenger(self, username: str, password: str, profile: str = 'default'):
         '''launch an messenger
