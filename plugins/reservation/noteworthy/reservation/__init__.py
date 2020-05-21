@@ -148,8 +148,8 @@ class ReservationController(NoteworthyPlugin):
         distinct_links = set([link.name for link in user_links])
         if link_name in distinct_links:
             return
-        if len(distinct_links) >= user.num_links_allowed:
-            raise Error(f'{user} has reached link limit')
+        if user.num_links_allowed and len(distinct_links) >= user.num_links_allowed:
+            raise Exception(f'{user} has reached link limit')
 
     def _setup_django(self):
         os.environ['DJANGO_SETTINGS_MODULE'] = 'noteworthy.http_service.rest_api.rest_api.settings'
