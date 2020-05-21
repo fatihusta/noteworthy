@@ -145,7 +145,7 @@ class ReservationController(NoteworthyPlugin):
     def _check_links(self, user, link_name):
         from noteworthy.reservation.api.models import Link
         user_links = Link.objects.filter(user=user)
-        distinct_links = set([link.name for link in user_links])
+        distinct_links = set([link.name for link in user_links if link.name])
         if link_name in distinct_links:
             return
         if user.num_links_allowed and len(distinct_links) >= user.num_links_allowed:
