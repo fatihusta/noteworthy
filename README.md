@@ -2,7 +2,7 @@
 
 Noteworthy is an experimental distributed networking toolkit. It is similar to existing personal networking products such as ZeroTier and TailScale but is 100% community powered, free and open source software. 
 
-Noteworthy's development is sponsored by Decentralabs LLC, a Wyoming based telecommuniations research and development firm that specializes in the development free and open source telecommunications infrastucture.
+Noteworthy's development is sponsored by Decentralabs LLC, a Wyoming based telecommuniations research and development firm that specializes in the development of open source telecommunications systems and next-generation digital infrastructure solutions.
 
 # A Cost Gravity Accelerator
 Noteworthy is an ambitious open source project that aims to lower the costs of designing, deploying, maintaning trusted distributed overlay networks and the applications that run on top of them. It is not enough for Noteworthy to be open source, technical complexity contributes substantially to the excessive cost of access.
