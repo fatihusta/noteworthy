@@ -1,0 +1,10 @@
+FROM python:3.8
+
+RUN mkdir -p /opt/noteworthy; pip install pip --upgrade
+ADD . /opt/noteworthy/
+RUN /opt/noteworthy/docker-dev.sh
+
+ENV NOTEWORTHY_ENV dev
+ENV NOTECTL_ENV SYSTEM
+WORKDIR /opt/noteworthy
+ENTRYPOINT ["bash"]
