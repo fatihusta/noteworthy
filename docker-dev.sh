@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# This script is used to produce the Noteworthy development environment container.
+
+
 pip install -r /opt/noteworthy/requirements.dev.txt
 
 cd /opt/noteworthy/matrixbz
