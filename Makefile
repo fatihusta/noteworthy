@@ -28,7 +28,7 @@ gatling:
 	docker run --network noteworthy --rm -it -v $(ROOT_DIR)/perftest/gatling/user-files:/opt/gatling/user-files -v $(ROOT_DIR)/perftest/gatling/results:/opt/gatling/results --name noteworthy-gatling-$(shell date +"%H-%M_%m-%d") denvazh/gatling -s $(SIM_NAME)
 
 docker:
-	docker build --build-arg GIT_COMMIT=$(GIT_COMMIT) --build-arg RELEASE_TAG=$(RELEASE_TAG) -t decentralabs/noteworthy:$(ROLE)-$(RELEASE_TAG) -f Dockerfile.$(ROLE) notectl
+	docker build --build-arg GIT_COMMIT=$(GIT_COMMIT) --build-arg RELEASE_TAG=$(RELEASE_TAG) -t decentralabs/noteworthy:$(ROLE)-$(RELEASE_TAG) -f Dockerfile.$(ROLE) .
 
 docker-push:
 	echo ${DOCKERHUB_PSW}| docker login -u ${DOCKERHUB_USR} --password-stdin
