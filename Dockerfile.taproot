@@ -42,7 +42,7 @@ RUN cd /opt/noteworthy/plugins; ./install-release-plugins.sh welcome_bot
 ADD plugins/matrix_chat_bot /opt/noteworthy/plugins/matrix_chat_bot
 RUN cd /opt/noteworthy/plugins; ./install-release-plugins.sh matrix_chat_bot
 ADD plugins/riot_web /opt/noteworthy/plugins/riot_web
-RUN curl -L https://github.com/vector-im/element-web/releases/download/v1.7.8/riot-v1.7.8.tar.gz > /opt/noteworthy/plugins/riot_web/noteworthy/riot_web/deploy/webapp.tar.gz
+RUN curl -L https://github.com/vector-im/element-web/releases/download/v1.7.9/riot-v1.7.9.tar.gz > /opt/noteworthy/plugins/riot_web/noteworthy/riot_web/deploy/webapp.tar.gz
 RUN cd /opt/noteworthy/plugins; ./install-release-plugins.sh riot_web
 ADD plugins/migration /opt/noteworthy/plugins/migration
 RUN cd /opt/noteworthy/plugins; ./install-release-plugins.sh migration
