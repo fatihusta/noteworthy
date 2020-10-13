@@ -1,0 +1,55 @@
+FROM python:3.8
+
+#RUN apk add bash python3 py3-pip build-base python3-dev libffi-dev openssl-dev
+RUN apt-get update && apt-get upgrade -y && apt-get install iptables -y && rm -rf /var/lib/apt/lists/*
+RUN mkdir -p /opt/noteworthy/applications; mkdir /opt/noteworthy/plugins; mkdir /opt/noteworthy/profiles;\
+pip install pip --upgrade
+#ln -s /usr/bin/python3 /usr/bin/python
+
+ARG RELEASE_TAG
+ARG GIT_COMMIT
+
+ADD requirements.base.txt /opt/noteworthy
+RUN pip install -r /opt/noteworthy/requirements.base.txt;
+
+ADD grpcz /opt/noteworthy/grpcz
+RUN cd /opt/noteworthy/grpcz; python setup.py install;
+
+ADD clicz /opt/noteworthy/clicz
+RUN cd /opt/noteworthy/clicz; python setup.py install;
+
+
+ADD setup.py /opt/noteworthy/
+ADD noteworthy /opt/noteworthy/noteworthy
+RUN cd /opt/noteworthy; python setup.py install;
+
+ADD plugins/install-release-plugins.sh /opt/noteworthy/plugins
+# add/install plugins
+# TODO collect plugin install.sh and run them before installing python module
+ADD plugins/reservation /opt/noteworthy/plugins/reservation
+RUN cd /opt/noteworthy/plugins; ./install-release-plugins.sh reservation
+ADD plugins/grpc /opt/noteworthy/plugins/grpc
+RUN cd /opt/noteworthy/plugins; ./install-release-plugins.sh grpc
+ADD plugins/hub /opt/noteworthy/plugins/hub
+RUN cd /opt/noteworthy/plugins; ./install-release-plugins.sh hub
+ADD plugins/link /opt/noteworthy/plugins/link
+RUN cd /opt/noteworthy/plugins; ./install-release-plugins.sh link
+ADD plugins/nginx /opt/noteworthy/plugins/nginx
+RUN cd /opt/noteworthy/plugins; ./install-release-plugins.sh nginx
+ADD plugins/wireguard /opt/noteworthy/plugins/wireguard
+RUN cd /opt/noteworthy/plugins; ./install-release-plugins.sh wireguard
+ADD plugins/http_service /opt/noteworthy/plugins/http_service
+RUN cd /opt/noteworthy/plugins; ./install-release-plugins.sh http_service
+ADD plugins/migration /opt/noteworthy/plugins/migration
+RUN cd /opt/noteworthy/plugins; ./install-release-plugins.sh migration
+
+ADD applications/launcher /opt/noteworthy/applications/launcher
+RUN cd /opt/noteworthy/applications/launcher; rm -rf build/ dist/; python setup.py install;
+
+RUN  echo "${RELEASE_TAG}" > /opt/noteworthy/release; echo "${GIT_COMMIT}" > /opt/noteworthy/commit
+
+ENV NOTEWORTHY_ROLE hub
+ENV NOTEWORTHY_ENV $RELEASE_TAG
+ENV NOTECTL_ENV SYSTEM
+
+ENTRYPOINT ["notectl"]
