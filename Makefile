@@ -19,7 +19,7 @@ help:
 	@echo
 
 test:
-	./notectl/run-tests.sh
+	./run-tests.sh
 
 integration-test:
 	HUB_IP=$(HUB_IP) ./notectl/run-tests.sh integration

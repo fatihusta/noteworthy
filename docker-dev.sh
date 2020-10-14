@@ -33,6 +33,10 @@ cd /opt/noteworthy/applications/vpn
 rm -rf build/ dist/
 python setup.py develop
 
+cd /opt/noteworthy/applications/cms
+rm -rf build/ dist/
+python setup.py develop
+
 cd /opt/noteworthy
 rm -rf build/ dist/
 python setup.py develop

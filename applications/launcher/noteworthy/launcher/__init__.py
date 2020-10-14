@@ -64,6 +64,11 @@ class LauncherController(NoteworthyPlugin):
 
         release_tag = self._load_release_tag()
         # deploy launcher / launcher-hub
+        # TestCase: make appropriate Docker network is created
+        try:
+            self.docker.networks.create('noteworthy', check_duplicate=True)
+        except:
+            pass
         self.docker.containers.run(f"decentralabs/noteworthy:{app_env['NOTEWORTHY_ROLE']}-{release_tag}",
         entrypoint='notectl launcher start',
         tty=True,
@@ -100,6 +105,11 @@ class LauncherController(NoteworthyPlugin):
 
         release_tag = self._load_release_tag()
         # deploy launcher / launcher-hub
+        # TODO each profile should get a dedicated network
+        try:
+            self.docker.networks.create('noteworthy', check_duplicate=True)
+        except:
+            pass
         return self.docker.containers.run(f"decentralabs/noteworthy:{app_env['NOTEWORTHY_ROLE']}-{release_tag}",
         entrypoint='notectl launcher start',
         tty=True,
@@ -216,12 +226,6 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\n''')
         elif not args.domain:
             print('domain is required to provision Noteworthy Launcher')
             sys.exit(2)
-
-        # TODO each profile should get a dedicated network
-        try:
-            self.docker.networks.create('noteworthy', check_duplicate=True)
-        except:
-            pass
 
         c = self.launch_launcher_taproot(args.domain, args.hub,
                                          args.invite_code, args.profile)

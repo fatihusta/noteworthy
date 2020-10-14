@@ -1,0 +1,13 @@
+FROM alpine:latest
+
+ARG RELEASE_TAG
+
+ADD link-entrypoint.sh /usr/bin/link-entrypoint.sh
+ADD bin/wireguard-go-alpine-x86 /usr/bin/wireguard-go
+
+RUN apk add build-base git iptables socat linux-headers; git clone https://git.zx2c4.com/wireguard-tools;\
+make -C wireguard-tools/src; make -C wireguard-tools/src install
+
+ENV NOTEWORTHY_ENV $RELEASE_TAG
+
+ENTRYPOINT [ "link-entrypoint.sh" ]

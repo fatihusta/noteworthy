@@ -28,15 +28,14 @@ controller_name = ''.join([word.title() for word in app_name.split('_')])
 INIT_TEXT = f'''from noteworthy.notectl.plugins import NoteworthyPlugin
 from grpcz import grpc_controller, grpc_method
 
-@grpc_controller
 class {controller_name}Controller(NoteworthyPlugin):
 
-    app_name = '{module_name}'
+    PLUGIN_NAME = '{module_name}'
+    USER_CLI = True
 
     def __init__(self):
         pass
 
-    @grpc_method
     def start(self, **kwargs):
         self._start(self.PLUGIN_NAME)
 
@@ -44,7 +43,6 @@ class {controller_name}Controller(NoteworthyPlugin):
         raise NotImplementedError(
             f'Method run not implemented for {{self.__class__.__name__}}')
 
-    @grpc_method
     def check_health(self, **kargs):
         return 'OK'
 
