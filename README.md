@@ -1,6 +1,6 @@
 # Noteworthy
 
-Noteworthy is a free and open source personal and collaborative tooling ecosystem that combines existing best-in-class open source collaboration tools with an innovative Matrix protocol powered distrubuted overlay networking framework to empower the collaborative self-hosting of personal and organizational online services.
+Noteworthy is a free and open source collaborative tooling ecosystem that combines existing best-in-class open source collaboration tools with an innovative Matrix sub-protocol distrubuted overlay networking framework that enables collaborative self-hosting of personal and organizational online services.
 
 Noteworthy is comprised of a collection of Matrix powered meta-protocols for establishing secure and private distributed overlay networks. In some aspects, it is similar to existing personal networking products such as ZeroTier or TailScale but is 100% community powered, non-commercial free and open source software.
 
