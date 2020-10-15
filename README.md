@@ -1,17 +1,18 @@
 # Noteworthy
 
-Noteworthy is an experimental distributed networking protocol and collaborative tooling ecosytem that aims to bring distrubuted overlay networks and self-hosted online services into the mainstream. Noteworthy is comprised of a collection Matrix based sub-protocols and meta-protocols for establishing trustful distributed overlay networks. It is similar in some aspects to existing personal networking products such as ZeroTier or TailScale but is 100% community powered, free and open source software.
+Noteworthy is a free and open source personal and collaborative tooling ecosystem that combines existing best-in-class open source collaboration tools with an innovative Matrix protocol powered distrubuted overlay networking framework to empower the collaborative self-hosting of personal and organizational online services.
 
-Noteworthy makes it easy to deploy publically accessible web services behind a distributed network of blind TLS reverse-proxies (think ngrok) therefore making it possible to run a federation capable Matrix home server on a host that is not directly accessible to the public internet. Noteworthy accomplishes this with a Hub and Spoke topology. In Noteworthy parlance we call spokes "Taproots" which represent the end-user's primary home server.
+Noteworthy is comprised of a collection of Matrix powered meta-protocols for establishing secure and private distributed overlay networks. In some aspects, it is similar to existing personal networking products such as ZeroTier or TailScale but is 100% community powered, non-commercial free and open source software.
 
-Because Noteworthy builds on the Matrix decentralized messaging protocol, it aims to be the fastest and easiest way to deploy a federation capable Matrix home server.
+Noteworthy makes it easy to deploy publically accessible online services behind a distributed network of transparent TLS reverse-proxies (think ngrok but decentralized). Noteworthy accomplishes this with a distributed Hub and Spoke topology. A distributed network of transparent reverse TLS proxies enables Noteworthy to ship a federation capable Matrix home server that can be deployed to hosts behind firewalls / NAT or that are otherwise not accessible to the public internet. In Noteworthy parlance we call these deployments "Taproots" and the distributed network of transparent proxies that serve them "Hubs". A Taproot is a dedicated host that functions as a Noteworthy end-user's primary home server. A Hub is a publically accessible host running the Noteworthy Hub software described below. Taproot's must be invited in order to receieve inbound connectivity via a Noteworthy Hub.
+
 
 # Getting Started
 Docker is the only requirement to get started with Noteworthy.
 
 The `notectl` command-line utility is the primary interface for interacting with Noteworthy.
 ```
-$ bash <(curl -s get.noteworthy.im)
+$ bash <(curl -s https://get.noteworthy.im)
 ```
 
 The above script will pull the `decentralabs/noteworthy:taproot-beta` Docker container and start the interactive installation process. You will need to request an invite to the public Decentralabs Hub if you are not planning on deploying your own Hub as described below.
@@ -73,8 +74,9 @@ notectl-hub-dev() {
 
 Launch the Hub container:
 ```
-$ notectl-hub-dev launcher launch_hub
+$ notectl-hub-dev launcher launch_hub hub.example.com
 ```
+Replace `hub.example.com` in the above example with the FQDN of your hub.
 
 # Noteworthy Team
 Noteworthy's development is sponsored by Decentralabs LLC, a Wyoming based telecommuniations research and development firm that specializes in the development of open source telecommunications systems and next-generation digital infrastructure solutions.

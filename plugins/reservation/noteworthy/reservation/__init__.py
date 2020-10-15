@@ -2,6 +2,7 @@ import os
 import docker
 import re
 import uuid
+import sys
 
 from better_profanity import profanity
 from grpcz import grpc_controller, grpc_method
@@ -158,16 +159,35 @@ class ReservationController(NoteworthyPlugin):
         return django
 
     @cli_method
-    def invite(self, email: str, max_reservations: int = 1):
+    def invite(self, email: str, max_reservations: int = 1, profile: str = 'default', no_confirm: bool = False):
         '''invite a user to the Noteworthy beta
         ---
         Args:
             email: Email of user to generate invite for
             max_reservations: Maximum number of allowed reservations (set to 0 for unlimited)
+            profile: The hub you'd like to invite to. Defaults to 'default'
+            no_confirm: Don't confirm invite creation
         '''
         from noteworthy.reservation.api.models import User
-        User.objects.create_user(email, num_reservations_allowed=int(max_reservations))
-        print(f"{email}: {User.objects.provision_auth_codes(1)[0].auth_code}")
+        from django.db.utils import OperationalError
+        try:
+            User.objects.create_user(email, num_reservations_allowed=int(max_reservations))
+            print(f"{email}: {User.objects.provision_auth_codes(1)[0].auth_code}")
+        except OperationalError:
+            # pass invocation to hub container so this will work from ephemeral notectl invocation
+            client = docker.from_env()
+            # TODO: filter by profile
+            hub_containers = client.containers.list(filters={'label':'role=hub', 'label':f'profile={profile}'})
+            if not hub_containers:
+                print(f'Hub {profile} not found. Try invoking this command in the Hub container directly.')
+            if len(hub_containers) > 1:
+                raise Exception('Multiple Hubs with same profile found. Not sure where to invite.')
+            if not no_confirm:
+                res = input(f'Create invite on Noteworthy Hub {profile}? (yes/no): ')
+                if not res.lower() in ['y', 'yes', 'yeah']:
+                    sys.exit(1)
+            result = hub_containers[0].exec_run(f"notectl invite {email} --max-reservations {max_reservations}")
+            print(result.output.decode().strip())
 
     invite.clicz_aliases = ['invite']
 

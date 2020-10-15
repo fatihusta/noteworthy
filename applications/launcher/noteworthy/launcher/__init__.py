@@ -80,7 +80,8 @@ class LauncherController(NoteworthyPlugin):
         ports=ports,
         detach=True,
         environment=app_env,
-        restart_policy={"Name": "always"})
+        restart_policy={"Name": "always"},
+        labels={'role':'hub', 'profile': profile})
 
     def launch_launcher_taproot(self, domain: str, hub_host: str,
                                     auth_code: str, profile: str):
