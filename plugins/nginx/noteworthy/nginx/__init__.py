@@ -164,17 +164,27 @@ class NginxController(NoteworthyPlugin):
 
     def store_link(self, app_name: str, domain: str, ip_addr: str):
         link = { 'domain': f'{domain}',
-                    'endpoint': f'{ip_addr}:443'}
+                 'endpoint': f'{ip_addr}:443',
+                 'name': f'{app_name}'}
 
         with open(os.path.join(self.tls_backend_dir, f'{app_name}.yaml'), 'w') as link_file:
             link_file.write(yaml.dump(link))
 
     def get_link_set(self):
 
-        links = [ self.read_yaml_file(os.path.join(self.tls_backend_dir, link_file))
+        links = [ self.get_link(link_file)
                     for link_file in os.listdir(self.tls_backend_dir) ]
         return {
             'backends': links
         }
+
+    def get_link(self, link_file: str):
+        record = self.read_yaml_file(os.path.join(self.tls_backend_dir, link_file))
+        if(record.get('name')):
+            return record
+        # generate a name for links that did not have a name
+        name = os.path.splitext(link_file)[0]
+        record['name'] = name
+        return record
 
 Controller = NginxController

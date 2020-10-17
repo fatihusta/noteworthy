@@ -34,11 +34,10 @@ class HubController(NoteworthyPlugin):
         link_wg_port = link_node.attrs['NetworkSettings']['Ports']['18521/udp'][0]['HostPort']
         link_udp_proxy_port = link_node.attrs['NetworkSettings']['Ports']['18522/udp'][0]['HostPort']
         link_udp_proxy_port_2 = link_node.attrs['NetworkSettings']['Ports']['18523/udp'][0]['HostPort']
-        link_ip = link_node.attrs['NetworkSettings']['Networks']['noteworthy']['IPAddress']
         from noteworthy.nginx import NginxController
         nc = NginxController()
-        nc.add_tls_stream_backend(link_name, domain_regex, link_ip)
-        nc.set_http_proxy_pass(link_name, domain_regex, link_ip)
+        nc.add_tls_stream_backend(link_name, domain_regex, link_name)
+        nc.set_http_proxy_pass(link_name, domain_regex, link_name)
         return {
             "link_wg_endpoint": f"{os.environ['NOTEWORTHY_HUB']}:{link_wg_port}",
             "link_udp_proxy_endpoint": f"{os.environ['NOTEWORTHY_HUB']}:{link_udp_proxy_port}",
