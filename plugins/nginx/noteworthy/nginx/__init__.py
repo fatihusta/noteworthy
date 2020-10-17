@@ -105,7 +105,7 @@ class NginxController(NoteworthyPlugin):
         self._reload()
 
     def set_http_proxy_pass(self, app_name: str, domain: str, ip_addr: str,
-        template_path: str = None):
+        template_path: str = None, reload: bool = True):
         '''
         add new "virtualhost" site to nginx (ie noteworthy app)
         <app>.conf to nginx_sites_enabled
@@ -119,7 +119,8 @@ class NginxController(NoteworthyPlugin):
             output_file.write(rendered_config)
         with open(os.path.join(self.sites_dir, f'{app_name}.conf'), 'w') as output_file:
             output_file.write(rendered_config)
-        self._reload()
+        if reload:
+            self._reload()
 
     def add_tls_stream_backend(self, app_name: str, domain: str, ip_addr: str):
         self.store_link(app_name, domain, ip_addr)
