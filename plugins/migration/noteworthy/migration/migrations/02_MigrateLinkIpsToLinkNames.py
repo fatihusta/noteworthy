@@ -24,4 +24,6 @@ def run_migration():
         for backend in backends:
             if backend['name'].startswith('link'):
                 nc.store_link(backend['name'], backend['domain'], backend['name'])
-                nc.set_http_proxy_pass(backend['name'], backend['domain'], backend['name'], reload: False)
+                nc.set_http_proxy_pass(backend['name'], backend['domain'], backend['name'], reload = False)
+        bk = nc.get_link_set()
+        nc.write_config(bk)
