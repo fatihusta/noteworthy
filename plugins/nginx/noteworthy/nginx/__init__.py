@@ -105,7 +105,7 @@ class NginxController(NoteworthyPlugin):
         self._reload()
 
     def set_http_proxy_pass(self, app_name: str, domain: str, ip_addr: str,
-        template_path: str = None):
+        template_path: str = None, reload: bool = True):
         '''
         add new "virtualhost" site to nginx (ie noteworthy app)
         <app>.conf to nginx_sites_enabled
@@ -119,7 +119,8 @@ class NginxController(NoteworthyPlugin):
             output_file.write(rendered_config)
         with open(os.path.join(self.sites_dir, f'{app_name}.conf'), 'w') as output_file:
             output_file.write(rendered_config)
-        self._reload()
+        if reload:
+            self._reload()
 
     def add_tls_stream_backend(self, app_name: str, domain: str, ip_addr: str):
         self.store_link(app_name, domain, ip_addr)
@@ -164,17 +165,27 @@ class NginxController(NoteworthyPlugin):
 
     def store_link(self, app_name: str, domain: str, ip_addr: str):
         link = { 'domain': f'{domain}',
-                    'endpoint': f'{ip_addr}:443'}
+                 'endpoint': f'{ip_addr}:443',
+                 'name': f'{app_name}'}
 
         with open(os.path.join(self.tls_backend_dir, f'{app_name}.yaml'), 'w') as link_file:
             link_file.write(yaml.dump(link))
 
     def get_link_set(self):
 
-        links = [ self.read_yaml_file(os.path.join(self.tls_backend_dir, link_file))
+        links = [ self.get_link(link_file)
                     for link_file in os.listdir(self.tls_backend_dir) ]
         return {
             'backends': links
         }
+
+    def get_link(self, link_file: str):
+        record = self.read_yaml_file(os.path.join(self.tls_backend_dir, link_file))
+        if(record.get('name')):
+            return record
+        # generate a name for links that did not have a name
+        name = os.path.splitext(link_file)[0]
+        record['name'] = name
+        return record
 
 Controller = NginxController
