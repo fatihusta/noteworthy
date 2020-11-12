@@ -1,10 +1,18 @@
 # Noteworthy
 
-Noteworthy is a free and open source collaborative tooling ecosystem that combines existing best-in-class open source collaboration tools with an innovative Matrix sub-protocol distrubuted overlay networking framework that enables collaborative self-hosting of personal and organizational online services.
+Noteworthy is free and open source software that combines existing best-in-class open source collaboration tools with a Matrix powered meta-protocol in order to enable the collaborative self-hosting of personal online services.
 
-Noteworthy is comprised of a collection of Matrix powered meta-protocols for establishing secure and private distributed overlay networks. In some aspects, it is similar to existing personal networking products such as ZeroTier or TailScale but is 100% community powered, non-commercial free and open source software.
+Noteworthy makes it easy for non-technical users to establish Wireguard powered distributed overlay networks. In some respects, Noteworthy is similar to existing commercially available personal networking products such as ZeroTier and TailScale, but is much more ambitious and will always be 100% community powered, non-commercial free and open source software. Noteworthy aims to become the catalyst and toolbelt of a non-commercial user owned web.
 
-Noteworthy makes it easy to deploy publically accessible online services behind a distributed network of transparent TLS reverse-proxies (think ngrok but decentralized). Noteworthy accomplishes this with a distributed Hub and Spoke topology. A distributed network of transparent reverse TLS proxies enables Noteworthy to ship a federation capable Matrix home server that can be deployed to hosts behind firewalls / NAT or that are otherwise not accessible to the public internet. In Noteworthy parlance we call these deployments "Taproots" and the distributed network of transparent proxies that serve them "Hubs". A Taproot is a dedicated host that functions as a Noteworthy end-user's primary home server. A Hub is a publically accessible host running the Noteworthy Hub software described below. Taproot's must be invited in order to receieve inbound connectivity via a Noteworthy Hub.
+With Noteworthy a non-technical user can deploy publically accessible online services behind a distributed network of transparent TLS reverse-proxies (think ngrok but decentralized). This is made possible with a distributed hub and spoke topology that is coordinated via the decentralized Matrix protocol. A distributed network of transparent reverse proxies enables federation capable Matrix home servers to be deployed to hosts behind firewalls, carrier-grade NATs or hosts otherwise not accessible to the public internet. In Noteworthy parlance we call the end-user deployments "roots" and the distributed network of transparent proxies tha service them "hubs". A root is a dedicated host that functions as a Noteworthy user's primary server. The goal is to enable users to operate both roots and hubs collaboratively with individuals they already know and trust IRL (in real life).
+
+Noteworthy aims to provide the following apps and services as a 1-click plug-and-play solution:
+
+- Instant Messaging/Voice/Video  - Powered by Matrix (Element/Synapse) (done)
+- Social - Chupacabra, a Matrix powered content sharing and discussion client (coming soon, in-progress)
+- Email/Calendar/Contacts - Powered by Mail-in-a-Box (coming soon, in-progress)
+- Voice and Video Conferencing - Jitsi (coming soon)
+- Publishing - Ghost CMS (coming soon)
 
 
 # Getting Started
@@ -85,3 +93,4 @@ Contributions to this project are welcomed and encouraged!
 
 Contact us on Matrix - #noteworthy:tincan.community
 
+"WireGuard" is a registered trademark of Jason A. Donenfeld.
