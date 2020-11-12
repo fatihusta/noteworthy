@@ -21,6 +21,7 @@ class HttpServiceController(NoteworthyPlugin):
         if self.is_first_run:
             self.create_config_dir()
         os.system('python manage.py migrate')
+        os.system('gunicorn rest_api.wsgi&')
         if self.is_first_run:
             self.commit_successful_config()
 

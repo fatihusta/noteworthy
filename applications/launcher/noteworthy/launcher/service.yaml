@@ -5,7 +5,6 @@ plugins:
     - wireguard
     - nginx
   hub:
-    - grpc
     - hub
     - reservation
     - http_service

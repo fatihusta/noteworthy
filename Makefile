@@ -41,4 +41,4 @@ docker-push:
 	echo $(shell date) > .dev-last-build
 
 dev shell: .dev-last-build
-	docker run --network noteworthy --rm -it -v /usr/local/bin/docker:/usr/local/bin/docker -v /var/run/docker.sock:/var/run/docker.sock -v $(ROOT_DIR):/opt/noteworthy --name noteworthy-dev-$(shell date +"%H-%M_%m-%d") noteworthy:dev
+	docker run -p '127.0.0.1:8000:8000' --network noteworthy --rm -it -v /usr/local/bin/docker:/usr/local/bin/docker -v /var/run/docker.sock:/var/run/docker.sock -v $(ROOT_DIR):/opt/noteworthy --name noteworthy-dev-$(shell date +"%H-%M_%m-%d") noteworthy:dev
