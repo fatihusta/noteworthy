@@ -58,6 +58,8 @@ class NginxController(NoteworthyPlugin):
                 self.add_tls_stream_backend('launcher', os.environ['NOTEWORTHY_DOMAIN_REGEX'], '10.0.0.2')
                 self.set_http_proxy_pass('launcher', os.environ['NOTEWORTHY_DOMAIN_REGEX'], '10.0.0.2')
             elif os.environ['NOTEWORTHY_ROLE'] == 'taproot':
+                if 'LINK_TARGET_PORT' in os.environ:
+                    self.set_http_proxy_pass(os.environ['NOTEWORTHY_DOMAIN'].replace('.', '-'), os.environ['NOTEWORTHY_DOMAIN'], f"127.0.0.1:{os.environ['LINK_TARGET_PORT']}", reload=False)
                 Path(self.letsencrypt_bk).mkdir(exist_ok=True)
                 # TODO emit events for these type of interdependent interactions
                 self.poll_for_good_status(os.environ['NOTEWORTHY_DOMAIN'])
@@ -131,7 +133,7 @@ class NginxController(NoteworthyPlugin):
         '''
         Get Let's Encrypt certs wit Certbot
         '''
-        if os.environ['NOTEWORTHY_ENV'] in ['beta']:
+        if os.environ['NOTEWORTHY_ENV'] in ['beta', 'dev']:
             os.system(f'certbot certonly --non-interactive --agree-tos --webroot -m hi@decentralabs.io -w /var/www/html -d {domains_str}')
         else:
             os.system(f'certbot certonly --non-interactive --agree-tos --webroot -m hi@decentralabs.io -w /var/www/html -d {domains_str} --test-cert')

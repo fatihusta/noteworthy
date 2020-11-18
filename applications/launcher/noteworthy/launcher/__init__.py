@@ -84,7 +84,8 @@ class LauncherController(NoteworthyPlugin):
         labels={'role':'hub', 'profile': profile})
 
     def launch_launcher_taproot(self, domain: str, hub_host: str,
-                                    auth_code: str, profile: str, network: str = 'noteworthy', target_port: int = None):
+                                    auth_code: str, profile: str, network: str = 'noteworthy',
+                                    network_mode: str = None, target_port: int = None):
         volumes = []
         ports = {}
         app_env = {
@@ -92,19 +93,21 @@ class LauncherController(NoteworthyPlugin):
                 'NOTEWORTHY_PROFILE': profile,
                 'NOTEWORTHY_ROLE': 'taproot',
                 'NOTEWORTHY_DOMAIN': domain,
-                'NOTEWORTHY_AUTH_CODE': auth_code,
-                'LINK_TARGET_PORT': target_port
+                'NOTEWORTHY_AUTH_CODE': auth_code
         }
-        volumes.append('/var/run/docker.sock:/var/run/docker.sock')
-        volumes.append('/usr/local/bin/docker:/usr/local/bin/docker')
         app = 'launcher'
         dash_domain = domain.replace('.', '-')
         app_name = f'{dash_domain}-{app}'
-
-        # create and add profiles volume
-        profile_volume = self._create_profile_volume(app_name, profile)
-        volumes.append(f'{profile_volume.name}:/opt/noteworthy/profiles')
-
+        if target_port:
+            app_env['LINK_TARGET_PORT'] = target_port
+        if os.environ['NOTEWORTHY_ENV'] == 'dev':
+            volumes.append('/Users/balaa/decentralabs/noteworthy:/opt/noteworthy')
+        else:
+            volumes.append('/var/run/docker.sock:/var/run/docker.sock')
+            volumes.append('/usr/local/bin/docker:/usr/local/bin/docker')
+            # create and add profiles volume
+            profile_volume = self._create_profile_volume(app_name, profile)
+            volumes.append(f'{profile_volume.name}:/opt/noteworthy/profiles')
         release_tag = self._load_release_tag()
         # deploy launcher / launcher-hub
         # TODO each profile should get a dedicated network
@@ -112,18 +115,37 @@ class LauncherController(NoteworthyPlugin):
             self.docker.networks.create('noteworthy', check_duplicate=True)
         except:
             pass
-        return self.docker.containers.run(f"decentralabs/noteworthy:{app_env['NOTEWORTHY_ROLE']}-{release_tag}",
-        entrypoint='notectl launcher start',
-        tty=True,
-        cap_add=['NET_ADMIN'],
-        network=network,
-        stdin_open=True,
-        name=f"noteworthy-{app_name}-{profile}",
-        volumes=volumes,
-        ports=ports,
-        detach=True,
-        environment=app_env,
-        restart_policy={"Name": "always"})
+        if os.environ['NOTEWORTHY_ENV'] == 'dev':
+            image = 'noteworthy:dev'
+        else:
+            image = f"decentralabs/noteworthy:{app_env['NOTEWORTHY_ROLE']}-{release_tag}"
+        if network_mode:
+            return self.docker.containers.run(image,
+            entrypoint='notectl launcher start',
+            tty=True,
+            cap_add=['NET_ADMIN'],
+            network_mode=network_mode,
+            stdin_open=True,
+            name=f"noteworthy-{app_name}-{profile}",
+            volumes=volumes,
+            ports=ports,
+            detach=True,
+            environment=app_env,
+            restart_policy={"Name": "always"})
+        else:
+            return self.docker.containers.run(image,
+            entrypoint='notectl launcher start',
+            tty=True,
+            cap_add=['NET_ADMIN'],
+            network=network,
+            stdin_open=True,
+            name=f"noteworthy-{app_name}-{profile}",
+            volumes=volumes,
+            ports=ports,
+            detach=True,
+            environment=app_env,
+            restart_policy={"Name": "always"})
+
 
     def _build_container(self, app_dir, app, version):
         # read release tag from /opt/noteworthy/release

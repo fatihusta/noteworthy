@@ -36,7 +36,7 @@ class LinkController(NoteworthyPlugin):
         #rc = ReservationController.get_grpc_stub()
         #auth_code = rc.register(email).auth_code
         network_port = self._get_container_exposed_ports(container_id)
-        lc.launch_launcher_taproot(fqdn, 'hub.noteworthy.im', auth_code, fqdn.replace('.', '-'), network=network_port['network_id'], target_port=network_port['port'])
+        lc.launch_launcher_taproot(fqdn, 'hub.noteworthy.im', auth_code, fqdn.replace('.', '-'), network_mode=f'container:{container_id}', target_port=network_port['port'])
         print('Done.')
 
     # TODO guard against collisions between aliases and plugin name
