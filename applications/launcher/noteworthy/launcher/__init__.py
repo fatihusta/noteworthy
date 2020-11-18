@@ -84,21 +84,22 @@ class LauncherController(NoteworthyPlugin):
         labels={'role':'hub', 'profile': profile})
 
     def launch_launcher_taproot(self, domain: str, hub_host: str,
-                                    auth_code: str, profile: str):
+                                    auth_code: str, profile: str, network: str = 'noteworthy', target_port: int = None):
         volumes = []
         ports = {}
         app_env = {
                 'NOTEWORTHY_HUB': hub_host,
-                'NOTEWORTHY_PROFILE': profile
+                'NOTEWORTHY_PROFILE': profile,
+                'NOTEWORTHY_ROLE': 'taproot',
+                'NOTEWORTHY_DOMAIN': domain,
+                'NOTEWORTHY_AUTH_CODE': auth_code,
+                'LINK_TARGET_PORT': target_port
         }
         volumes.append('/var/run/docker.sock:/var/run/docker.sock')
         volumes.append('/usr/local/bin/docker:/usr/local/bin/docker')
         app = 'launcher'
         dash_domain = domain.replace('.', '-')
         app_name = f'{dash_domain}-{app}'
-        app_env['NOTEWORTHY_DOMAIN'] = domain
-        app_env['NOTEWORTHY_ROLE'] = 'taproot'
-        app_env['NOTEWORTHY_AUTH_CODE'] = auth_code
 
         # create and add profiles volume
         profile_volume = self._create_profile_volume(app_name, profile)
@@ -115,7 +116,7 @@ class LauncherController(NoteworthyPlugin):
         entrypoint='notectl launcher start',
         tty=True,
         cap_add=['NET_ADMIN'],
-        network='noteworthy',
+        network=network,
         stdin_open=True,
         name=f"noteworthy-{app_name}-{profile}",
         volumes=volumes,
