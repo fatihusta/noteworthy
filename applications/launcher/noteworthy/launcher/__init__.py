@@ -101,7 +101,7 @@ class LauncherController(NoteworthyPlugin):
         if target_port:
             app_env['LINK_TARGET_PORT'] = target_port
         if os.environ['NOTEWORTHY_ENV'] == 'dev':
-            volumes.append('/Users/balaa/decentralabs/noteworthy:/opt/noteworthy')
+            volumes.append('/home/balaa/noteworthy:/opt/noteworthy')
         else:
             volumes.append('/var/run/docker.sock:/var/run/docker.sock')
             volumes.append('/usr/local/bin/docker:/usr/local/bin/docker')

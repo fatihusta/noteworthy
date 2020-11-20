@@ -64,7 +64,7 @@ class NginxController(NoteworthyPlugin):
                 # TODO emit events for these type of interdependent interactions
                 self.poll_for_good_status(os.environ['NOTEWORTHY_DOMAIN'])
                 # Request Let's Encrypt certs with certbot
-                self.get_tls_certs([os.environ['NOTEWORTHY_DOMAIN'], f"matrix.{os.environ['NOTEWORTHY_DOMAIN']}"])
+                self.get_tls_certs([os.environ['NOTEWORTHY_DOMAIN']])
             self.commit_successful_config()
         else:
             self._reconfigure_nginx()
