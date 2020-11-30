@@ -101,7 +101,7 @@ class LauncherController(NoteworthyPlugin):
         if target_port:
             app_env['LINK_TARGET_PORT'] = target_port
         if os.environ['NOTEWORTHY_ENV'] == 'dev':
-            volumes.append('/home/balaa/noteworthy:/opt/noteworthy')
+            volumes.append('/Users/balaa/decentralabs/noteworthy:/opt/noteworthy')
         else:
             volumes.append('/var/run/docker.sock:/var/run/docker.sock')
             volumes.append('/usr/local/bin/docker:/usr/local/bin/docker')
@@ -185,7 +185,7 @@ class LauncherController(NoteworthyPlugin):
         os.system('tail -f /dev/null')
 
     @cli_method
-    def install(self, app: str, domain: str = None, invite_code: str = None, hub: str = 'hub.noteworthy.im',
+    def install(self, app: str, server_name: str = None, invite_code: str = None, hub: str = 'hub.noteworthy.im',
                     profile: str = 'default', accept_tos: bool = False, no_install_messenger: bool = False):
         '''install a Noteworthy application
         ---
@@ -197,18 +197,20 @@ class LauncherController(NoteworthyPlugin):
             profile: profile to deploy app to
             accept_tos: accept terms of service, useful for non-interactive installation
             no_install_messenger: if provided, messenger will not be installed automatically
+            server_name: fqdn of your matrix homeserver
         '''
         if 'launcher' not in self.plugins:
             raise Exception('Launcher plugin unavailable; something\'s broken.')
         if app == 'launcher':
             return self.install_launcher_cli(self.args)
-        elif app == 'messenger':
+        elif app == 'matrix':
+            os.environ['NOTEWORTHY_DOMAIN'] = server_name
             print('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
-            print('Welcome to Noteworthy Messenger! Powered by Matrix.')
+            print('Welcome to Matrix!')
             print('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
-            print("Let's create your Noteworthy Messenger account.\nUse these credentials to login"
-                  " to Noteworthy Messenger's Web and Mobile App. \nThis user will have administrator"
-                  " privileges so please (ALWAYS) chooose a strong password.")
+            print("Let's create your Matrix ID.\nYou'll use these credentials to login"
+                  " to the Element Web and mobile apps \nThis user will have administrator"
+                  " privileges so please chooose a strong password.")
             while True:
                 username = input('Username: ')
                 if not username:
@@ -298,7 +300,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\n''')
         volumes.append(f'{profile_volume.name}:/opt/noteworthy/profiles')
         release_tag = self._load_release_tag()
         # TODO tag taproot container as messenger
-        self.docker.containers.run(f"decentralabs/noteworthy:taproot-{release_tag}",
+        print(self.docker.containers.run(f"decentralabs/noteworthy:taproot-{release_tag}",
         tty=True,
         network='noteworthy',
         stdin_open=True,
@@ -308,15 +310,15 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\n''')
         detach=True,
         environment=app_env,
         restart_policy={"Name": "always"},
-        entrypoint=f'notectl messenger start')
+        entrypoint=f'notectl messenger start'))
         # setup app's nginx config
-        from noteworthy.nginx import NginxController
-        nc = NginxController()
+        #from noteworthy.nginx import NginxController
+        #nc = NginxController()
         # special case for messenger nginx
         # poll for cerbot certs:
-        nc.poll_cerbot_success()
-        messenger_controller = self.plugins['messenger'].Controller()
-        nc.set_http_proxy_pass(app, os.environ['NOTEWORTHY_DOMAIN'], app_container_name,
-            os.path.join(messenger_controller.deploy_dir,'nginx.conf'))
+        #nc.poll_cerbot_success()
+        # messenger_controller = self.plugins['messenger'].Controller()
+        # nc.set_http_proxy_pass(app, os.environ['NOTEWORTHY_DOMAIN'], app_container_name,
+        #     os.path.join(messenger_controller.deploy_dir,'nginx.conf'))
 
 Controller = LauncherController
