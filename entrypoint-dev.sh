@@ -2,9 +2,17 @@
 # This script is used to produce the Noteworthy development environment container.
 #
 #
-#           WARNING: Technical debt #TODO, changes here must be also made to entrypoint-dev.sh
+#           WARNING: Technical debt #TODO, changes here must be also made to docker-dev.sh
 #
 #
+# To re-run this dev container provisioning script
+# rm .noteworthy-dev-install-lock then run `make shell` 
+
+
+if [ -f .noteworthy-dev-install-lock ]; then
+    bash
+else
+
     cd /opt/noteworthy/matrixbz
     rm -rf build/ dist/
     python setup.py develop
@@ -45,8 +53,10 @@
     for plugin in plugins/*/; do
         cd $plugin
         python setup.py develop
-        if [ -f "./install.sh" ]; then
-            ./install.sh
-        fi
         cd -
     done
+
+date > .noteworthy-dev-install-lock
+bash
+
+fi
