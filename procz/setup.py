@@ -7,7 +7,7 @@ setup(name='procz',
       packages=['procz'],
       zip_safe=False,
       install_requires=[
-        'python-daemon==2.2.4',
-        'lockfile==0.12.2'
+        'python-daemon',
+        'lockfile'
       ]
      )

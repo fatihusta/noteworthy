@@ -9,13 +9,14 @@ class PluginManager:
 
     @staticmethod
     def load_plugins(plugin_namespace='notectl.plugins'):
-        plugins = {
-            entry_point.name: entry_point.load()
-            for entry_point
-            in pkg_resources.iter_entry_points(plugin_namespace)
-        }
+        plugins = pkg_resources.iter_entry_points(plugin_namespace)
+        loaded_plugins = {}
+        for entry_point in plugins:
+            if 'DEBUG' in os.environ:
+                print(f'Loading plugin: {entry_point.name}')
+            loaded_plugins[entry_point.name] = entry_point.load()
 
-        return plugins
+        return loaded_plugins
 
 
 class NoteworthyPlugin:

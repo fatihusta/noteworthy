@@ -9,7 +9,7 @@ setup(name='noteworthy-matrix-chat-bot',
       # namespace packages wont work without zip_safe=False
       zip_safe=False,
       install_requires=[
-        'matrix-nio==0.10.0'
+        'matrix-nio'
       ],
       include_package_data=True,
       )
