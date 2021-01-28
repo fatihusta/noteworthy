@@ -14,7 +14,7 @@ chardet==3.0.4
 ConfigArgParse==1.2
 configobj==5.0.6
 constantly==15.1.0
-cryptography==2.9
+cryptography==3.2
 daemonize==2.5.0
 decorator==4.4.2
 distro==1.5.0
