@@ -9,7 +9,7 @@ setup(name='noteworthy',
           'console_scripts': [
               'notectl = noteworthy.notectl.__main__:main'
           ],
-          'clicz.entrypoint': 'notectl = noteworthy.notectl'
+          'notectl.entrypoint': 'notectl = noteworthy.notectl'
       },
       # namespace packages wont work without zip_safe=False
       zip_safe=False

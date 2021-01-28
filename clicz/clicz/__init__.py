@@ -28,15 +28,16 @@ class Color:
 class CLICZ:
 
 
-    def __init__(self, autodiscover=True):
+    def __init__(self, cli_module: str = 'notectl', autodiscover=True):
         '''
         Register any controller that has the property `enable_cli=True`
         '''
+        self.cli_module = cli_module
         self.color = Color()
         self.registered_controllers = {}
         self.controller_instances = {}
         self.proxy_commands = {}
-        epilog = 'Run `notectl <command> --help` for more information.'
+        epilog = f'Run `{cli_module} <command> --help` for more information.'
         self.parser = argparse.ArgumentParser(epilog=epilog)
         self.parser_subparser_factory = self.parser.add_subparsers(title='system commands', dest='mgmt_command', metavar='command')
         self.base_parser = argparse.ArgumentParser(epilog=epilog)
@@ -54,7 +55,7 @@ class CLICZ:
         Args: None
         Returns: Argparser description
         '''
-        entrypoint = list(pkg_resources.iter_entry_points('clicz.entrypoint'))[0]
+        entrypoint = list(pkg_resources.iter_entry_points(f'{self.cli_module}.entrypoint'))[0]
         clicz_module = entrypoint.load()
         return clicz_module.clicz_entrypoint(self)
 
