@@ -1,19 +1,6 @@
-# Noteworthy
+Noteworthy is a loose collection of free software and open protocols with an acompanying toolchain for building decentralized public and private telecommunications infrastructure.
 
-Noteworthy is free and open source software that combines existing best-in-class open source collaboration tools with a Matrix powered meta-protocol in order to enable the collaborative self-hosting of personal online services.
-
-Noteworthy makes it easy for non-technical users to establish Wireguard powered distributed overlay networks. In some respects, Noteworthy is similar to existing commercially available personal networking products such as ZeroTier and TailScale, but is much more ambitious and will always be 100% community powered, non-commercial free and open source software. Noteworthy aims to become the catalyst and toolbelt of a non-commercial user owned web.
-
-With Noteworthy a non-technical user can deploy publically accessible online services behind a distributed network of transparent TLS reverse-proxies (think ngrok but decentralized). This is made possible with a distributed hub and spoke topology that is coordinated via the decentralized Matrix protocol. A distributed network of transparent reverse proxies enables federation capable Matrix home servers to be deployed to hosts behind firewalls, carrier-grade NATs or hosts otherwise not accessible to the public internet. In Noteworthy parlance we call the end-user deployments "roots" and the distributed network of transparent proxies tha service them "hubs". A root is a dedicated host that functions as a Noteworthy user's primary server. The goal is to enable users to operate both roots and hubs collaboratively with individuals they already know and trust IRL (in real life).
-
-Noteworthy aims to provide the following apps and services as a 1-click plug-and-play solution:
-
-- Instant Messaging/Voice/Video  - Powered by Matrix (Element/Synapse) (done)
-- Social - Chupacabra, a Matrix powered content sharing and discussion client (coming soon, in-progress)
-- Email/Calendar/Contacts - Powered by Mail-in-a-Box (coming soon, in-progress)
-- Voice and Video Conferencing - Jitsi (coming soon)
-- Publishing - Ghost CMS (coming soon)
-
+See OVERVIEW.md for a detailed overview of Noteworthy.
 
 # Getting Started
 Docker is the only requirement to get started with Noteworthy.
