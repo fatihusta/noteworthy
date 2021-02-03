@@ -58,11 +58,13 @@ class NginxController(NoteworthyPlugin):
                 self.add_tls_stream_backend('launcher', os.environ['NOTEWORTHY_DOMAIN_REGEX'], '10.0.0.2')
                 self.set_http_proxy_pass('launcher', os.environ['NOTEWORTHY_DOMAIN_REGEX'], '10.0.0.2')
             elif os.environ['NOTEWORTHY_ROLE'] == 'taproot':
+                if 'NOTEWORTHY_LINK_TARGET_PORT' in os.environ:
+                    self.set_http_proxy_pass(os.environ['NOTEWORTHY_DOMAIN'].replace('.', '-'), os.environ['NOTEWORTHY_DOMAIN'], f"127.0.0.1:{os.environ['NOTEWORTHY_LINK_TARGET_PORT']}", reload=False)
                 Path(self.letsencrypt_bk).mkdir(exist_ok=True)
                 # TODO emit events for these type of interdependent interactions
                 self.poll_for_good_status(os.environ['NOTEWORTHY_DOMAIN'])
                 # Request Let's Encrypt certs with certbot
-                self.get_tls_certs([os.environ['NOTEWORTHY_DOMAIN'], f"matrix.{os.environ['NOTEWORTHY_DOMAIN']}"])
+                self.get_tls_certs([os.environ['NOTEWORTHY_DOMAIN']])
             self.commit_successful_config()
         else:
             self._reconfigure_nginx()
@@ -131,10 +133,7 @@ class NginxController(NoteworthyPlugin):
         '''
         Get Let's Encrypt certs wit Certbot
         '''
-        if os.environ['NOTEWORTHY_ENV'] in ['beta']:
-            os.system(f'certbot certonly --non-interactive --agree-tos --webroot -m hi@decentralabs.io -w /var/www/html -d {domains_str}')
-        else:
-            os.system(f'certbot certonly --non-interactive --agree-tos --webroot -m hi@decentralabs.io -w /var/www/html -d {domains_str} --test-cert')
+        os.system(f'certbot certonly --non-interactive --agree-tos --webroot -m hi@decentralabs.io -w /var/www/html -d {domains_str}')
 
     def _install_letsencrypt_cert(self, domain: str):
         os.system(f'certbot install --cert-path /etc/letsencrypt/live/{domain}/cert.pem --key-path /etc/letsencrypt/live/{domain}/privkey.pem --fullchain-path /etc/letsencrypt/live/{domain}/fullchain.pem -d {domain} --redirect')

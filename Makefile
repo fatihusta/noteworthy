@@ -41,4 +41,4 @@ docker-push:
 	echo $(shell date) > .dev-last-build ;
 
 dev shell: .dev-last-build
-	docker run --network noteworthy --rm -it -v /usr/local/bin/docker:/usr/local/bin/docker -v /var/run/docker.sock:/var/run/docker.sock -v $(ROOT_DIR):/opt/noteworthy --name noteworthy-dev-$(shell date +"%H-%M_%m-%d") noteworthy:dev;
+	docker run --network noteworthy --rm -it -e NOTEWORTHY_DEV_BIND_MOUNT_PATH=$(ROOT_DIR) -v /usr/local/bin/docker:/usr/local/bin/docker -v /var/run/docker.sock:/var/run/docker.sock -v $(ROOT_DIR):/opt/noteworthy --name noteworthy-dev-$(shell date +"%H-%M_%m-%d") noteworthy:dev;

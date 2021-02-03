@@ -8,8 +8,9 @@ from better_profanity import profanity
 from grpcz import grpc_controller, grpc_method
 from clicz import cli_method
 from noteworthy.notectl.plugins import NoteworthyPlugin
-from noteworthy.reservation.proto.messages_pb2 import (
-    ReservationRequest, ReservationResponse, LinkRequest, LinkResponse)
+from noteworthy.reservation.proto.reservation_pb2 import (
+    ReservationRequest, ReservationResponse, LinkRequest, LinkResponse,
+    RegistrationRequest, RegistrationResponse)
 
 @grpc_controller
 class ReservationController(NoteworthyPlugin):
@@ -190,5 +191,17 @@ class ReservationController(NoteworthyPlugin):
             print(result.output.decode().strip())
 
     invite.clicz_aliases = ['invite']
+
+    @grpc_method(RegistrationRequest, RegistrationResponse)
+    def register(self, email: str):
+        '''Request a auth_code remotely via gRPC
+        ---
+        Args:
+            email: Contact email address so we can reach you
+        '''
+        from noteworthy.reservation.api.models import User
+        from django.db.utils import OperationalError
+        User.objects.create_user(email, num_reservations_allowed=1)
+        return { 'auth_code': str(User.objects.provision_auth_codes(1)[0].auth_code) }
 
 Controller = ReservationController

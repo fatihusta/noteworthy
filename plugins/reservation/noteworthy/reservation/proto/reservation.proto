@@ -32,3 +32,12 @@ message LinkResponse {
     string link_udp_proxy_endpoint_2 = 4;
     string error = 5;
 }
+
+message RegistrationRequest {
+    string somethingelse = 1; 
+}
+
+message RegistrationResponse {
+    string auth_code = 1;
+    string error = 2;
+}

@@ -84,26 +84,30 @@ class LauncherController(NoteworthyPlugin):
         labels={'role':'hub', 'profile': profile})
 
     def launch_launcher_taproot(self, domain: str, hub_host: str,
-                                    auth_code: str, profile: str):
+                                    auth_code: str, profile: str, network: str = 'noteworthy',
+                                    network_mode: str = None, target_port: int = None):
         volumes = []
         ports = {}
         app_env = {
                 'NOTEWORTHY_HUB': hub_host,
-                'NOTEWORTHY_PROFILE': profile
+                'NOTEWORTHY_PROFILE': profile,
+                'NOTEWORTHY_ROLE': 'taproot',
+                'NOTEWORTHY_DOMAIN': domain,
+                'NOTEWORTHY_AUTH_CODE': auth_code
         }
-        volumes.append('/var/run/docker.sock:/var/run/docker.sock')
-        volumes.append('/usr/local/bin/docker:/usr/local/bin/docker')
         app = 'launcher'
         dash_domain = domain.replace('.', '-')
         app_name = f'{dash_domain}-{app}'
-        app_env['NOTEWORTHY_DOMAIN'] = domain
-        app_env['NOTEWORTHY_ROLE'] = 'taproot'
-        app_env['NOTEWORTHY_AUTH_CODE'] = auth_code
-
-        # create and add profiles volume
-        profile_volume = self._create_profile_volume(app_name, profile)
-        volumes.append(f'{profile_volume.name}:/opt/noteworthy/profiles')
-
+        if target_port:
+            app_env['NOTEWORTHY_LINK_TARGET_PORT'] = target_port
+        if 'NOTEWORTHY_DEV_BIND_MOUNT_PATH' in os.environ and os.environ['NOTEWORTHY_ENV'] == 'dev':
+            volumes.append(f"{os.environ['NOTEWORTHY_DEV_BIND_MOUNT_PATH']}:/opt/noteworthy")
+        else:
+            volumes.append('/var/run/docker.sock:/var/run/docker.sock')
+            volumes.append('/usr/local/bin/docker:/usr/local/bin/docker')
+            # create and add profiles volume
+            profile_volume = self._create_profile_volume(app_name, profile)
+            volumes.append(f'{profile_volume.name}:/opt/noteworthy/profiles')
         release_tag = self._load_release_tag()
         # deploy launcher / launcher-hub
         # TODO each profile should get a dedicated network
@@ -111,18 +115,37 @@ class LauncherController(NoteworthyPlugin):
             self.docker.networks.create('noteworthy', check_duplicate=True)
         except:
             pass
-        return self.docker.containers.run(f"decentralabs/noteworthy:{app_env['NOTEWORTHY_ROLE']}-{release_tag}",
-        entrypoint='notectl launcher start',
-        tty=True,
-        cap_add=['NET_ADMIN'],
-        network='noteworthy',
-        stdin_open=True,
-        name=f"noteworthy-{app_name}-{profile}",
-        volumes=volumes,
-        ports=ports,
-        detach=True,
-        environment=app_env,
-        restart_policy={"Name": "always"})
+        if os.environ['NOTEWORTHY_ENV'] == 'dev':
+            image = 'noteworthy:dev'
+        else:
+            image = f"decentralabs/noteworthy:{app_env['NOTEWORTHY_ROLE']}-{release_tag}"
+        if network_mode:
+            return self.docker.containers.run(image,
+            entrypoint='notectl launcher start',
+            tty=True,
+            cap_add=['NET_ADMIN'],
+            network_mode=network_mode,
+            stdin_open=True,
+            name=f"noteworthy-{app_name}-{profile}",
+            volumes=volumes,
+            ports=ports,
+            detach=True,
+            environment=app_env,
+            restart_policy={"Name": "always"})
+        else:
+            return self.docker.containers.run(image,
+            entrypoint='notectl launcher start',
+            tty=True,
+            cap_add=['NET_ADMIN'],
+            network=network,
+            stdin_open=True,
+            name=f"noteworthy-{app_name}-{profile}",
+            volumes=volumes,
+            ports=ports,
+            detach=True,
+            environment=app_env,
+            restart_policy={"Name": "always"})
+
 
     def _build_container(self, app_dir, app, version):
         # read release tag from /opt/noteworthy/release
@@ -162,8 +185,8 @@ class LauncherController(NoteworthyPlugin):
         os.system('tail -f /dev/null')
 
     @cli_method
-    def install(self, app: str, domain: str = None, invite_code: str = None, hub: str = 'hub.noteworthy.im',
-                    profile: str = 'default', accept_tos: bool = False, no_install_messenger: bool = False):
+    def install(self, app: str, server_name: str = None, invite_code: str = None, hub: str = 'hub.noteworthy.im',
+                    profile: str = 'default', accept_tos: bool = False):
         '''install a Noteworthy application
         ---
         Args:
@@ -173,19 +196,22 @@ class LauncherController(NoteworthyPlugin):
             hub: fqdn of a Noteworthy hub
             profile: profile to deploy app to
             accept_tos: accept terms of service, useful for non-interactive installation
-            no_install_messenger: if provided, messenger will not be installed automatically
+            server_name: fqdn of your matrix homeserver
         '''
         if 'launcher' not in self.plugins:
             raise Exception('Launcher plugin unavailable; something\'s broken.')
         if app == 'launcher':
             return self.install_launcher_cli(self.args)
-        elif app == 'messenger':
+        elif app == 'matrix':
+            if not server_name:
+                raise Exception('Must specify --server-name parameter when installing Matrix.')
+            os.environ['NOTEWORTHY_DOMAIN'] = server_name
             print('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
-            print('Welcome to Noteworthy Messenger! Powered by Matrix.')
+            print('Welcome to Matrix!')
             print('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
-            print("Let's create your Noteworthy Messenger account.\nUse these credentials to login"
-                  " to Noteworthy Messenger's Web and Mobile App. \nThis user will have administrator"
-                  " privileges so please (ALWAYS) chooose a strong password.")
+            print("Let's create your Matrix ID.\nYou'll use these credentials to login"
+                  " to the Element Web and mobile apps \nThis user will have administrator"
+                  " privileges so please chooose a strong password.")
             while True:
                 username = input('Username: ')
                 if not username:
@@ -271,11 +297,18 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\n''')
         volumes = []
         app_name = f'{dashed_domain}-{app}'
         app_container_name = f"noteworthy-{app_name}-{profile}"
-        profile_volume = self._create_profile_volume(app_name, profile)
-        volumes.append(f'{profile_volume.name}:/opt/noteworthy/profiles')
-        release_tag = self._load_release_tag()
+        if 'NOTEWORTHY_DEV_BIND_MOUNT_PATH' in os.environ and os.environ['NOTEWORTHY_ENV'] == 'dev':
+            volumes.append(f"{os.environ['NOTEWORTHY_DEV_BIND_MOUNT_PATH']}:/opt/noteworthy")
+        else:
+            profile_volume = self._create_profile_volume(app_name, profile)
+            volumes.append(f'{profile_volume.name}:/opt/noteworthy/profiles')
+        if os.environ['NOTEWORTHY_ENV'] == 'dev':
+            image = 'noteworthy:dev'
+        else:
+            release_tag = self._load_release_tag()
+            image = f"decentralabs/noteworthy:{app_env['NOTEWORTHY_ROLE']}-{release_tag}"
         # TODO tag taproot container as messenger
-        self.docker.containers.run(f"decentralabs/noteworthy:taproot-{release_tag}",
+        print(self.docker.containers.run(image,
         tty=True,
         network='noteworthy',
         stdin_open=True,
@@ -285,15 +318,15 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\n''')
         detach=True,
         environment=app_env,
         restart_policy={"Name": "always"},
-        entrypoint=f'notectl messenger start')
+        entrypoint=f'notectl messenger start'))
         # setup app's nginx config
-        from noteworthy.nginx import NginxController
-        nc = NginxController()
+        #from noteworthy.nginx import NginxController
+        #nc = NginxController()
         # special case for messenger nginx
         # poll for cerbot certs:
-        nc.poll_cerbot_success()
-        messenger_controller = self.plugins['messenger'].Controller()
-        nc.set_http_proxy_pass(app, os.environ['NOTEWORTHY_DOMAIN'], app_container_name,
-            os.path.join(messenger_controller.deploy_dir,'nginx.conf'))
+        #nc.poll_cerbot_success()
+        # messenger_controller = self.plugins['messenger'].Controller()
+        # nc.set_http_proxy_pass(app, os.environ['NOTEWORTHY_DOMAIN'], app_container_name,
+        #     os.path.join(messenger_controller.deploy_dir,'nginx.conf'))
 
 Controller = LauncherController
