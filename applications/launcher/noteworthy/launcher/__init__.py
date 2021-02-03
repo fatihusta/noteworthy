@@ -306,7 +306,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\n''')
             image = 'noteworthy:dev'
         else:
             release_tag = self._load_release_tag()
-            image = f"decentralabs/noteworthy:{app_env['NOTEWORTHY_ROLE']}-{release_tag}"
+            image = f"decentralabs/noteworthy:taproot-{release_tag}"
         # TODO tag taproot container as messenger
         print(self.docker.containers.run(image,
         tty=True,

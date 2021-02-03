@@ -48,7 +48,6 @@ ADD plugins/migration /opt/noteworthy/plugins/migration
 RUN cd /opt/noteworthy/plugins; ./install-release-plugins.sh migration
 
 
-
 ADD applications/messenger /opt/noteworthy/applications/messenger
 RUN cd /opt/noteworthy/applications/messenger; rm -rf build/ dist/; python setup.py install;
 
@@ -57,6 +56,9 @@ RUN cd /opt/noteworthy/applications/launcher; rm -rf build/ dist/; python setup.
 
 ADD applications/vpn /opt/noteworthy/applications/vpn
 RUN cd /opt/noteworthy/applications/vpn; rm -rf build/ dist/; python setup.py install;
+
+ADD plugins/link /opt/noteworthy/plugins/link
+RUN cd /opt/noteworthy/plugins; ./install-release-plugins.sh link
 
 RUN echo "${RELEASE_TAG}" > /opt/noteworthy/release; echo "${GIT_COMMIT}" > /opt/noteworthy/commit
 
