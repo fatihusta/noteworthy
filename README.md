@@ -1,82 +1,64 @@
-Noteworthy is a loose collection of free software and open protocols with an acompanying toolchain for building decentralized public and private telecommunications infrastructure.
+# Overview
+This repository contains the proof-of-concept implementation that preceeded the upcoming Noteworthy Architechture and Noteworthy Meta-Protocols.
 
-See OVERVIEW.md for a detailed overview of Noteworthy.
+The Noteworthy Architechture makes it easy to self-host services on-prem by transparently proxying encrypted traffic through a publically accessible host. Nginx serves as the reverse proxy and WireGuard is utilized for secure tunneling between on-prem systems and the publically accessible host. TLS is terminated on-prem. The reference implementation in this repository is considered experimental and is not recommened for production use cases. The secure tunnel capabilites provided are similar to ngrok, PageKite, Inlets or Argo Tunnels. There is also support for a one-click deployment of a federation capable Matrix homeserver. 
 
 # Getting Started
 Docker is the only requirement to get started with Noteworthy.
 
-The `notectl` command-line utility is the primary interface for interacting with Noteworthy.
+## Hub (Host with public IP)
+Start by building the hub container on any publically accessible host:
 ```
-$ bash <(curl -s https://get.noteworthy.im)
-```
-
-The above script will pull the `decentralabs/noteworthy:taproot-beta` Docker container and start the interactive installation process. You will need to request an invite to the public Decentralabs Hub if you are not planning on deploying your own Hub as described below.
-
-
-## Getting started (Developers)
-Start by building the Taproot container:
-```
-make docker ROLE=taproot GIT_COMMIT=$(git rev-parse HEAD) RELEASE_TAG=dev
-```
-
-This will create the container `decentralabs/noteworthy:taproot-dev`
-
-We recommend the use of a shell functions to wrap invocations of the `notectl` command-line utility living inside the container you built in the previous step.
-
-Copy and paste the `notectl-dev` shell function wrapper:
-```
-notectl-dev() {
-	docker run -e NOTEWORTHY_DOMAIN=$NOTEWORTHY_DOMAIN --rm -it -v "/var/run/docker.sock:/var/run/docker.sock" decentralabs/noteworthy:taproot-dev "$@";
-}
-```
-
-### Interacting with multiple release stages
-You can define multiple shell functions to manage interacting with the various release stages (prod, beta, dev etc) of Noteworthy.
-The vanilla `notectl` is reserved for the current production release.
-
-For example, to build a `beta` release Taproot container, pull the latest changes from the `master` branch and run the following:
-```
-make docker ROLE=taproot GIT_COMMIT=$(git rev-parse HEAD) RELEASE_TAG=beta
-```
-Then define the following Bash function wrapper:
-```
-notectl-beta() {
-	docker run -e NOTEWORTHY_DOMAIN=$NOTEWORTHY_DOMAIN --rm -it -v "/var/run/docker.sock:/var/run/docker.sock" decentralabs/noteworthy:taproot-beta "$@";
-}
-```
-You can then deploy and interact with networks/services using Noteworthy's `beta ` release:
-```
-$ notectl-beta install
-```
-## Deploy a Noteworthy Hub
-You must build the Hub and Link containers before launching a hub.
-
-Build Hub container:
-```
-make docker ROLE=hub GIT_COMMIT=$(git rev-parse HEAD) RELEASE_TAG=dev
-```
-Build Link container:
-```
-make docker ROLE=link RELEASE_TAG=dev
+$ make docker RELEASE_TAG=beta ROLE=hub GIT_COMMIT=$(git rev-parse HEAD)
 ```
 
 Define a Bash function wrapper for Hub container:
 ```
-notectl-hub-dev() {
-	docker run -e NOTEWORTHY_DOMAIN=$NOTEWORTHY_DOMAIN --rm -it -v "/var/run/docker.sock:/var/run/docker.sock" decentralabs/noteworthy:hub-dev "$@";
+notectl-hub() {
+	docker run --rm -it -v "/var/run/docker.sock:/var/run/docker.sock" decentralabs/noteworthy:hub-beta "$@";
 }
 ```
-
-Launch the Hub container:
-```
-$ notectl-hub-dev launcher launch_hub hub.example.com
-```
+Launch the Hub container on the publically accessible host.
 Replace `hub.example.com` in the above example with the FQDN of your hub.
+```
+$ notectl-hub launcher launch_hub hub.example.com
+```
+
+Generate an invite to the hub:
+```
+$ notectl-hub invite <some-identifier>
+```
+
+## Taproot (on-prem system)
+Building the taproot container on your on-prem host:
+```
+$ make docker RELEASE_TAG=beta ROLE=taproot GIT_COMMIT=$(git rev-parse HEAD)
+```
+Copy and paste the `notectl` shell function wrapper:
+```
+notectl() {
+	docker run --rm -it -v "/var/run/docker.sock:/var/run/docker.sock" decentralabs/noteworthy:taproot-beta "$@";
+}
+```
+Launch a Matrix Server(Synapse) and make it publically accessible: 
+```
+notectl install matrix
+notectl link --container-id <matrix-container-id> --fqdn matrix.example.com --hub-fqdn hub.example.com --port 8008 https
+```
+You will be prompted to enter the invite code you generated on the hub with the `notectl invite` command above.
+
+The link command above can be used to make any container available to the public internet by passing the container id and specifying the fqdn, hub-fqdn and internal port as show above.
+
+## Getting started for Contributors
+Start by building the development container:
+```
+make shell
+$ notectl --help
+```
+You can now modify code in this repo on your host system to experiment with making changes to the Noteworthy PoC without needing to rebuild the container for every change.
 
 # Noteworthy Team
-Noteworthy's development is sponsored by Decentralabs LLC, a Wyoming based telecommuniations research and development firm that specializes in the development of open source telecommunications systems and next-generation digital infrastructure solutions.
-
-Contributions to this project are welcomed and encouraged!
+Noteworthy's PoC development was sponsored by Decentralabs LLC, a Wyoming based telecommuniations research and development firm that specialized in the development of open source telecommunications systems and next-generation digital infrastructure solutions.
 
 Contact us on Matrix - #noteworthy:tincan.community
 
