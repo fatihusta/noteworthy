@@ -1,7 +1,7 @@
 # Overview
-This repository contains the proof-of-concept implementation that preceeded the upcoming Noteworthy Architechture and Noteworthy Meta-Protocols.
+This repository contains the proof-of-concept implementation that preceded the upcoming Noteworthy Architecture and Noteworthy Meta-Protocols.
 
-The Noteworthy Architechture makes it easy to self-host services on-prem by transparently proxying encrypted traffic through a publically accessible host. Nginx serves as the reverse proxy and WireGuard is utilized for secure tunneling between on-prem systems and the publically accessible host. TLS is terminated on-prem. The reference implementation in this repository is considered experimental and is not recommened for production use cases. The secure tunnel capabilites provided are similar to ngrok, PageKite, Inlets or Argo Tunnels. There is also support for a one-click deployment of a federation capable Matrix homeserver. 
+The Noteworthy Architecture makes it easy to self-host services on-prem by transparently proxying encrypted traffic through a publically accessible host. Nginx serves as the reverse proxy and WireGuard is utilized for secure tunneling between on-prem systems and the publically accessible host. TLS is terminated on-prem. The reference implementation in this repository is considered experimental and is not recommended for production use cases. The secure tunnel capabilities provided are similar to ngrok, PageKite, Inlets or Argo Tunnels. There is also support for a one-click deployment of a federation capable Matrix homeserver. 
 
 # Getting Started
 Docker is the only requirement to get started with Noteworthy.
@@ -61,7 +61,7 @@ $ notectl --help
 You can now modify code in this repo on your host system to experiment with making changes to the Noteworthy PoC without needing to rebuild the container for every change.
 
 # Noteworthy Team
-Noteworthy's PoC development was sponsored by Decentralabs LLC, a Wyoming based telecommuniations research and development firm that specialized in the development of open source telecommunications systems and next-generation digital infrastructure solutions.
+Noteworthy's PoC development was sponsored by Decentralabs LLC, a Wyoming based telecommunications research and development firm that specialized in the development of open source telecommunications systems and next-generation digital infrastructure solutions.
 
 Contact us on Matrix - #noteworthy:tincan.community
 
