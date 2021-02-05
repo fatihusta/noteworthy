@@ -40,11 +40,14 @@ notectl() {
 	docker run --rm -it -v "/var/run/docker.sock:/var/run/docker.sock" decentralabs/noteworthy:taproot-beta "$@";
 }
 ```
-Launch a Matrix Server(Synapse) and make it publically accessible: 
+
+Launch a Matrix Server(Synapse) and make it publically accessible.
+Make sure `matrix.example.com` DNS points to the same IP as `hub.example.com` before running this command.
 ```
-notectl install matrix
+notectl install matrix --server-name matrix.example.com
 notectl link --container-id <matrix-container-id> --fqdn matrix.example.com --hub-fqdn hub.example.com --port 8008 https
 ```
+
 You will be prompted to enter the invite code you generated on the hub with the `notectl invite` command above.
 
 The link command above can be used to make any container available to the public internet by passing the container id and specifying the fqdn, hub-fqdn and internal port as show above.
