@@ -10,23 +10,23 @@ ARG RELEASE_TAG
 ARG GIT_COMMIT
 ADD bin/wireguard-go /usr/bin/wireguard-go
 ADD requirements.base.txt /opt/noteworthy
-RUN  pip install -r /opt/noteworthy/requirements.base.txt;
+#RUN  pip install -r /opt/noteworthy/requirements.base.txt;
 
 ADD procz /opt/noteworthy/procz
-RUN cd /opt/noteworthy/procz; python setup.py install;
+RUN cd /opt/noteworthy/procz; pip install .;
 
 ADD matrixbz /opt/noteworthy/matrixbz
-RUN cd /opt/noteworthy/matrixbz; python setup.py install;
+RUN cd /opt/noteworthy/matrixbz; pip install .;
 
 ADD grpcz /opt/noteworthy/grpcz
-RUN cd /opt/noteworthy/grpcz; python setup.py install;
+RUN cd /opt/noteworthy/grpcz; pip install .;
 
 ADD clicz /opt/noteworthy/clicz
-RUN cd /opt/noteworthy/clicz; python setup.py install;
+RUN cd /opt/noteworthy/clicz; pip install .;
 
 ADD setup.py /opt/noteworthy/
 ADD noteworthy /opt/noteworthy/noteworthy
-RUN cd /opt/noteworthy; python setup.py install;
+RUN cd /opt/noteworthy; pip install .;
 
 ADD plugins/install-release-plugins.sh /opt/noteworthy/plugins
 ADD plugins/reservation_client /opt/noteworthy/plugins/reservation_client
@@ -49,13 +49,13 @@ RUN cd /opt/noteworthy/plugins; ./install-release-plugins.sh migration
 
 
 ADD applications/messenger /opt/noteworthy/applications/messenger
-RUN cd /opt/noteworthy/applications/messenger; rm -rf build/ dist/; python setup.py install;
+RUN cd /opt/noteworthy/applications/messenger; rm -rf build/ dist/; pip install .;
 
 ADD applications/launcher /opt/noteworthy/applications/launcher
-RUN cd /opt/noteworthy/applications/launcher; rm -rf build/ dist/; python setup.py install;
+RUN cd /opt/noteworthy/applications/launcher; rm -rf build/ dist/; pip install .;
 
 ADD applications/vpn /opt/noteworthy/applications/vpn
-RUN cd /opt/noteworthy/applications/vpn; rm -rf build/ dist/; python setup.py install;
+RUN cd /opt/noteworthy/applications/vpn; rm -rf build/ dist/; pip install .;
 
 ADD plugins/link /opt/noteworthy/plugins/link
 RUN cd /opt/noteworthy/plugins; ./install-release-plugins.sh link
