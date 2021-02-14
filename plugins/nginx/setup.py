@@ -8,6 +8,6 @@ setup(name='noteworthy-nginx',
       entry_points={'notectl.plugins':  'nginx = noteworthy.nginx'},
       # namespace packages wont work without zip_safe=False
       zip_safe=False,
-      install_requires=['certbot', 'certbot-nginx'],
+      install_requires=['certbot-nginx'],
       include_package_data=True
       )

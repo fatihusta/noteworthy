@@ -143,6 +143,7 @@ class NginxController(NoteworthyPlugin):
         self._get_letsencrypt_cert(domains_str)
         self._install_letsencrypt_cert(domains[0])
         os.system(f'cp -r {self.letsencrypt_dir}/* {self.letsencrypt_bk}')
+        os.system(f'cp -r {self.nginx_sites_enabled}/* {self.sites_dir}')
         os.system(f'cp {self.nginx_config_path} {self.config_dir}')
         os.system(f'touch {self.tls_success_file}')
 
