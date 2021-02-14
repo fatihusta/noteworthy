@@ -36,7 +36,7 @@ docker-push:
 	docker push decentralabs/noteworthy:$(ROLE)-$(RELEASE_TAG) ;
 	docker push decentralabs/noteworthy:$(ROLE)-$(RELEASE_TAG)-$(GIT_COMMIT) ;
 
-.dev-last-build: requirements.base.txt requirements.dev.txt
+.dev-last-build: requirements.dev.txt
 	docker build -t noteworthy:dev -f Dockerfile.dev . ;
 	echo $(shell date) > .dev-last-build ;
 

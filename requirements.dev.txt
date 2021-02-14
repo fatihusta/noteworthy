@@ -1,6 +1,6 @@
--r requirements.base.txt
+#-r requirements.base.txt
 # dev reqs
-ipython==7.13.0
-twine==3.1.1
-pytest==5.4.1
-pytest-django==3.9.0
+ipython
+twine
+pytest
+pytest-django

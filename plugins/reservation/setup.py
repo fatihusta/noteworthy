@@ -8,5 +8,5 @@ setup(name='noteworthy-reservation',
       entry_points={'notectl.plugins':  'reservation = noteworthy.reservation'},
       # namespace packages wont work without zip_safe=False
       zip_safe=False,
-      install_requires=[]
+      install_requires=['better_profanity', 'django']
       )

@@ -11,6 +11,7 @@ setup(name='noteworthy',
           ],
           'notectl.entrypoint': 'notectl = noteworthy.notectl'
       },
+      install_requires=['PyYAML'],
       # namespace packages wont work without zip_safe=False
       zip_safe=False
       )

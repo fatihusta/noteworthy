@@ -8,5 +8,5 @@ setup(name='noteworthy-http-service',
       entry_points={'notectl.plugins':  'http_service = noteworthy.http_service'},
       # namespace packages wont work without zip_safe=False
       zip_safe=False,
-      install_requires=[]
+      install_requires=['django']
       )

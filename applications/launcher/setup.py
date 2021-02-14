@@ -8,6 +8,6 @@ setup(name='noteworthy-launcher',
       entry_points={'notectl.plugins':  'launcher = noteworthy.launcher'},
       # namespace packages wont work without zip_safe=False
       zip_safe=False,
-      install_requires=[],
+      install_requires=['dockerpty', 'jinja2'],
       include_package_data=True
       )
