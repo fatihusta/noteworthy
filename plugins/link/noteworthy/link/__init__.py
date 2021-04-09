@@ -3,7 +3,6 @@ from clicz import cli_method
 import docker
 
 from noteworthy.notectl.plugins import NoteworthyPlugin
-from noteworthy.reservation_client import ReservationController
 
 
 class LinkController(NoteworthyPlugin):
